@@ -1,0 +1,20 @@
+[project]
+name = "nbadraft"
+version = "0.1.0"
+description = "Redo the last 20 NBA drafts with TabFM, scored on 5-season RAPTOR-style WAR"
+requires-python = ">=3.11"
+dependencies = [
+    "tabfm[pytorch]",
+    "pandas",
+    "numpy",
+    "pyarrow",
+    "requests",
+    "lxml",
+    "scikit-learn",
+    "scipy",
+    "lightgbm",
+    "huggingface_hub",
+]
+
+[tool.setuptools]
+packages = ["nbadraft"]
