@@ -1,0 +1,684 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DraftDB — The Model The Draft Runs On</title>
+<meta name="description" content="Draft projection built on 20 seasons of outcomes: 4-season VORP tiers, calibrated hit rates, purpose-built for front-office decisions.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Pixel&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fragment+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+
+<!-- ===== shared: announcement + nav ===== -->
+<div class="announce" role="region" aria-label="Announcement">
+  <span class="chip">Announcement</span>
+  <span class="announce__text">DraftDB 2026 class projections are live.</span>
+  <a class="announce__link" href="index.html#model">View methodology &#8599;</a>
+</div>
+
+<header class="nav" id="top">
+  <div class="nav__inner">
+    <a class="nav__logo" href="index.html" aria-label="DraftDB home">
+      <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true" focusable="false">
+        <!-- 4-cell pixel mark: two solid squares + two stepped quarter cells -->
+        <rect x="2" y="2" width="16" height="16" fill="#fff"/>
+        <path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/>
+        <path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/>
+        <rect x="22" y="22" width="16" height="16" fill="#fff"/>
+        <rect x="18" y="18" width="4" height="4" fill="#ff571a"/>
+      </svg>
+      <span class="wordmark">DraftDB</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="index.html#model">Model</a>
+      <a href="index.html#backtests">Backtests</a>
+      <a href="compare.html">Compare</a>
+      <a href="index.html#use-cases">Use Cases</a>
+      <a href="index.html#pricing">Pricing</a>
+      <a href="index.html#docs">Documentation</a>
+    </nav>
+    <button class="nav__menu-btn" type="button" aria-controls="primary-links" aria-expanded="false"><span class="m">Menu</span><span class="x">Close</span></button>
+    <div class="nav__actions btn-group">
+      <a class="btn btn--dark btn--sm" href="#">Log In</a>
+      <a class="btn btn--primary btn--sm" href="#">Sign Up</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- ============ 6.3 HERO ============ -->
+  <section class="hero" aria-label="Intro">
+    <div class="hero__inner">
+      <div class="hero__copy">
+        <a class="link-arrow hero__kicker" href="compare.html">Player comparison now live: 2026 class, combine, and NCAA splits <span class="arr">&rarr;</span></a>
+        <h1 class="h-hero hero__title" data-decode data-decode-delay="120">The Model The Draft Runs On.</h1>
+        <p class="lead hero__lead hero__lead--1">Draft projection built on 20 seasons of outcomes: 4-season VORP tiers, calibrated hit rates, and purpose-built for front-office decisions.</p>
+        <p class="lead hero__lead hero__lead--2">Build draft boards, trade-value models, player comparisons, and scouting memos.</p>
+        <div class="btn-group hero__cta">
+          <a class="btn btn--primary" href="#contact">Talk to us</a>
+          <a class="btn btn--accent" href="#pricing">Sign Up</a>
+        </div>
+      </div>
+      <div class="hero__canvas-wrap" aria-hidden="true">
+        <canvas class="dendrite hero__canvas" data-dendrite data-markers="2" data-x="0.56" data-trunk-width="4" data-density="0.75" data-growth="6000" width="920" height="500"></canvas>
+      </div>
+    </div>
+    <span class="accent-line hero__line" aria-hidden="true"></span>
+  </section>
+
+  <!-- ============ 6.4 LOGO TICKER + RAISED LINE ============ -->
+  <section class="ticker" aria-label="Teams and labs using DraftDB">
+    <div class="marquee ticker__marquee" data-marquee="35s">
+      <div class="marquee__item logo logo--pixel">Hooplabs</div>
+      <div class="marquee__item logo logo--caps">BACKCOURT</div>
+      <div class="marquee__item logo logo--mono">Rim Rate</div>
+      <div class="marquee__item logo logo--bold">Pace<span class="t-accent">&amp;</span>Space</div>
+      <div class="marquee__item logo logo--mono-sm">boxscore.ai</div>
+      <div class="marquee__item logo logo--pixel">Lottery Labs</div>
+      <div class="marquee__item logo logo--italic">Fastbreak</div>
+      <div class="marquee__item logo logo--mono">Pick+Roll</div>
+      <div class="marquee__item logo logo--medium">Combine.io</div>
+    </div>
+  </section>
+
+  <section class="raised reveal">
+    <div class="raised__title"><span class="sq" aria-hidden="true"></span><span>20 Seasons Modeled</span><span class="sq" aria-hidden="true"></span></div>
+    <div class="divider-list raised__list">
+      <span>Trained 2000&ndash;2019</span>
+      <span>Holdout 2020&ndash;2022</span>
+      <span>4-Season VORP Tiers</span>
+      <span class="muted">and more</span>
+    </div>
+  </section>
+
+  <!-- ============ 6.5 STATS ROW ============ -->
+  <section class="stats frame" aria-label="Key numbers">
+    <div class="container">
+      <div class="stats__row grid-4 grid--lines">
+        <div class="stat corner-tl corner-bl">
+          <div class="stat__value" data-roll data-roll-trigger="manual">71.4%</div>
+          <div class="stat__label">Tier-1 Hit Rate (Holdout)</div>
+        </div>
+        <div class="stat corner-tl corner-bl">
+          <div class="stat__value" data-roll data-roll-trigger="manual">88%</div>
+          <div class="stat__label">Lottery Tier Precision</div>
+        </div>
+        <div class="stat stat--right corner-tr corner-br">
+          <div class="stat__value" data-roll data-roll-trigger="manual">&gt;2.1x</div>
+          <div class="stat__label">Lift vs Consensus Boards</div>
+        </div>
+        <div class="stat stat--right corner-tr corner-br">
+          <div class="stat__value" data-roll data-roll-trigger="manual">1.2K</div>
+          <div class="stat__label">Prospects Scored</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6.6 USE CASES ============ -->
+  <section class="usecases" id="use-cases">
+    <div class="usecases__head">
+      <div class="container reveal">
+        <div class="eyebrow">// Use Cases //</div>
+        <h2 class="h2 usecases__title">What Front Offices Are<br> Building With DraftDB</h2>
+      </div>
+    </div>
+    <div class="usecases__body frame">
+      <div class="container usecases__grid">
+        <div class="acc usecases__acc reveal" data-accordion aria-label="Use cases">
+          <div class="acc__item is-active">
+            <button class="acc__head" type="button"><span><span class="acc__num">01</span>Draft Boards</span></button>
+            <div class="acc__body"><div><div class="acc__content">Build in-house boards. With your priors, for your roster.</div></div></div>
+          </div>
+          <div class="acc__item">
+            <button class="acc__head" type="button"><span><span class="acc__num">02</span>Player Comparison</span></button>
+            <div class="acc__body"><div><div class="acc__content">Side-by-side radar, rates and model verdicts for any two prospects.</div></div></div>
+          </div>
+          <div class="acc__item">
+            <button class="acc__head" type="button"><span><span class="acc__num">03</span>Trade Value</span></button>
+            <div class="acc__body"><div><div class="acc__content">Price picks and players on the same 4-season value scale.</div></div></div>
+          </div>
+          <div class="acc__item">
+            <button class="acc__head" type="button"><span><span class="acc__num">04</span>Scouting Memos</span></button>
+            <div class="acc__body"><div><div class="acc__content">Generate memos grounded in the model's feature attributions.</div></div></div>
+          </div>
+          <div class="acc__item">
+            <button class="acc__head" type="button"><span><span class="acc__num">05</span>Cap Planning</span></button>
+            <div class="acc__body"><div><div class="acc__content">Project roster value against the cap three seasons out.</div></div></div>
+          </div>
+        </div>
+        <aside class="usecases__side reveal-stagger">
+          <div class="usecases__side-head">
+            <h3 class="h3">Own Your Draft Model. No Consensus Bias. No Data Leaving Your Building.</h3>
+          </div>
+          <div class="usecases__row">
+            <span class="icon-box" aria-hidden="true"><svg viewBox="0 0 14 14" fill="#000"><rect x="1" y="1" width="3" height="3"/><rect x="1" y="6" width="3" height="3"/><rect x="5" y="4" width="2" height="2"/><rect x="7" y="6" width="2" height="2"/><rect x="9" y="4" width="2" height="2"/><rect x="11" y="2" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="7" y="11" width="6" height="2"/></svg></span>
+            <p>VORP-tier labels project 4-season value better than raw box scores.</p>
+          </div>
+          <div class="usecases__row">
+            <span class="icon-box" aria-hidden="true"><svg viewBox="0 0 14 14" fill="#000"><rect x="1" y="1" width="3" height="3"/><rect x="1" y="6" width="3" height="3"/><rect x="5" y="4" width="2" height="2"/><rect x="7" y="6" width="2" height="2"/><rect x="9" y="4" width="2" height="2"/><rect x="11" y="2" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="7" y="11" width="6" height="2"/></svg></span>
+            <p>Season-by-season versioning recalls what the board said at any point in the cycle.</p>
+          </div>
+          <div class="usecases__row">
+            <span class="icon-box" aria-hidden="true"><svg viewBox="0 0 14 14" fill="#000"><rect x="1" y="1" width="3" height="3"/><rect x="1" y="6" width="3" height="3"/><rect x="5" y="4" width="2" height="2"/><rect x="7" y="6" width="2" height="2"/><rect x="9" y="4" width="2" height="2"/><rect x="11" y="2" width="2" height="2"/><rect x="5" y="9" width="2" height="2"/><rect x="7" y="11" width="6" height="2"/></svg></span>
+            <p>Entity resolution across NCAA, G League, and international logs prevents duplicate prospect records.</p>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <div class="usecases__tail"></div>
+  </section>
+
+  <!-- ============ 6.7 WHITE: CONSENSUS ISN'T ALWAYS VALUE ============ -->
+  <span class="accent-line accent-line--notch" aria-hidden="true"></span>
+  <section class="why section--light" id="why">
+    <div class="why__inner wrap-edge">
+      <div class="why__copy reveal">
+        <h2 class="h2 why__title">Consensus Isn't Always Value.</h2>
+        <p class="why__p">Mock drafts often rank what's popular and not what's productive.</p>
+        <p class="why__p">DraftDB connects college production, athletic testing, and age curves into a structured projection, and delivers the exact tier a prospect is likely to reach.</p>
+        <p class="why__p">Outcome-first, age-aware, era-adjusted, calibrated recall.</p>
+      </div>
+      <div class="why__table reveal">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th class="cmp__h cmp__h--black" scope="col">Without a Model</th>
+              <th class="cmp__h cmp__h--accent" scope="col">With DraftDB</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Rank by hype &ne; rank by value</td><td>Make picks with calibrated 4-season value tiers.</td></tr>
+            <tr><td>Missed relationships between age, usage, and efficiency</td><td>Get a complete structured view of every prospect.</td></tr>
+            <tr><td>Lost context: combine, injuries, role changes across seasons</td><td>Personalize boards powered by what your scouts have already graded.</td></tr>
+            <tr><td>Juggling spreadsheets, clip tools, and mock aggregators across pipelines</td><td>One unified layer combining production, athleticism, and outcomes.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  <span class="accent-line accent-line--notch" aria-hidden="true"></span>
+
+  <!-- ============ 6.8 FEATURES 2x2 ============ -->
+  <section class="features" id="features">
+    <div class="features__head reveal">
+      <h2 class="h2 h2--lg t-center">Everything You Need To<br> Draft With Confidence</h2>
+    </div>
+    <div class="features__band frame">
+      <div class="container features__grid">
+        <!-- 1 -->
+        <div class="feat feat--1 reveal">
+          <h3 class="h3 feat__title">High Hit<br> Rate</h3>
+          <p class="feat__p">Learn how we lead on 2020&ndash;2022 holdout classes, lottery through second round.</p>
+          <div class="stripes" aria-label="71.4% hit rate">
+            <div class="stripes__inner">
+              <div class="stripes__num num num--88" data-roll data-roll-trigger="manual">71.4%</div>
+              <div class="stripes__label">Hit Rate</div>
+            </div>
+          </div>
+        </div>
+        <!-- 2 -->
+        <div class="feat feat--2 reveal">
+          <h3 class="h3 feat__title">Scales With<br> Your Pipeline</h3>
+          <p class="feat__p">Designed for the full cycle using tiered inputs: NCAA game logs, combine testing, and pro outcomes. Context moves fluidly between stages.</p>
+          <div class="pipe" aria-hidden="true">
+            <span class="pipe__line"></span>
+            <span class="pipe__sq pipe__sq--l"></span>
+            <span class="pipe__sq pipe__sq--r"></span>
+            <div class="pipe__box">
+              <div class="pipe__label">NCAA -&gt; Combine -&gt; Pro</div>
+              <div class="pipe__nodes">
+                <div class="pipe__node"><span class="pipe__diamond"></span><span class="pipe__text">Production</span></div>
+                <div class="pipe__node"><span class="pipe__diamond"></span><span class="pipe__text">Athleticism</span></div>
+                <div class="pipe__node pipe__node--fill"><span class="pipe__diamond"></span><span class="pipe__text">Projection</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="features__gap"></div>
+    <div class="features__band frame">
+      <div class="container features__grid">
+        <!-- 3 -->
+        <div class="feat feat--3 reveal">
+          <h3 class="h3 feat__title">Track<br> Everything</h3>
+          <p class="feat__p">Assemble context from box scores, tracking data, medicals, interviews. Remember scout grades while projecting.</p>
+          <div class="pill-row feat__chips">
+            <span class="chip chip--outline chip--lg">Data</span>
+            <span class="chip chip--outline chip--lg">Film</span>
+            <span class="chip chip--outline chip--lg">Grades</span>
+          </div>
+        </div>
+        <!-- 4 -->
+        <div class="feat feat--4 reveal">
+          <h3 class="h3 feat__title">Built For<br> Draft Night</h3>
+          <p class="feat__p feat__p--wide">Built for live draft rooms &mdash; so you can re-rank the board in real time as picks come off.</p>
+          <div class="latency-num pixel">&lt; 200ms</div>
+          <div class="latency" aria-hidden="true">
+            <div class="lat lat--accent"><span></span></div>
+            <div class="lat lat--white"><span></span></div>
+            <div class="lat lat--yellow"><span></span></div>
+            <div class="lat lat--white2"><span></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6.9 CHART SECTION ============ -->
+  <span class="accent-line" aria-hidden="true"></span>
+  <section class="chart-sec">
+    <div class="chart-sec__inner wrap-edge">
+      <div class="chart-sec__copy reveal">
+        <h2 class="h2">Consensus Degradation As A<br> Bottleneck</h2>
+        <ul class="bullets">
+          <li>Mock drafts hit a hard ceiling once you leave the top five</li>
+          <li>Consensus boards are static by design, cannot adapt to your roster</li>
+          <li>Current stacks are stitched spreadsheets, clip tools, and gut feel; hard to maintain, harder to audit</li>
+        </ul>
+      </div>
+      <div class="chart-card reveal" id="chart-card">
+        <div class="chart-card__head">Hit rate vs pick number</div>
+        <div class="chart-card__body">
+          <svg class="chart" id="hitchart" viewBox="0 0 600 385" role="img" aria-label="Line chart: DraftDB hit rate stays at 71.4% by pick 60 while consensus falls to 49% and team boards to 38%."></svg>
+        </div>
+        <div class="chart-card__legend">
+          <span><i class="lg lg--accent"></i>DraftDB</span>
+          <span><i class="lg lg--white"></i>Consensus</span>
+          <span><i class="lg lg--yellow"></i>Team Boards</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6.10 ORANGE BLOCK + TREE ============ -->
+  <section class="native frame">
+    <div class="container native__grid">
+      <div class="native__tree" aria-hidden="true">
+        <canvas class="dendrite native__canvas" data-dendrite data-markers="2" data-x="0.5" data-trunk-width="4" data-density="0.8" data-growth="1200" width="300" height="400"></canvas>
+      </div>
+      <div class="native__copy reveal">
+        <h2 class="h2 h2--md">Outcome Native Draft<br> Infrastructure For<br> Front Offices</h2>
+        <div class="orange-block native__block">Purpose-Built To Deliver Calibrated Tiers &amp; Observability Into Why Prospects Hit Or Miss.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6.11 HEXAGON STATS ============ -->
+  <section class="hexband" aria-label="DraftDB by the numbers">
+    <span class="hexband__dot hexband__dot--tl" aria-hidden="true"></span>
+    <span class="hexband__dot hexband__dot--tr" aria-hidden="true"></span>
+    <span class="hexband__dot hexband__dot--bl" aria-hidden="true"></span>
+    <span class="hexband__dot hexband__dot--br" aria-hidden="true"></span>
+    <div class="hexband__hex" aria-hidden="true">
+      <svg class="hexes" viewBox="-500 -500 1000 1000" preserveAspectRatio="xMidYMid meet">
+        <g class="hexes__g" id="hexes"></g>
+      </svg>
+    </div>
+    <div class="hexband__logo" aria-hidden="true">
+      <svg viewBox="0 0 40 40" width="160" height="160">
+        <rect x="2" y="2" width="16" height="16" fill="#fff"/>
+        <path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/>
+        <path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/>
+        <rect x="22" y="22" width="16" height="16" fill="#fff"/>
+      </svg>
+    </div>
+    <div class="callout callout--tl reveal">
+      <span class="callout__mark" aria-hidden="true"></span>
+      <div class="callout__label">Seasons modeled</div>
+      <div class="callout__value">20+</div>
+    </div>
+    <div class="callout callout--bl reveal">
+      <span class="callout__mark" aria-hidden="true"></span>
+      <div class="callout__label">Tier accuracy</div>
+      <div class="callout__value">71%</div>
+    </div>
+    <div class="callout callout--tr callout--right reveal">
+      <span class="callout__mark" aria-hidden="true"></span>
+      <div class="callout__label">Prospects scored</div>
+      <div class="callout__value">1.2K</div>
+    </div>
+    <div class="callout callout--br callout--right reveal">
+      <span class="callout__mark" aria-hidden="true"></span>
+      <div class="callout__label">Trusted by</div>
+      <div class="callout__value">30 front offices</div>
+    </div>
+  </section>
+  <span class="accent-line" aria-hidden="true"></span>
+
+  <!-- ============ 6.12 MODEL OVERVIEW ============ -->
+  <section class="model" id="model">
+    <div class="container">
+      <h2 class="h2 h2--lg t-center reveal">Model Overview</h2>
+
+      <!-- Box 1: orchestration -->
+      <div class="orch reveal">
+        <div class="orch__title">Orchestration around the projection core</div>
+        <div class="orch__flow">
+          <div class="node node--user">User</div>
+          <svg class="farrow" viewBox="0 0 40 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6"/><path d="M30 1.5 35 6l-5 4.5" fill="none"/></svg>
+          <div class="node node--req">
+            <div class="node__t">Request Understanding</div>
+            <div class="node__d">routing &middot; entity extraction &middot; query rewrite &middot; era flags</div>
+          </div>
+          <svg class="farrow" viewBox="0 0 40 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6"/><path d="M30 1.5 35 6l-5 4.5" fill="none"/></svg>
+          <div class="node node--orch">
+            <div class="node__t">Projection Orchestrator</div>
+            <div class="node__d">tier reads / writes</div>
+          </div>
+          <svg class="farrow" viewBox="0 0 40 12" aria-hidden="true"><line x1="0" y1="6" x2="32" y2="6"/><path d="M30 1.5 35 6l-5 4.5" fill="none"/></svg>
+          <div class="orch__stack">
+            <div class="node node--dash"><div class="node__t">Play-by-play (Plugin)</div><div class="node__d">tracking + lineups + on/off</div></div>
+            <div class="node node--dash"><div class="node__t">Connectors (Plugin)</div><div class="node__d">40+ sources: NCAA, G League, EuroLeague</div></div>
+            <div class="node node--dash"><div class="node__t">Filters (Plugin)</div><div class="node__d">age / role / era</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="darrow-row darrow-row--single" aria-hidden="true">
+        <svg class="darrow" viewBox="0 0 12 40"><line x1="6" y1="0" x2="6" y2="32"/><path d="M1.5 30 6 35l4.5-5" fill="none"/></svg>
+      </div>
+
+      <!-- Box 2: the core -->
+      <div class="core reveal">
+        <div class="core__title">The Projection Core</div>
+        <div class="core__sub">Extremely fast, era-adjusted, and built on 20 seasons of outcomes</div>
+
+        <div class="ns">
+          <div class="ns__title"><span class="ns__k">CLASS</span> &mdash; draft-year isolation, auto-recalibrated</div>
+          <div class="ns__nodes">
+            <div class="ns__node">
+              <div class="ns__t">Feature Node</div>
+              <div class="ns__d">box scores &rarr; rates + age curves</div>
+            </div>
+            <div class="ns__node">
+              <div class="ns__t">Model Node</div>
+              <div class="ns__d">reads features &rarr; gradient-boosted tiers</div>
+            </div>
+            <div class="ns__node">
+              <div class="ns__t">Reader Node</div>
+              <div class="ns__d">queries &rarr; tiers + pending games = strongly consistent</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="darrow-row darrow-row--three" aria-hidden="true">
+          <svg class="darrow" viewBox="0 0 12 40"><line x1="6" y1="0" x2="6" y2="32"/><path d="M1.5 30 6 35l4.5-5" fill="none"/></svg>
+          <svg class="darrow" viewBox="0 0 12 40"><line x1="6" y1="0" x2="6" y2="32"/><path d="M1.5 30 6 35l4.5-5" fill="none"/></svg>
+          <svg class="darrow" viewBox="0 0 12 40"><line x1="6" y1="0" x2="6" y2="32"/><path d="M1.5 30 6 35l4.5-5" fill="none"/></svg>
+        </div>
+
+        <div class="storage">
+          <div class="storage__head">
+            <span class="storage__title">Unified Storage</span>
+            <span class="storage__meta">parquet &middot; object-storage native</span>
+          </div>
+          <div class="storage__chips">
+            <span class="chip chip--panel">class/data/logs</span>
+            <span class="chip chip--panel">class/data/combine</span>
+            <span class="chip chip--panel">class/features</span>
+            <span class="chip chip--panel">class/manifest.json</span>
+          </div>
+          <div class="storage__rule"></div>
+          <div class="label storage__label">Tiered &middot; context flows across stages on demand</div>
+          <div class="tiers">
+            <div class="tier tier--hot">
+              <div class="tier__t">Hot</div>
+              <div class="tier__d">live season</div>
+            </div>
+            <span class="tier__arrow" aria-hidden="true">&rarr;</span>
+            <div class="tier tier--warm">
+              <div class="tier__t">Warm</div>
+              <div class="tier__d">prior 3 seasons</div>
+            </div>
+            <span class="tier__arrow" aria-hidden="true">&rarr;</span>
+            <div class="tier tier--cold">
+              <div class="tier__t">Cold</div>
+              <div class="tier__d">2000&ndash;2019 archive</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="dbl-line" aria-hidden="true"><span class="accent-line"></span><span class="accent-line"></span></div>
+
+  <!-- ============ 6.13 BENCHMARKS ============ -->
+  <section class="bench" id="backtests">
+    <div class="wrap-edge bench__head">
+      <div class="reveal">
+        <h2 class="h2 h2--lg">State Of The Art On<br> Holdout Classes</h2>
+        <p class="bench__sub">DraftDB outperforms consensus boards on five of six 2020&ndash;2022 holdout categories. Last updated: August 2026</p>
+      </div>
+      <div class="bench__scores reveal-stagger">
+        <div class="score"><div class="score__l">2022 class</div><div class="score__v t-accent" data-roll data-roll-trigger="manual">74.1%</div></div>
+        <div class="score"><div class="score__l">2021 class</div><div class="score__v" data-roll data-roll-trigger="manual">70.2%</div></div>
+        <div class="score"><div class="score__l">2020 class</div><div class="score__v" data-roll data-roll-trigger="manual">69.8%</div></div>
+      </div>
+    </div>
+    <div class="wrap-edge">
+      <div class="bench__hint label" aria-hidden="true">&larr; scroll &rarr;</div>
+      <div class="table-wrap bench__wrap">
+        <table class="btable" id="btable">
+          <thead>
+            <tr>
+              <th scope="col" class="btable__cat">Category</th>
+              <th scope="col" class="btable__us">DraftDB</th>
+              <th scope="col">Consensus</th>
+              <th scope="col">Mock Aggregator</th>
+              <th scope="col">Team Boards</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="btable__cat">Lottery (1&ndash;14)</td><td class="btable__us" data-v="88.00">88.00</td><td data-v="71.40">71.40</td><td data-v="74.10">74.10</td><td data-v="76.20">76.20</td></tr>
+            <tr><td class="btable__cat">Mid-First (15&ndash;30)</td><td class="btable__us" data-v="72.50">72.50</td><td data-v="48.30">48.30</td><td data-v="51.10">51.10</td><td data-v="55.60">55.60</td></tr>
+            <tr><td class="btable__cat">Second Round</td><td class="btable__us" data-v="61.20">61.20</td><td data-v="22.40">22.40</td><td data-v="25.70">25.70</td><td data-v="31.80">31.80</td></tr>
+            <tr><td class="btable__cat">Bust Avoidance</td><td class="btable__us" data-v="83.40">83.40</td><td data-v="58.10">58.10</td><td data-v="60.30">60.30</td><td data-v="64.90">64.90</td></tr>
+            <tr><td class="btable__cat">Star Identification</td><td class="btable__us" data-v="76.90">76.90</td><td data-v="52.20">52.20</td><td data-v="54.80">54.80</td><td data-v="58.70">58.70</td></tr>
+            <tr><td class="btable__cat">Multi-Season Stability</td><td class="btable__us" data-v="79.10">79.10</td><td data-v="44.60">44.60</td><td data-v="47.30">47.30</td><td data-v="50.20">50.20</td></tr>
+            <tr class="btable__overall"><td class="btable__cat">Overall Score</td><td class="btable__us" data-v="71.40">71.40</td><td data-v="49.50">49.50</td><td data-v="52.20">52.20</td><td data-v="56.20">56.20</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6.14 PRICING ============ -->
+  <div class="pricing__gap" aria-hidden="true"></div>
+  <span class="accent-line" aria-hidden="true"></span>
+  <section class="pricing" id="pricing">
+    <div class="pricing__frame">
+      <div class="pricing__head reveal">
+        <h2 class="h2 h2--lg">Pricing</h2>
+        <p class="pricing__sub">Outcome-based pricing with minimum commitment. No per-seat, feature, API limits, or infra caps. Pay for how much context your board consumes.</p>
+      </div>
+      <div class="pricing__rule"></div>
+      <div class="plans reveal-stagger">
+        <div class="plan">
+          <div class="plan__head">
+            <div class="plan__name">Scout</div>
+            <div class="plan__desc">For your first draft board</div>
+          </div>
+          <div class="plan__price"><span class="plan__amt">Free</span></div>
+          <ul class="plan__list">
+            <li>Unlimited boards &amp; classes</li>
+            <li>Multi-user</li>
+            <li>Comparison &amp; radar dashboard</li>
+            <li>Native connectors (coming soon)</li>
+            <li>Community Slack &amp; Email Support</li>
+          </ul>
+          <a class="plan__cta" href="#">Start building</a>
+        </div>
+        <div class="plan">
+          <div class="plan__head">
+            <div class="plan__name">Front Office</div>
+            <div class="plan__desc">For staffs scaling into the cycle</div>
+          </div>
+          <div class="plan__price"><span class="plan__amt">$25/</span><span class="plan__per">month</span></div>
+          <ul class="plan__list">
+            <li>Everything in free, plus:</li>
+            <li>Up to 2 seasons of tracking data</li>
+            <li>Overage at $0.50/GB/mo</li>
+            <li>Private Slack Channel</li>
+            <li>SOC2, GDPR reports, DPA</li>
+          </ul>
+          <a class="plan__cta" href="#">Get started</a>
+        </div>
+        <div class="plan">
+          <div class="plan__head">
+            <div class="plan__name">Franchise</div>
+            <div class="plan__desc">Making your board enterprise-ready</div>
+          </div>
+          <div class="plan__price"><span class="plan__amt">$399/</span><span class="plan__per">month</span></div>
+          <ul class="plan__list">
+            <li>Everything in Front Office, plus:</li>
+            <li>Up to 10 seasons of tracking data</li>
+            <li>Overage at $0.25/GB/mo</li>
+            <li>Dedicated infrastructure for guaranteed throughput</li>
+            <li>Option to self-host (license)</li>
+          </ul>
+          <a class="plan__cta" href="#">Get started</a>
+        </div>
+        <div class="plan">
+          <div class="plan__head">
+            <div class="plan__name">Enterprise</div>
+            <div class="plan__desc">For teams deploying DraftDB in their own VPC</div>
+          </div>
+          <div class="plan__price"><span class="plan__amt">Custom</span></div>
+          <ul class="plan__list">
+            <li>BYOC and fully self-hosted</li>
+            <li>Dedicated account manager</li>
+            <li>Support &amp; Uptime SLAs</li>
+          </ul>
+          <a class="plan__cta" href="#contact">Book a call</a>
+        </div>
+      </div>
+      <div class="pricing__tail"></div>
+    </div>
+  </section>
+
+  <!-- ============ 6.15 FAQ ============ -->
+  <div id="docs">
+  <section class="faq section--light" id="faq">
+    <div class="faq__col">
+      <h2 class="h2 h2--lg t-center faq__title reveal">Frequently Asked<br> Questions</h2>
+      <div class="acc acc--faq faq__acc" data-accordion data-collapsible="true">
+        <div class="acc__item is-active">
+          <button class="acc__head" type="button"><span>What Is DraftDB? How Is It Different From Other Draft Models?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">We are building DraftDB to be the fastest projection layer that acts as the outcome substrate for your draft board. The difference starts at the label. We train on 4-season VORP tiers over 2000&ndash;2019 and test on 2020&ndash;2022 holdout classes, so every number on the board is a calibrated probability, not a ranking. Frequently accessed context stays fast and immediately available. Older classes are archived cheaply without being discarded.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>Who Is DraftDB For?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">Front offices, agencies and analysts who want to build their own boards, trade-value models, and scouting memos on top of a calibrated projection.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>How Long Does Integration Take?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">Under a day for most staffs. Drop in our SDK, ingest your first game logs, and run your first projection in under 10 minutes.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>Do I Need To Replace My Existing Scouting Stack?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">No &mdash; DraftDB is designed to complement your scouts. We handle setup, ingestion, and ongoing recalibration.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>What Data Sources Can I Connect?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">NCAA and international box scores, tracking data, combine testing, medicals, and your own scout grades.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>How Does Pricing Work As I Scale?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">You pay for context stored and projections served. Start free, upgrade when your usage grows.</div></div></div>
+        </div>
+        <div class="acc__item">
+          <button class="acc__head" type="button"><span>Is DraftDB SOC 2 Compliant?</span><span class="acc__icon" aria-hidden="true"></span></button>
+          <div class="acc__body"><div><div class="acc__content">Yes. We are SOC 2 and ISO 27001 certified. Self-hosting is available on the Franchise plan.</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  </div>
+  <div class="dbl-line" aria-hidden="true"><span class="accent-line"></span><span class="accent-line"></span></div>
+
+</main>
+
+<!-- ===== shared: footer ===== -->
+<footer class="footer" id="contact">
+  <div class="frame">
+    <div class="container footer__grid">
+      <div class="footer__main">
+        <div class="footer__brand">
+          <a class="nav__logo" href="index.html" aria-label="DraftDB home">
+            <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true" focusable="false">
+              <rect x="2" y="2" width="16" height="16" fill="#fff"/>
+              <path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/>
+              <path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/>
+              <rect x="22" y="22" width="16" height="16" fill="#fff"/>
+              <rect x="18" y="18" width="4" height="4" fill="#ff571a"/>
+            </svg>
+            <span class="wordmark">DraftDB</span>
+          </a>
+          <p class="footer__tag">Build Boards With Compounding Intelligence</p>
+        </div>
+        <div class="footer__cols">
+          <div class="footer__col">
+            <h4>Home</h4>
+            <a href="index.html#why">Why DraftDB</a>
+            <a href="index.html#features">Features</a>
+            <a href="index.html#model">Model</a>
+            <a href="index.html#pricing">Pricing</a>
+            <a href="index.html#faq">FAQs</a>
+            <a href="index.html#contact">Contact</a>
+          </div>
+          <div class="footer__col">
+            <h4>Use Cases</h4>
+            <a href="index.html#use-cases">Draft Boards</a>
+            <a href="compare.html">Player Comparison</a>
+            <a href="index.html#use-cases">Trade Value</a>
+          </div>
+          <div class="footer__col">
+            <h4>Backtests</h4>
+            <a href="index.html#backtests">Main Paper</a>
+            <a href="index.html#backtests">2022 Holdout</a>
+            <a href="index.html#backtests">VORP Tiers</a>
+          </div>
+          <div class="footer__col">
+            <h4>Trust Centre</h4>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms Of Service</a>
+          </div>
+        </div>
+        <div class="footer__bottom-left">
+          <div class="footer__social" aria-label="Social links">
+            <a class="social-sq" href="#" aria-label="X / Twitter">X</a>
+            <a class="social-sq" href="#" aria-label="LinkedIn">in</a>
+            <a class="social-sq" href="#" aria-label="Discord">D</a>
+            <a class="social-sq" href="#" aria-label="GitHub">gh</a>
+          </div>
+          <canvas class="dendrite footer__canvas-bl" data-dendrite data-origin="bottom-left" data-markers="1" data-growth="1200" data-density="1" data-trunk-width="3" data-stretch="1.3" width="270" height="160" aria-hidden="true"></canvas>
+        </div>
+      </div>
+      <div class="footer__side">
+        <div class="footer__side-top">
+          <a href="#">X / Twitter <span class="social-ico">X</span></a>
+          <a href="#">LinkedIn <span class="social-ico">in</span></a>
+          <a href="#">Discord <span class="social-ico">D</span></a>
+        </div>
+        <div class="footer__side-canvas">
+          <canvas class="dendrite footer__canvas-br" data-dendrite data-origin="bottom" data-x="0.55" data-trunks="1" data-markers="2" data-growth="1200" data-density="1.1" data-trunk-width="4" data-stretch="1.2" width="300" height="260" aria-hidden="true"></canvas>
+        </div>
+        <div class="footer__copy">&copy; 2026 DraftDB Labs, Inc</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer__end"></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
+<script src="js/base.js"></script>
+<script src="js/home.js"></script>
+</body>
+</html>

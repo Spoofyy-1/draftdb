@@ -1,0 +1,338 @@
+/* ==========================================================================
+   DraftDB — compare.css  (Player Comparison page)
+   Depends on css/base.css tokens + chrome. Page-specific only.
+   ========================================================================== */
+
+:root{
+  --dash:rgba(255,255,255,.28);     /* dashed dividers inside the card */
+  --ring-a:#161819;                 /* radar target rings (alternating) */
+  --ring-b:#1c1e1f;
+  --track:#2a2c2d;                  /* bar track */
+}
+.t-yellow{color:var(--yellow)}
+.t-green{color:var(--green)}
+.t-red{color:var(--red)}
+.t-cyan{color:var(--cyan)}
+
+/* ---------- 1. Toolbar ---------- */
+.cmp-toolbar{background:var(--panel);border-bottom:1px solid var(--line)}
+.cmp-toolbar__inner{
+  display:flex;align-items:center;justify-content:space-between;gap:24px 32px;
+  min-height:104px;padding-top:22px;padding-bottom:22px;
+}
+.cmp-toolbar__eyebrow{font-family:var(--font-pixel);font-weight:400;font-size:14px;line-height:1.2;color:var(--accent)}
+.cmp-toolbar__title{
+  font-family:var(--font-pixel);font-weight:400;font-size:28px;line-height:1.1;letter-spacing:0;
+  text-transform:uppercase;color:#fff;margin-top:8px;
+}
+.cmp-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+
+/* styled select: bg black, hairline border, Inter 13px, "▾" glyph */
+.sel{
+  position:relative;display:inline-flex;align-items:center;height:36px;
+  background:#000;border:1px solid var(--line);font-size:13px;color:#fff;cursor:pointer;
+  transition:border-color .3s var(--ease-io),background-color .3s var(--ease-io);
+}
+.sel:hover{border-color:rgba(255,255,255,.35)}
+.sel:focus-within{border-color:var(--accent)}
+.sel__key{padding-left:12px;color:var(--text-4);white-space:nowrap;pointer-events:none;line-height:1}
+.sel select{
+  -webkit-appearance:none;appearance:none;height:34px;padding:0 30px 0 6px;
+  font-family:var(--font-sans);font-size:13px;font-weight:500;color:#fff;background:transparent;
+  cursor:pointer;outline:0;border-radius:0;
+}
+.sel select option{background:#0f1112;color:#fff}
+.sel::after{
+  /* caret drawn as a CSS triangle (U+25BE is not in Inter and falls back to a tiny glyph) */
+  content:"";position:absolute;right:11px;top:50%;transform:translateY(-40%);
+  width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid var(--text-3);
+  pointer-events:none;transition:border-top-color .3s var(--ease-io);
+}
+.sel:hover::after{border-top-color:#fff}
+.cmp-swap{gap:8px}
+.cmp-swap__ico{transition:transform .5s var(--ease-out)}
+.cmp-swap:hover .cmp-swap__ico{transform:rotate(180deg)}
+.cmp-swap.is-busy{pointer-events:none}
+.cmp-swap.is-busy .cmp-swap__ico{transform:rotate(180deg)}
+.tag{
+  display:inline-flex;align-items:center;height:24px;padding:0 8px;margin-left:4px;
+  border:1px solid var(--line);font-family:var(--font-mono);font-size:10px;line-height:1;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);white-space:nowrap;
+}
+
+/* ---------- 2. Card frame ---------- */
+.cmp-section{padding:48px 0 72px}
+.cmp-card{position:relative;background:var(--panel);border:1px solid var(--line)}
+.cmp-card__head{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  height:44px;padding:0 20px 0 28px;border-bottom:1px solid var(--line);
+}
+.cmp-card__meta{display:inline-flex;align-items:center;gap:10px;min-width:0;white-space:nowrap;overflow:hidden}
+.cmp-card__meta .label{white-space:nowrap;flex:0 0 auto}
+/* the trailing label gives way first (ellipsis, never a raw cut) if the strip ever runs out of room */
+.cmp-card__meta .label:last-child{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.cmp-card__sep{color:var(--line-strong);font-family:var(--font-mono);font-size:11px;line-height:1}
+.cmp-brand{display:inline-flex;align-items:center;gap:8px;flex:none}
+.cmp-brand__name{font-family:var(--font-sans);font-weight:600;font-size:14px;line-height:1;color:#fff}
+.cmp-brand__net{font-family:var(--font-mono);font-size:10px;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);padding-top:1px}
+
+.cmp-body{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:200px;overflow:hidden}
+/* vertical dashed divider — height is driven inline by JS (0 → 100%) so the draw always transitions */
+.cmp-divider{
+  position:absolute;left:50%;top:0;width:0;height:100%;
+  border-left:1px dashed var(--dash);pointer-events:none;z-index:2;
+  transform:translateX(-.5px);
+  transition:height .8s var(--ease-out);
+}
+
+/* player column (swap slides the two columns across each other) */
+.p-col{min-width:0;container-type:inline-size;transition:opacity .38s var(--ease-io),transform .38s var(--ease-io)}
+.cmp-body.is-swapping .p-col--a{opacity:0;transform:translateX(44px)}
+.cmp-body.is-swapping .p-col--b{opacity:0;transform:translateX(-44px)}
+.p-col.pre{opacity:0;transform:translateX(var(--sx,44px));transition:none}
+.p-col.enter{transition:opacity .5s var(--ease-out),transform .5s var(--ease-out)}
+
+.p-row{position:relative;padding:24px 28px}
+.p-row + .p-row{border-top:1px solid transparent}
+/* horizontal dashed lines draw left → right with their row */
+.p-row + .p-row::before{
+  content:"";position:absolute;left:0;top:-1px;height:1px;width:100%;
+  background:repeating-linear-gradient(to right,var(--dash) 0 4px,transparent 4px 8px);
+  transition:width .8s var(--ease-out) .08s;
+}
+.js-ready .p-row{opacity:0;transform:translateY(14px);transition:opacity .6s var(--ease-out),transform .6s var(--ease-out)}
+.js-ready .p-row.is-in{opacity:1;transform:none}
+.js-ready .p-row + .p-row::before{width:0}
+.js-ready .p-row.is-in + .p-row.is-in::before,.js-ready .p-row.is-in::before{width:100%}
+
+/* ---------- 3. Row 1 — header ---------- */
+.p-head{
+  display:grid;grid-template-columns:auto minmax(0,1fr) 1px 196px;
+  grid-template-areas:"side main rule stats";
+  gap:0 18px;align-items:center;min-height:190px;
+}
+.p-side{grid-area:side;display:flex;gap:12px;align-items:center}
+.p-vtext{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-family:var(--font-mono);font-size:12px;line-height:1.35;letter-spacing:.02em;
+  color:var(--text-4);white-space:nowrap;
+}
+.p-vtext span{display:block}
+.p-marks{display:flex;flex-direction:column;gap:8px}
+.crest,.flag{display:block;flex:none}
+.crest{width:40px;height:40px}
+.flag{width:40px;height:28px}
+
+.p-main{grid-area:main;display:flex;flex-direction:column;align-items:center;min-width:0}
+.p-name{
+  font-family:var(--font-pixel);font-weight:400;font-size:26px;line-height:1;letter-spacing:0;
+  text-transform:uppercase;color:#fff;text-align:center;white-space:nowrap;
+}
+.p-figure{display:flex;align-items:center;gap:18px;margin-top:12px}
+.avatar{
+  position:relative;width:96px;height:96px;border-radius:50%;overflow:hidden;flex:none;
+  background:var(--panel-2);box-shadow:0 0 0 1px var(--line);
+}
+.avatar canvas{width:96px;height:96px;display:block;image-rendering:pixelated}
+
+/* verdict badge */
+.verdict{display:flex;flex-direction:column;align-items:center;gap:5px;width:88px;flex:none}
+.verdict__arrow{width:56px;height:56px;color:#fff;display:block}
+.verdict__label{font-family:var(--font-pixel);font-weight:400;font-size:13px;line-height:1;color:#fff;letter-spacing:.02em}
+.verdict__value{font-family:var(--font-mono);font-size:12px;line-height:1;color:var(--text-4)}
+.verdict--under .verdict__arrow,.verdict--under .verdict__label{color:var(--green)}
+.verdict--over .verdict__arrow,.verdict--over .verdict__label{color:var(--red)}
+/* arrows slide in from the outer edge of the card (A from the left, B from the right) */
+.js-ready .p-col .verdict__arrow{opacity:0;transform:translateX(-22px);transition:opacity .7s var(--ease-out) .25s,transform .7s var(--ease-out) .25s}
+.js-ready .p-col--b .verdict__arrow{transform:translateX(22px)}
+.js-ready .p-col .p-row.is-in .verdict__arrow{opacity:1;transform:none}
+
+.p-rule{grid-area:rule;width:1px;background:var(--line);align-self:stretch}
+.p-stats{grid-area:stats;display:flex;flex-direction:column;justify-content:center;font-size:13px;min-width:0}
+.p-stat{
+  display:flex;justify-content:space-between;align-items:baseline;gap:12px;
+  padding:3px 8px;margin:0 -8px;transition:background-color .2s var(--ease-io);
+}
+.p-stat:hover{background:rgba(255,255,255,.03)}
+.p-stat__k{color:var(--text-3);white-space:nowrap}
+.p-stat__v{font-family:var(--font-mono);font-size:14px;line-height:1.3;font-variant-numeric:tabular-nums}
+.p-stat--gap{margin-top:10px}
+
+/* ---------- 4. Row 2 — bio ---------- */
+.p-bio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 16px;align-content:center;padding-top:20px;padding-bottom:20px;min-height:72px}
+.bio{display:flex;align-items:baseline;gap:8px;min-width:0;white-space:nowrap}
+.bio__k{font-size:12px;color:var(--text-4);flex:none}
+.bio__v{font-family:var(--font-mono);font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+.bio__v.t-accent{color:var(--accent)}
+.bio__v.t-green{color:var(--green)}
+.bio__v.t-yellow{color:var(--yellow)}
+.bio__v.t-red{color:var(--red)}
+.pos{
+  display:inline-block;background:var(--red);color:#fff;font-family:var(--font-mono);font-size:10px;
+  line-height:1;padding:2px 3px;margin-right:3px;letter-spacing:.02em;vertical-align:1px;
+}
+.pos:last-child{margin-right:0}
+
+/* ---------- 5. Row 3 — charts: radar drawn 1:1 (312px), bars take the remaining width ---------- */
+.p-charts{display:grid;grid-template-columns:minmax(0,312px) minmax(200px,1fr);gap:0 16px;align-items:center;min-height:420px}
+.p-charts__right{display:flex;flex-direction:column;gap:18px;min-width:0}
+
+/* radar */
+.radar{position:relative;width:100%;max-width:340px;margin:0 auto}
+.radar svg{width:100%;height:auto;display:block;overflow:visible}
+.radar__ring{stroke:rgba(255,255,255,.12);stroke-width:1}
+.radar__spoke{stroke:rgba(255,255,255,.12);stroke-width:1}
+.radar__tick{font-family:var(--font-mono);font-size:7px;fill:var(--text-4);pointer-events:none}
+.radar__axis{font-family:var(--font-mono);font-size:9px;fill:var(--text-3);letter-spacing:.02em}
+.radar__data{transform-box:view-box;transform-origin:156px 156px;transform:scale(1);transition:transform .9s var(--ease-out)}
+.js-ready .radar__data{transform:scale(0)}
+.js-ready .p-row.is-in .radar__data{transform:scale(1)}
+.radar__poly{fill:rgba(255,87,26,.55);stroke:var(--accent);stroke-width:1.5;stroke-linejoin:miter}
+.radar__pt{cursor:crosshair;outline:0}
+.radar__pt .hit{fill:transparent}
+.radar__pt .dot{fill:#fff;transition:transform .2s var(--ease-out);transform-box:fill-box;transform-origin:center}
+.radar__pt:hover .dot,.radar__pt.is-hot .dot{transform:scale(1.8);fill:#fff}
+.radar__tip{
+  position:absolute;left:0;top:0;z-index:3;pointer-events:none;
+  transform:translate(-50%,calc(-100% - 10px));
+  font-family:var(--font-mono);font-size:10px;line-height:1;letter-spacing:.04em;white-space:nowrap;
+  background:#000;border:1px solid var(--line);color:#fff;padding:5px 7px;
+  opacity:0;transition:opacity .15s var(--ease-io);
+}
+.radar__tip.is-on{opacity:1}
+.radar__tip b{color:var(--accent);font-weight:400;margin-left:6px}
+
+/* bars */
+.bars{padding-top:2px}
+.bar{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center;gap:8px;margin-bottom:10px}
+.bar__label{font-family:var(--font-pixel);font-weight:400;font-size:11px;line-height:1;text-transform:uppercase;color:#fff;letter-spacing:.02em;white-space:nowrap}
+.bar__track{position:relative;height:22px;background:var(--track);overflow:hidden}
+.bar__track::before{
+  /* faint quarter guides inside the track */
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(to right,transparent 0 calc(25% - 1px),rgba(255,255,255,.06) calc(25% - 1px) 25%);
+}
+.bar__fill{position:absolute;left:0;top:0;bottom:0;width:var(--w,0%);background:var(--accent);overflow:hidden;transition:width 1s var(--ease-out)}
+.js-ready .bar__fill{width:0}
+.js-ready .bar__fill.is-in{width:var(--w,0%)}
+.bar__val{position:absolute;right:6px;top:0;height:22px;line-height:23px;font-family:var(--font-pixel);font-size:14px;color:#fff;font-variant-numeric:tabular-nums;transition:opacity .35s var(--ease-io)}
+/* the in-bar value fades in once the fill is wide enough to hold it */
+.js-ready .bar__val{opacity:0}
+.js-ready .bar__fill.is-in .bar__val{opacity:1}
+.bar-axis{display:grid;grid-template-columns:80px minmax(0,1fr);gap:8px;margin-top:2px}
+.bar-axis__scale{position:relative;height:16px;border-top:1px solid var(--line);overflow:visible}
+.bar-axis__t{
+  position:absolute;top:0;font-family:var(--font-mono);font-size:9px;line-height:1;color:var(--text-4);
+  padding-top:5px;transform:translateX(-50%);
+}
+.bar-axis__t::before{content:"";position:absolute;left:50%;top:0;width:1px;height:3px;background:var(--line)}
+/* every tick is centred on its value (the end ticks overhang the track) so 0 25 50 75 100 stay evenly spaced */
+
+/* hands box — dashed box with an inset "HANDS" legend; each hand is a centred stack */
+.hands{position:relative;border:1px dashed var(--dash);padding:18px 6px 14px}
+.hands__legend{
+  position:absolute;top:-6px;left:10px;padding:0 4px;background:var(--panel);
+  font-family:var(--font-mono);font-size:9px;line-height:1;letter-spacing:.1em;text-transform:uppercase;color:var(--text-4);
+}
+.hands__grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hand{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;text-align:center}
+.hand svg{width:44px;height:44px;flex:none;display:block}
+.hand__side{font-family:var(--font-mono);font-size:9px;line-height:1;letter-spacing:.1em;text-transform:uppercase;color:var(--text-4);white-space:nowrap}
+.hand__pct{font-family:var(--font-sans);font-weight:600;font-size:14px;line-height:1;color:#fff;font-variant-numeric:tabular-nums;margin-top:2px}
+.hand__desc{font-size:12px;line-height:1.2;color:var(--text-3);white-space:nowrap}
+.hand--red svg{color:var(--red)}
+.hand--cyan svg{color:var(--cyan)}
+
+/* ---------- 6. Notes under the card ---------- */
+.cmp-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:16px}
+.sum{
+  display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);padding:16px 20px;
+  font-size:13px;line-height:1.45;color:var(--text-2);background:var(--bg);
+  transition:border-color .3s var(--ease-io);
+}
+.sum:hover{border-color:rgba(255,87,26,.5)}
+.sum__mark{flex:none;width:8px;height:8px;background:var(--accent);margin-top:3px}
+.sum__k{font-family:var(--font-mono);font-size:10px;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:7px}
+.sum__v{color:var(--text-2)}
+.sum__v strong{color:#fff;font-weight:500}
+.sum__v .mono{font-size:12px;white-space:nowrap}   /* parentheticals wrap as a unit */
+
+/* ---------- 7. Container-driven stacking (per player column) ---------- */
+@container (max-width: 575px){
+  .p-head{
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-areas:"side main" "stats stats";
+    gap:18px 18px;min-height:0;
+  }
+  .p-rule{display:none}
+  .p-stats{border-top:1px solid var(--line);padding-top:12px}
+  .p-name{font-size:22px}
+  .p-bio{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@container (max-width: 560px){
+  .p-charts{grid-template-columns:1fr;gap:24px 0;min-height:0}
+  .radar{max-width:312px}
+  .hands{padding-inline:12px}
+}
+@container (max-width: 400px){
+  .p-name{font-size:20px}
+  .p-figure{gap:14px}
+  /* the 340-unit radar is scaled below 1:1 here — bump the SVG type in user units so it stays legible */
+  .radar__axis{font-size:10px}
+  .radar__tick{font-size:8px;opacity:.9!important}
+}
+@container (max-width: 370px){
+  .p-bio{grid-template-columns:1fr;gap:8px 0}
+}
+@container (max-width: 300px){
+  .hands__grid{grid-template-columns:1fr;gap:14px}
+}
+
+/* ---------- 8. Responsive ---------- */
+@media (max-width:1100px){
+  .cmp-card__head{padding-left:20px}
+  .cmp-toolbar__inner{flex-direction:column;align-items:flex-start;gap:20px}
+  .cmp-controls{justify-content:flex-start}
+}
+@media (max-width:900px){
+  /* the header strip loses its third crumb before it can run out of room (the second crumb may then ellipsize) */
+  .cmp-card__meta .label:nth-child(n+5),.cmp-card__meta .cmp-card__sep:nth-child(n+5){display:none}
+  .cmp-card__meta .label:nth-child(4){flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+}
+@media (max-width:980px){
+  .cmp-body{grid-template-columns:1fr}
+  .cmp-divider{display:none}
+  .p-col--b{border-top:1px dashed var(--dash)}
+  .js-ready .p-col--b .verdict__arrow{transform:translateX(-22px)}
+  .js-ready .p-col .p-row.is-in .verdict__arrow{transform:none}
+  .cmp-body.is-swapping .p-col--a{transform:translateY(24px)}
+  .cmp-body.is-swapping .p-col--b{transform:translateY(-24px)}
+  .p-col.pre{transform:translateY(var(--sy,24px))}
+}
+@media (max-width:720px){
+  .cmp-section{padding:32px 0 56px}
+  .cmp-toolbar__inner{min-height:0;padding-top:20px;padding-bottom:20px;gap:18px}
+  .cmp-toolbar__title{font-size:22px}
+  .cmp-card__head{padding:0 14px 0 16px;height:40px}
+  .cmp-brand__net{display:none}
+  .p-row{padding:20px 18px}
+  .cmp-summary{grid-template-columns:1fr;gap:10px}
+}
+@media (max-width:480px){
+  .cmp-card__meta{display:none}
+  .cmp-card__head{justify-content:flex-end}
+  .cmp-brand__net{display:inline}
+}
+@media (max-width:420px){
+  .sel{max-width:100%}
+  .sel select{max-width:150px;text-overflow:ellipsis}
+}
+
+/* ---------- 9. Motion preferences ---------- */
+@media (prefers-reduced-motion:reduce){
+  .js-ready .p-row,.js-ready .p-col,.js-ready .p-col.pre,.js-ready .p-col .verdict__arrow,.js-ready .p-col--b .verdict__arrow,.js-ready .radar__data{opacity:1!important;transform:none!important;transition:none!important}
+  .cmp-divider{height:100%!important;transition:none!important}
+  .js-ready .p-row + .p-row::before{width:100%;transition:none}
+  .js-ready .bar__fill{width:var(--w,0%);transition:none}
+  .js-ready .bar__val{opacity:1;transition:none}
+}
