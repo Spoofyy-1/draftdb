@@ -1,19 +1,21 @@
 [project]
 name = "nbadraft"
 version = "0.1.0"
-description = "Redo the last 20 NBA drafts with TabFM, scored on 5-season RAPTOR-style WAR"
+description = "Redraft every NBA draft since 2010 with TabFM and score it against the scouts on peak WAR"
 requires-python = ">=3.11"
+# Pinned to the versions the pipeline was last run with.
 dependencies = [
-    "tabfm[pytorch]",
-    "pandas",
-    "numpy",
-    "pyarrow",
-    "requests",
-    "lxml",
-    "scikit-learn",
-    "scipy",
-    "lightgbm",
-    "huggingface_hub",
+    "tabfm[pytorch]==1.0.1",
+    "huggingface_hub>=1.30",
+    "safetensors>=0.8",
+    "pandas>=3.0",
+    "numpy>=2.5",
+    "pyarrow>=25",
+    "requests>=2.34",
+    "lxml>=6.1",
+    "scikit-learn>=1.9",
+    "scipy>=1.18",
+    "lightgbm>=4.7",
 ]
 
 [tool.setuptools]
