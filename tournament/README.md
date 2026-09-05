@@ -53,4 +53,6 @@ later ones* (not a legal protocol) also scores 0.43-0.45 on the original 259 fea
 | Context window 2008 / 2013 for TabICL, CatBoost depth 4 / 6, more estimators, extra seed batches | 2010 and depth 5 stay best; seeds stable to +-0.002 |
 | basketball-reference biography (`bio_`: NBA relatives rho +0.18, shooting hand, birthplace, high-school path) | CatBoost +0.004, TabICL +0.004 |
 | Blend CatBoost (2003, +mo +rs +bio, 10 seeds) with TabICL (2010, +mo +bio, 8 seeds), then intl a=0.3 | 0.495 pure, 0.500 with the tilt (`winners/catboost_tabicl_market_bio_m3*`) |
+| Hoop Explorer lineup impact (`he_`, 56 cols: RAPM off/def, on/off, play types, vs-top-100 versions; classes 2019+ only) as model features, as a 2019+ specialist model, and as tilts | CatBoost neutral, TabICL -0.015 (NaN before 2019); specialist 0.36-0.42 alone and hurts blends; best tilt +0.003 |
+| Market tilt only for the 1-2 season classes (2024-25) | hurts at every weight |
 | `stackctx`: ridge over the two models' ranks + 9 fixed pre-draft covariate ranks, weights fit on 2013-2018 only, applied to holdout as a fixed rule | 0.508; weights are context-fit but the covariate list was chosen after holdout tilt checks -- a broad a-priori list scores 0.44-0.47, so call it +0.01 optimistic (`winners/stackctx_catboost_tabicl`) |
