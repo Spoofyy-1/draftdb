@@ -70,6 +70,23 @@ def load_combine() -> pd.DataFrame:
         out[dst] = _num(c[src])
     out["c_wing_minus_height"] = out.c_wingspan - out.c_height_noshoes
     out["c_reach_minus_height"] = out.c_standing_reach - out.c_height_noshoes
+    height = out.c_height_noshoes.replace(0, np.nan)
+    out["c_wing_height_ratio"] = out.c_wingspan / height
+    out["c_reach_height_ratio"] = out.c_standing_reach / height
+    out["c_hand_length_height_ratio"] = out.c_hand_length / height
+    out["c_hand_width_height_ratio"] = out.c_hand_width / height
+    out["c_weight_per_in"] = out.c_weight / height
+    out["c_bmi_like"] = 703 * out.c_weight / height.pow(2)
+    out["c_lean_mass"] = out.c_weight * (1 - out.c_body_fat / 100)
+    out["c_fat_mass"] = out.c_weight * out.c_body_fat / 100
+    out["c_lean_mass_height_ratio"] = out.c_lean_mass / height
+    out["c_approach_vert_gain"] = out.c_vert_max - out.c_vert_standing
+    out["c_max_touch"] = out.c_standing_reach + out.c_vert_max
+    out["c_standing_touch"] = out.c_standing_reach + out.c_vert_standing
+    anthro = ["c_height_noshoes", "c_wingspan", "c_standing_reach", "c_weight", "c_body_fat", "c_hand_length", "c_hand_width"]
+    drills = ["c_vert_standing", "c_vert_max", "c_lane_agility", "c_shuttle", "c_sprint", "c_bench"]
+    out["c_anthro_n"] = out[anthro].notna().sum(axis=1)
+    out["c_drills_n"] = out[drills].notna().sum(axis=1)
     made = att = 0.0
     for col in [x for x in c.columns if x.startswith(("SPOT_", "OFF_DRIB_", "ON_MOVE_"))]:
         ma = c[col].astype("string").str.extract(r"^(\d+)-(\d+)$").astype(float)

@@ -39,7 +39,7 @@ from infra.dataset import norm_name
 EXT = ROOT / "data" / "external"
 KEYS = ["key", "draft_year"]
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36"}
-WAYBACK = "http://web.archive.org/web"
+WAYBACK = "https://web.archive.org/web"
 
 
 _wayback_failures = 0  # consecutive failed Wayback downloads in this process; the archive goes offline for minutes at a time

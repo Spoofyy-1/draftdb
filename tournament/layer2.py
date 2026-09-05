@@ -1,18 +1,16 @@
 """Layer 2: deterministic selection rules on top of layer-1 predictions. No GPU, no training.
 
-A rule maps the layer-1 outputs for one draft class (point scores, bin distributions, the actual pick) to a final
+A rule maps the layer-1 outputs for one draft class (point scores and bin distributions) to a final
 order. Rules are kept simple and explainable -- at most two parameters, monotone in their inputs -- and are chosen on
-the validation years only. The test years are evaluated behind --test, and every such look is appended to
-outputs/layer_2/test_looks.jsonl so the number of peeks stays visible (same idea as the repo's holdout ledger).
+the context years only. The holdout years are evaluated behind --holdout, and every such look is appended to
+outputs/layer_2/holdout_looks.jsonl so the number of peeks stays visible (same idea as the repo's run ledger).
 
 Rules
   blend      rank-average of several layer-1 configs (weights)
-  market     (1-w) * rank(model) + w * rank(-pick): the model adjusts the scouts' consensus.  Uses the actual pick,
-             so any result from it is a "+market" result and must be labelled as such.
   upside     E[bin] + lam * P(top bin): reward a high ceiling on top of the expected outcome (classifier members)
   floor      E[bin] - lam * P(bottom bin): penalise bust risk
 
-Usage: python -m tournament.layer2 --layer1 outputs/layer_1/<tag>.parquet [--test]
+Usage: python -m tournament.layer2 --layer1 outputs/layer_1/<tag>.parquet [--holdout]
 """
 
 import argparse
@@ -31,19 +29,21 @@ from infra.config import TARGET
 
 def evaluate(df: pd.DataFrame, col: str) -> dict:
     """Mean over draft years of Spearman(model, truth), Spearman(scouts, truth), WAR captured @14, years won."""
-    sp, nba, wc = [], [], []
-    for _, g in df.groupby("draft_year"):
+    sp, nba, wc, per_year = [], [], [], {}
+    for year, g in df.groupby("draft_year"):
         g = g[g.labelled.astype(bool) & g[TARGET].notna()]
         if len(g) < 3:
             continue
         sp.append(spearmanr(g[col], g[TARGET]).correlation)
+        per_year[int(year)] = float(sp[-1])
         nba.append(spearmanr(-g["pick"], g[TARGET]).correlation)
         ours = g.sort_values(col, ascending=False)[TARGET].head(14).sum()
         act = g.sort_values("pick")[TARGET].head(14).sum()
         best = g[TARGET].nlargest(14).sum()
         wc.append(100 * (ours - act) / (best - act) if best > act else 0.0)
     return {"spearman": float(np.mean(sp)), "spearman_nba": float(np.mean(nba)), "gap": float(np.mean(sp) - np.mean(nba)),
-            "wc14": float(np.mean(wc)), "wins": int(np.sum(np.array(sp) > np.array(nba))), "n_years": len(sp)}
+            "wc14": float(np.mean(wc)), "wins": int(np.sum(np.array(sp) > np.array(nba))), "n_years": len(sp),
+            "_per_year": per_year}
 
 
 def bootstrap_gap(df: pd.DataFrame, col: str, n=2000, seed=0) -> tuple[float, float, float]:
@@ -95,11 +95,6 @@ def rule_blend(w: pd.DataFrame, configs: list[str], weights=None) -> pd.Series:
     return sum(wt * _rank_within_year(w, c) for c, wt in zip(configs, weights)) / sum(weights)
 
 
-def rule_market(w: pd.DataFrame, score: pd.Series, wmkt: float) -> pd.Series:
-    w = w.assign(_s=score, _p=-w["pick"])
-    return (1 - wmkt) * _rank_within_year(w, "_s") + wmkt * _rank_within_year(w, "_p")
-
-
 def rule_upside(w: pd.DataFrame, cfg: str, lam: float) -> pd.Series:
     return w[f"{cfg}::ebin"] + lam * w[f"{cfg}::ptop"]
 
@@ -109,8 +104,7 @@ def rule_floor(w: pd.DataFrame, cfg: str, lam: float) -> pd.Series:
 
 
 def rule_consensus(w: pd.DataFrame, score: pd.Series, wc: float, skip_unranked: bool = False) -> pd.Series:
-    """(1 - wc) * rank(model) + wc * rank(pre-draft consensus mock). The mocks were published before draft night, so
-    unlike `market` this is a fully pre-draft order; players absent from every mock rank last in the consensus.
+    """(1 - wc) * rank(model) + wc * rank(pre-draft consensus mock). Players absent from every mock rank last.
     skip_unranked: a player no mock ranked has no consensus information -- keep the model's rank for him instead."""
     w = w.assign(_s=score, _m=-w["mock_rank_consensus"].fillna(61))
     rm, rc = _rank_within_year(w, "_s"), _rank_within_year(w, "_m")
@@ -131,6 +125,83 @@ def rule_intl(w: pd.DataFrame, score: pd.Series, alpha: float) -> pd.Series:
     return np.where(intl, (1 - alpha) * r_model + alpha * r_intl, r_model)
 
 
+def rule_median(w: pd.DataFrame, configs: list[str]) -> pd.Series:
+    """Median of within-year ranks: one wayward model cannot drag a player far."""
+    return pd.concat([_rank_within_year(w, c) for c in configs], axis=1).median(axis=1)
+
+
+def rule_age(w: pd.DataFrame, score: pd.Series, b: float) -> pd.Series:
+    """(1 - b) * rank(model) + b * rank(youth). Age on draft night is pre-draft information; unknown ages rank neutral."""
+    w = w.assign(_s=score, _a=-w["age_at_draft"].fillna(w["age_at_draft"].median()))
+    return (1 - b) * _rank_within_year(w, "_s") + b * _rank_within_year(w, "_a")
+
+
+def rule_route(w: pd.DataFrame, base: str) -> pd.Series:
+    """Horizon routing: a class whose label can hold at most two NBA seasons is scored by `<base> short3` (trained on
+    three-season labels, see tournament.horizon); every other class by `base`. Identical to `base` on context years."""
+    twin = f"{base} short3"
+    if twin not in w:
+        raise KeyError(twin)
+    visible = (C.LAST_SEASON - w["draft_year"]).clip(lower=1, upper=C.TARGET_SEASONS)
+    return w[base].where(visible > 2, w[twin])
+
+
+def rule_caruana(w: pd.DataFrame, configs: list[str], steps: int = 12) -> tuple[str, pd.Series] | None:
+    """Greedy forward selection with replacement on mean per-year Spearman; weights are the pick counts."""
+    if len(configs) < 2:
+        return None
+    ranks = {c: _rank_within_year(w, c) for c in configs}
+    years = {y: (g.index, g[TARGET]) for y, g in w[w.labelled.astype(bool) & w[TARGET].notna()].groupby("draft_year")}
+
+    def fitness(s):
+        return float(np.mean([spearmanr(s[idx], y).correlation for idx, y in years.values()]))
+
+    chosen, current = [], None
+    for _ in range(steps):
+        best = None
+        for c in configs:
+            cand = ranks[c] if current is None else (current * len(chosen) + ranks[c]) / (len(chosen) + 1)
+            f = fitness(cand)
+            if best is None or f > best[0]:
+                best = (f, c, cand)
+        if current is not None and best[0] <= fitness(current) + 1e-6:
+            break
+        chosen.append(best[1])
+        current = best[2]
+    counts = pd.Series(chosen).value_counts()
+    used = [c for c in configs if c in counts]
+    weights = np.array([counts[c] for c in used], dtype=float)
+    weights /= weights.sum()
+    name = f"caruana w={','.join(f'{v:.4f}' for v in weights)} on [{' | '.join(used)}]"
+    return name, rule_blend(w, used, weights.tolist())
+
+
+def rule_optuna(w: pd.DataFrame, configs: list[str], n_trials: int = 300) -> tuple[str, pd.Series] | None:
+    """Tune a sparse rank blend on early context years; the latest two years remain confirmation folds."""
+    years = sorted(w.draft_year.unique())
+    if len(configs) < 2 or len(years) < 4:
+        return None
+    import optuna
+
+    dev = years[:-2]
+    ranks = {c: _rank_within_year(w, c) for c in configs}
+
+    def objective(trial):
+        weights = np.array([trial.suggest_float(f"w{i}", 0.0, 1.0) for i in range(len(configs))])
+        weights /= max(weights.sum(), 1e-12)
+        score = sum(weights[i] * ranks[c] for i, c in enumerate(configs))
+        vals = [spearmanr(score[w.draft_year == y], w.loc[w.draft_year == y, TARGET]).correlation for y in dev]
+        return float(np.mean(vals) - 0.1 * np.std(vals))
+
+    optuna.logging.set_verbosity(optuna.logging.WARNING)
+    study = optuna.create_study(direction="maximize", sampler=optuna.samplers.TPESampler(seed=0))
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+    weights = np.array([study.best_params[f"w{i}"] for i in range(len(configs))])
+    weights /= weights.sum()
+    name = f"optuna w={','.join(f'{v:.4f}' for v in weights)} on [{' | '.join(configs)}]"
+    return name, rule_blend(w, configs, weights.tolist())
+
+
 # --------------------------------------------------------------------------- sweep
 
 def sweep(w: pd.DataFrame, configs: list[str]) -> pd.DataFrame:
@@ -138,33 +209,66 @@ def sweep(w: pd.DataFrame, configs: list[str]) -> pd.DataFrame:
     def add(name, s, uses_pick=False):
         w["_r"] = s
         rows.append({"rule": name, "uses_pick": uses_pick, **evaluate(w, "_r")})
-    for c in configs:
+    bases = [c for c in configs if not c.endswith(" short3")]  # twins only ever enter through `route`
+    for c in bases:
         add(f"L1 {c}", w[c])
-    if len(configs) > 1:
-        add("blend all", rule_blend(w, configs))
-        for i, c1 in enumerate(configs):
-            for c2 in configs[i + 1:]:
+    for c in bases:
+        if f"{c} short3" in w:
+            add(f"route [{c}]", rule_route(w, c))
+    if len(bases) > 1:
+        add("blend all", rule_blend(w, bases))
+        add(f"median [{' | '.join(bases)}]", rule_median(w, bases))
+        for i, c1 in enumerate(bases):
+            for c2 in bases[i + 1:]:
                 add(f"blend {c1} | {c2}", rule_blend(w, [c1, c2]))
-    for c in configs:
+        # top-k by single-model score, so the blend order is fixed by the layer-1 leaderboard, not by the search
+        order = sorted(bases, key=lambda c: -next(r["spearman"] for r in rows if r["rule"] == f"L1 {c}"))
+        for k in range(3, min(len(order), 8) + 1):
+            add(f"blend {' | '.join(order[:k])}", rule_blend(w, order[:k]))
+            add(f"median [{' | '.join(order[:k])}]", rule_median(w, order[:k]))
+        for r in (rule_caruana(w, bases), rule_optuna(w, bases)):
+            if r:
+                add(*r)
+    for c in bases:
         if f"{c}::ptop" in w:
             for lam in [0.5, 1.0, 2.0, 4.0]:
                 add(f"upside {c} lam={lam}", rule_upside(w, c, lam))
                 add(f"floor {c} lam={lam}", rule_floor(w, c, lam))
-    # international override and the market blend sit on top of whichever pure rule ranked best
-    best_pure = max(rows, key=lambda r: r["spearman"])["rule"]
-    base = _recompute(w, configs, best_pure)
-    if "iz_young_x_eff" in w:
-        for al in [0.3, 0.5, 0.7, 1.0]:
-            add(f"intl a={al} on [{best_pure}]", rule_intl(w, base, al))
-    if "mock_rank_consensus" in w:  # pre-draft consensus: legitimate pre-draft information, reported as its own variant
+    # Pre-draft-only overlays sit on top of the three best pure rules.
+    top_pure = [r["rule"] for r in sorted(rows, key=lambda r: -r["spearman"])[:3]]
+    for pure in top_pure:
+        base = _recompute(w, configs, pure)
+        if "iz_young_x_eff" in w:
+            for al in [0.3, 0.5, 0.7, 1.0]:
+                add(f"intl a={al} on [{pure}]", rule_intl(w, base, al))
+        for b in [0.1, 0.2, 0.3]:
+            add(f"age b={b} on [{pure}]", rule_age(w, base, b))
+        if "mock_rank_consensus" in w:  # pre-draft consensus: legitimate pre-draft information, reported as its own variant
+            for wc in [0.3, 0.4, 0.5, 0.6, 0.7]:
+                add(f"consensus w={wc} on [{pure}]", rule_consensus(w, base, wc))
+            for wc in [0.5, 0.6]:
+                add(f"consensus-nz w={wc} on [{pure}]", rule_consensus(w, base, wc, skip_unranked=True))
+    if "mock_rank_consensus" in w:
         w["_c"] = -w["mock_rank_consensus"].fillna(61)
         add("consensus alone (pre-draft mocks)", _rank_within_year(w, "_c"))
-        for wc in [0.3, 0.4, 0.5, 0.6, 0.7]:
-            add(f"consensus w={wc} on [{best_pure}]", rule_consensus(w, base, wc))
-        for wc in [0.5, 0.6]:
-            add(f"consensus-nz w={wc} on [{best_pure}]", rule_consensus(w, base, wc, skip_unranked=True))
-    for wm in [0.3, 0.4, 0.5, 0.6, 0.7]:
-        add(f"market w={wm} on [{best_pure}]", rule_market(w, base, wm), uses_pick=True)
+    # second-order: international tilt on top of the best consensus / age overlay
+    best_overlay = max((r for r in rows if r["rule"].startswith(("consensus w=", "age b="))), key=lambda r: r["spearman"], default=None)
+    if best_overlay and "iz_young_x_eff" in w:
+        for al in [0.3, 0.5]:
+            add(f"intl a={al} on [{best_overlay['rule']}]", rule_intl(w, _recompute(w, configs, best_overlay["rule"]), al))
+    best_l1 = max((r for r in rows if r["rule"].startswith("L1 ")), key=lambda r: r["spearman"])
+    for row in rows:
+        years = sorted(set(best_l1["_per_year"]) & set(row["_per_year"]))
+        diffs = np.array([row["_per_year"][y] - best_l1["_per_year"][y] for y in years])
+        row["gain_vs_l1"] = float(diffs.mean()) if len(diffs) else float("-inf")
+        row["fold_wins_vs_l1"] = int((diffs > 0).sum())
+        needed = len(years) if len(years) <= 5 else int(np.ceil(0.8 * len(years)))
+        latest_hold = all(row["_per_year"][y] > best_l1["_per_year"][y] for y in years[-2:])
+        row["robust"] = (
+            not row["uses_pick"]
+            and (row["rule"] == best_l1["rule"]
+                 or (row["gain_vs_l1"] >= 0.01 and row["fold_wins_vs_l1"] >= needed and latest_hold))
+        )
     return pd.DataFrame(rows)
 
 
@@ -172,37 +276,38 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--layer1", nargs="+", required=True, help="one or more outputs/layer_1/<tag>.parquet")
     ap.add_argument("--configs", nargs="*", help="layer-1 config names to use (default: all in the files)")
-    ap.add_argument("--test", action="store_true", help="evaluate on the test years (logged to outputs/layer_2/test_looks.jsonl)")
-    ap.add_argument("--rules", nargs="*", help="with --test: only these rule names (from a prior validation sweep)")
-    ap.add_argument("--years", default=None, help="validation window tag in the layer-1 files (default: val; e.g. val7)")
+    ap.add_argument("--holdout", action="store_true", help="evaluate on the holdout years (logged to outputs/layer_2/holdout_looks.jsonl)")
+    ap.add_argument("--rules", nargs="*", help="with --holdout: only these rule names (from a prior context sweep)")
+    ap.add_argument("--years", default=None, help="context window tag in the layer-1 files (default: context; e.g. context7)")
     a = ap.parse_args()
-    years = "test" if a.test else (a.years or "val")
+    years = "holdout" if a.holdout else (a.years or "context")
     l1 = pd.concat([pd.read_parquet(p) for p in a.layer1], ignore_index=True)
-    if a.test:  # the test window is whatever config says today, even if the prediction file holds more years
-        l1 = l1[l1.draft_year.isin(C.VAL_YEARS)]
+    if a.holdout:  # the holdout window is whatever config says today, even if the prediction file holds more years
+        l1 = l1[l1.draft_year.isin(C.HOLDOUT_YEARS)]
     configs = a.configs or sorted(l1.config.unique())
     w = wide(l1, years)
-    if a.test and a.rules:  # pre-registered rules only, computed exactly as named on validation
+    if a.holdout and a.rules:  # pre-registered rules only, computed exactly as named on the context years
         rows = []
         for name in a.rules:
             w["_r"] = _recompute(w, configs, name)
-            rows.append({"rule": name, "uses_pick": name.startswith("market"), **evaluate(w, "_r")})
+            rows.append({"rule": name, "uses_pick": False, "robust": True,
+                         "gain_vs_l1": 0.0, "fold_wins_vs_l1": 0, **evaluate(w, "_r")})
         res = pd.DataFrame(rows)
     else:
         res = sweep(w, configs)
-    if a.test:
+    if a.holdout:
         out = C.OUT / "layer_2"
         out.mkdir(parents=True, exist_ok=True)
-        with open(out / "test_looks.jsonl", "a") as f:
+        with open(out / "holdout_looks.jsonl", "a") as f:
             f.write(json.dumps({"when": datetime.now(timezone.utc).isoformat(), "layer1": a.layer1, "rules": res.rule.tolist(),
                                 "results": res.round(4).to_dict("records")}) + "\n")
-        n = sum(1 for _ in open(out / "test_looks.jsonl"))
-        print(f"!! TEST look #{n} logged -- every extra look leaks information into the choice of rule")
+        n = sum(1 for _ in open(out / "holdout_looks.jsonl"))
+        print(f"!! HOLDOUT look #{n} logged -- every extra look leaks information into the choice of rule")
     pd.set_option("display.width", 220)
     res = res.sort_values("spearman", ascending=False)
     print(f"[{years}] {len(w)} players, {w.draft_year.nunique()} years, scouts spearman {res.spearman_nba.iloc[0]:.3f}\n")
-    print(res[["rule", "uses_pick", "spearman", "gap", "wc14", "wins", "n_years"]].round(3).to_string(index=False))
-    if a.test:
+    print(res[["rule", "uses_pick", "robust", "spearman", "gap", "gain_vs_l1", "fold_wins_vs_l1", "wc14", "wins", "n_years"]].round(3).to_string(index=False))
+    if a.holdout:
         print("\nbootstrap 95% CI of the gap (years and players resampled):")
         for name in res.rule.head(5):
             col = _recompute(w, configs, name)
@@ -214,17 +319,25 @@ def _recompute(w, configs, name):
     if name.startswith("L1 "):
         return w[name[3:]]
     if name == "blend all":
-        return rule_blend(w, configs)
+        return rule_blend(w, [c for c in configs if not c.endswith(" short3")])
+    if name.startswith(("optuna w=", "caruana w=")):
+        prefix, body = name.split(" on [", 1)
+        weights = [float(v) for v in prefix.split("w=", 1)[1].split(",")]
+        return rule_blend(w, body[:-1].split(" | "), weights)
     if name.startswith("blend "):
         return rule_blend(w, name[6:].split(" | "))
+    if name.startswith("median ["):
+        return rule_median(w, name[8:-1].split(" | "))
+    if name.startswith("route ["):
+        return rule_route(w, name[7:-1])
+    if name.startswith("age b="):
+        b = float(name.split("b=")[1].split(" ")[0])
+        inner = name.split("[", 1)[1][:-1]
+        return rule_age(w, _recompute(w, configs, inner), b)
     if name.startswith("upside ") or name.startswith("floor "):
         kind, rest = name.split(" ", 1)
         cfg, lam = rest.rsplit(" lam=", 1)
         return (rule_upside if kind == "upside" else rule_floor)(w, cfg, float(lam))
-    if name.startswith("market "):
-        wm = float(name.split("w=")[1].split(" ")[0])
-        inner = name.split("[", 1)[1][:-1]
-        return rule_market(w, _recompute(w, configs, inner), wm)
     if name.startswith("intl "):
         al = float(name.split("a=")[1].split(" ")[0])
         inner = name.split("[", 1)[1][:-1]

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useRef, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { TargetKind } from "@/lib/db";
 
@@ -10,8 +10,8 @@ const DEFINITION: Record<TargetKind, { title: string; text: string }> = {
     text:
       "Wins Above Replacement: how many games a season a player wins his team over a replacement-level player. 5-year WAR adds up " +
       "his WAR over his first five NBA seasons, or all of them if he has played fewer, so it measures what a pick produced early in " +
-      "his career, not how good he eventually became. Recent classes are judged on the seasons they have played so far. A player who " +
-      "never played ranks below everyone who did.",
+      "his career, not how good he eventually became. Recent classes are judged on the seasons they have played so far. A drafted " +
+      "player who never played has 0 WAR.",
   },
   peak: {
     title: "Peak WAR",
@@ -19,24 +19,24 @@ const DEFINITION: Record<TargetKind, { title: string; text: string }> = {
       "Wins Above Replacement: how many games a season a player wins his team over a replacement-level player. Peak WAR is his " +
       "average over his five best NBA seasons, or all of them if he has played fewer. It measures how good a player became, so a " +
       "career cut short by injury is judged on what it was, and a rookie's one season counts the same way a veteran's best five do. " +
-      "A player who never played ranks below everyone who did.",
+      "A player who never played has 0 WAR.",
   },
 };
 
 const INPUTS: [string, string][] = [
-  ["rating", "How many points per 100 possessions the player is worth compared with an average player (FiveThirtyEight RAPTOR, or BPM on the same scale after 2022)."],
-  ["2.75", "Replacement level. A bench-level player is about 2.75 points per 100 worse than average and earns zero WAR."],
-  ["minutes", "Regular-season minutes played that season."],
-  ["0.000514", "Converts points and minutes into wins."],
+  ["holdout labels", "Frozen 5-year WAR values: FiveThirtyEight RAPTOR through 2022, then an equivalent player-impact estimate."],
+  ["player pool", "Every player actually drafted that year; forfeited picks mean some classes have 58 or 59 players."],
+  ["never played", "0 WAR."],
 ];
+
+const subscribe = () => () => {};
 
 /** Inline link that opens a modal explaining the WAR score both draft orders are judged against. */
 export function WarModal({ target = "war5", children }: { target?: TargetKind; children: ReactNode }) {
   const def = DEFINITION[target] ?? DEFINITION.war5;
   const ref = useRef<HTMLDialogElement>(null);
   // The trigger sits inside a <p>, which may only contain phrasing content, so the dialog is portalled to body.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(subscribe, () => true, () => false);
 
   const dialog = (
     <dialog
@@ -53,7 +53,7 @@ export function WarModal({ target = "war5", children }: { target?: TargetKind; c
         </div>
         <p className="mt-3 text-sm leading-6 text-muted-foreground">{def.text}</p>
         <p className="mt-5 rounded-md border bg-muted/50 px-4 py-3 font-mono text-[13px]">
-          WAR = 0.000514 × (rating + 2.75) × minutes
+          5-year WAR = sum of the first five per-season WAR values
         </p>
         <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-5 gap-y-2 text-sm">
           {INPUTS.map(([k, v]) => (

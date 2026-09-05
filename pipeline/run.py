@@ -1,14 +1,14 @@
-"""One experiment run: validation (causal + pooled), optional locked holdout, and an out-of-sample redraft of
-every draft class that had at least two earlier classes to learn from on draft night.
+"""One experiment run: walk-forward holdout (causal + pooled) and an out-of-sample redraft of every draft class that
+had at least two earlier classes to learn from on draft night.
 
 Protocols (which draft classes the model may see as labelled context when scoring class Y):
   causal : classes < Y, labelled with the seasons played up to Y -- exactly what was knowable on draft night Y
-  pooled : every labelled non-holdout class != Y with today's labels -- leave-one-year-out, non-causal upper bound
+  pooled : every labelled context class != Y with today's labels -- non-causal upper bound
 
-Every run is appended to outputs/ledger.jsonl; holdout evaluations are counted separately in
-outputs/holdout_ledger.jsonl so repeated peeking stays visible.
+Every run scores the holdout, so every run is a look at it: outputs/ledger.jsonl counts them and repeated peeking
+stays visible.
 
-Usage: python -m validation.run [--models tabfm,lgbm,...] [--holdout] [--tag name]
+Usage: python -m pipeline.run [--models tabfm,lgbm,...] [--tag name]
 """
 
 import argparse
@@ -51,8 +51,6 @@ def split_table():
             role = "no_features"
         elif y in C.HOLDOUT_YEARS:
             role = "holdout"
-        elif y in C.VAL_YEARS:
-            role = "validation"
         elif y <= C.LAST_LABELED_DRAFT:
             role = "context"
         else:
@@ -126,11 +124,11 @@ def _job(key, ctx_years, seed):
     elif C.LABEL_TRANSFORM == "rank":
         ctx = ctx.assign(**{TARGET: g.rank(pct=True).values})
     # the redraft pool is exactly the players taken on draft night: same 60 (or fewer) names, reordered
-    test = t[t.modelled & (t.draft_year == year)]
-    assert test[MARKET_FEATURE].notna().all(), "a candidate without an actual pick -- the pool is the real draftees only"
+    pool = t[t.draft_year == year]
+    assert pool[MARKET_FEATURE].notna().all(), "a candidate without an actual pick -- the pool is the real draftees only"
     t0 = time.time()
-    score = fit_predict(model, ctx, test, device=_DEVICE, seed=seed)
-    return key, test.bbref_id.tolist(), score.tolist(), len(ctx), time.time() - t0
+    score = fit_predict(model, ctx, pool, device=_DEVICE, seed=seed)
+    return key, pool.bbref_id.tolist(), score.tolist(), len(ctx), time.time() - t0
 
 
 def run_jobs(jobs, seed):
@@ -151,7 +149,6 @@ def run_jobs(jobs, seed):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--models", default=",".join(MODELS), help="first model listed is used for the redrafts")
-    ap.add_argument("--holdout", action="store_true", help="evaluate the locked holdout years (logged)")
     ap.add_argument("--protocols", default="causal,pooled", help="causal is the honest walk-forward; pooled is a non-causal diagnostic upper bound")
     ap.add_argument("--tag", default="baseline")
     ap.add_argument("--seed", type=int, default=0)
@@ -166,22 +163,19 @@ def main():
 
     jobs = {}
     for m in models:
-        for y in C.VAL_YEARS:
+        for y in C.HOLDOUT_YEARS:
             for p in protocols:
                 jobs[(m, y, p)] = context_years(y, p, labelled)
-        if a.holdout:
-            for y in C.HOLDOUT_YEARS:
-                jobs[(m, y, "causal")] = context_years(y, "causal", labelled)
     # Redrafts are causal only: a class is redrafted iff at least two earlier classes had played by its draft night.
     redraft_years = []
     for y in C.DRAFT_YEARS:
         cy = context_years(y, "causal", labelled)
-        if len(cy) >= 2 and (table.modelled & (table.draft_year == y)).any():
+        if len(cy) >= 2 and (table.draft_year == y).any():
             redraft_years.append(y)
             jobs.setdefault((redraft_model, y, "causal"), cy)
 
-    # "+market" / "+consensus" are rank blends of a base model: derived from the base model's scores, no second GPU pass.
-    strip = lambda n: n.replace("+market", "").replace("+consensus", "")
+    # Pre-draft mock consensus blends are derived from base scores with no second GPU pass.
+    strip = lambda n: n.replace("+consensus", "")
     derived = {k: strip(k[0]) for k in list(jobs) if strip(k[0]) != k[0] and strip(k[0]) in models}
     for (m, y, p), base in derived.items():
         jobs.setdefault((base, y, p), jobs[(m, y, p)])
@@ -199,13 +193,10 @@ def main():
 
     metrics = []
     for (m, y, p), (ids, score, n_ctx, secs) in res.items():
-        if y in C.HOLDOUT_YEARS and not a.holdout:
-            continue
-        split = "holdout" if y in C.HOLDOUT_YEARS else "validation" if y in C.VAL_YEARS else None
-        if split is None:
+        if y not in C.HOLDOUT_YEARS:  # redraft-only classes carry no scored metric
             continue
         df = table.set_index("bbref_id").loc[ids].reset_index()
-        metrics.append({"split": split, "protocol": p, "model": m, "year": y, "n_context": n_ctx, "context_years": jobs[(m, y, p)],
+        metrics.append({"split": "holdout", "protocol": p, "model": m, "year": y, "n_context": n_ctx, "context_years": jobs[(m, y, p)],
                         "seconds": secs, **year_metrics(df, np.array(score))})
 
     redrafts = []
@@ -222,24 +213,22 @@ def main():
         "feature_hash": hashlib.md5(",".join(MOMENTUM_FEATURES if "+momentum" in redraft_model else FEATURES).encode()).hexdigest()[:8],
         "model_features": {m: (MOMENTUM_FEATURES if "+momentum" in m else FEATURES) for m in models},
         "target": C.TARGET_KIND,
-        "target_desc": f"{TARGET} = {'sum over first' if C.TARGET_KIND == 'war5' else 'mean over best'} {C.TARGET_SEASONS} NBA seasons of "
-                       f"{C.WAR_PER_MIN} * (rating + {C.WAR_REPLACEMENT}) * minutes; never played = {C.NEVER_PLAYED_WAR}",
-        "north_star": NORTH_STAR, "split": split_table(), "val_years": list(C.VAL_YEARS), "holdout_years": list(C.HOLDOUT_YEARS),
-        "holdout_evaluated": a.holdout, "gpus": gpus, "metrics": metrics, "summary": summarize(metrics).to_dict("records"), "redrafts": redrafts,
+        "target_desc": f"{TARGET} = WAR summed over the first {C.TARGET_SEASONS} NBA seasons "
+                       f"(FiveThirtyEight RAPTOR through 2022, DARKO/RAPM-equivalent after); never played = {C.NEVER_PLAYED_WAR}",
+        "north_star": NORTH_STAR, "split": split_table(), "context_years": list(C.CONTEXT_YEARS), "holdout_years": list(C.HOLDOUT_YEARS),
+        "gpus": gpus, "metrics": metrics, "summary": summarize(metrics).to_dict("records"), "redrafts": redrafts,
     }
     out_dir = C.OUT / "runs" / run_id
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "run.json").write_text(json.dumps(run, indent=1, default=_json))
 
-    _ledger(C.OUT / "ledger.jsonl", run, "validation")
-    if a.holdout:
-        _ledger(C.OUT / "holdout_ledger.jsonl", run, "holdout")
-        n = sum(1 for _ in open(C.OUT / "holdout_ledger.jsonl"))
-        print(f"!! holdout evaluated -- {n} holdout evaluation(s) logged so far; every extra look leaks information")
+    _ledger(C.OUT / "ledger.jsonl", run, "holdout")
+    n = sum(1 for _ in open(C.OUT / "ledger.jsonl"))
+    print(f"!! holdout look #{n} logged; every extra look leaks information")
     pd.set_option("display.width", 200)
     print(summarize(metrics).round(3).to_string(index=False))
     print("run written:", out_dir / "run.json")
-    from validation.db import rebuild
+    from pipeline.db import rebuild
     rebuild()
 
 
@@ -249,7 +238,7 @@ def _picks(cls, score):
     for r in cls.itertuples():
         pred = float(score[r.bbref_id]) if r.bbref_id in score.index else None
         rows.append({"player": r.player, "bbref_id": r.bbref_id, "actual_pick": int(r.pick), "team": r.team, "college": r.college,
-                     "modelled": bool(r.modelled), "pred": pred, "new_pick": None,
+                     "modelled": pred is not None, "pred": pred, "new_pick": None,
                      "war": float(getattr(r, TARGET)) if r.labelled else None, "seasons_played": int(r.seasons_played), "labelled": bool(r.labelled)})
     for i, p in enumerate(sorted((p for p in rows if p["pred"] is not None), key=lambda p: -p["pred"])):
         p["new_pick"] = i + 1

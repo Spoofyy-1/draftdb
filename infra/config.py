@@ -22,13 +22,12 @@ LAST_SEASON = 2026
 #           the window was 3 seasons until then.
 #   "peak": mean WAR over his TARGET_SEASONS BEST seasons known at the time of judging -- how good he became;
 #           does not punish a career cut short by injury.
-# Either way a class observed for one season is judged on that season, and a player who never played is not
-# "0 wins" -- he is in a bucket of his own, below every real value (the worst real 5-season sum is around -8,
-# the worst real per-season WAR around -3).
+# Either way a class observed for one season is judged on that season. A drafted player who never plays has 0 WAR,
+# matching the frozen public benchmark.
 TARGET_KIND = "war5"
 TARGET_SEASONS = 5
 TARGET = {"war5": "war5", "peak": "peak_war"}[TARGET_KIND]  # column name of the score everywhere downstream
-NEVER_PLAYED_WAR = {"war5": -15.0, "peak": -5.0}[TARGET_KIND]
+NEVER_PLAYED_WAR = {"war5": 0.0, "peak": 0.0}[TARGET_KIND]
 PEAK_SEASONS = TARGET_SEASONS  # legacy name
 # Context labels are rewritten within each draft class before the model sees them, so a class observed for one rookie
 # season and one observed for ten sit on one scale (the metric is a within-class rank). Percentile rank won on the full
@@ -37,16 +36,16 @@ LABEL_TRANSFORM = "rank"
 FIRST_LABELED_DRAFT = 2003  # first class with pre-draft features (hoopR / AyushBatra) and an NBA outcome
 LAST_LABELED_DRAFT = LAST_SEASON - 1  # 2025: last draft class that has played at least one season
 
-# Splits (draft years). Test = 2019-2025, scored walk-forward: class Y is redrafted by a model that saw only classes < Y.
-# Model selection uses 2011-2018. (2018 was a test year until the user moved it to validation on 2026-09-05; it was a year
-# the model lost, so 2018-2025 figures are reported alongside in outputs/layer_2/test_looks.jsonl for the record.)
-VAL_YEARS = tuple(range(2019, 2026))
-HOLDOUT_YEARS = ()
+# Two kinds of draft class and nothing else: context (what a model may learn from) and holdout (what it is scored on).
+# Holdout is walk-forward: when scoring holdout class Y the model sees only classes before Y, and each label contains
+# only NBA seasons completed by draft night Y.
+CONTEXT_YEARS = tuple(range(2003, 2019))
+HOLDOUT_YEARS = tuple(range(2019, 2026))
 
-# WAR equation: war_season = WAR_PER_MIN * (rating + WAR_REPLACEMENT) * minutes
-# Constants fit to FiveThirtyEight's published RAPTOR WAR, seasons 2008-2022 (R^2 = 0.9999).
+# FiveThirtyEight regular-season formula:
+# WAR = (rating + replacement) * minutes * ((league pace + individual pace impact) / league pace) * multiplier.
 WAR_REPLACEMENT = 2.75  # replacement level, points per 100 possessions below average
-WAR_PER_MIN = 0.000514  # wins per (point/100 poss) per minute (~1/1946)
+WAR_PER_MIN = 0.0005102  # official regular-season WAR multiplier
 RAPTOR_LAST_SEASON = 2022  # 538 stopped publishing RAPTOR after 2021-22
 
 DRAFT_DAY = "06-25"  # approximate draft date, used for age-at-draft

@@ -2,7 +2,7 @@
 
 Data (--data-only, run by the sweep):
   * who is modelled: college vs international / G League vs nobody, by draft year, and the top players still missing
-  * coverage of every feature group for college and international draftees and for the test years
+  * coverage of every feature group for college and international draftees and for the holdout years
   * registry integrity: every listed column exists in the table; no target/market column is a feature
 
 Leakage (needs a GPU):
@@ -21,7 +21,7 @@ from scipy.stats import spearmanr
 
 from infra import config as C
 from infra.dataset import FEATURES, MARKET_FEATURE
-from validation.run import context_years
+from pipeline.run import context_years
 from infra.war import war_target
 from tournament import contract as F
 from infra.config import TARGET
@@ -49,7 +49,7 @@ def leakage_audit(table: pd.DataFrame, device: str):
     rng = np.random.default_rng(0)
 
     print("\n== causal context integrity ==")
-    for y in C.VAL_YEARS:
+    for y in C.HOLDOUT_YEARS:
         cy = context_years(y, "causal", labelled)
         assert all(c < y for c in cy), (y, cy)
         ctx = table[table.modelled & table.labelled & table.draft_year.isin(cy)]
@@ -63,17 +63,17 @@ def leakage_audit(table: pd.DataFrame, device: str):
     cy = context_years(y, "causal", labelled)
     ctx = table[table.modelled & table.labelled & table.draft_year.isin(cy)]
     ctx = ctx.assign(**{TARGET: war_target(ctx, seasons, through=y)[TARGET].values})
-    test = table[table.modelled & (table.draft_year == y)]
-    real = spearmanr(fit_predict("tabfm", ctx, test, device=device), test[TARGET]).correlation
-    perms = [spearmanr(fit_predict("tabfm", ctx.assign(**{TARGET: rng.permutation(ctx[TARGET].values)}), test, device=device, seed=i), test[TARGET]).correlation for i in range(5)]
+    pool = table[table.modelled & (table.draft_year == y)]
+    real = spearmanr(fit_predict("tabfm", ctx, pool, device=device), pool[TARGET]).correlation
+    perms = [spearmanr(fit_predict("tabfm", ctx.assign(**{TARGET: rng.permutation(ctx[TARGET].values)}), pool, device=device, seed=i), pool[TARGET]).correlation for i in range(5)]
     print(f"  real {real:+.3f} | shuffled {np.mean(perms):+.3f} +- {np.std(perms):.3f}")
     assert abs(np.mean(perms)) < 0.15, "shuffled labels still predictive -- leak"
 
     print("\n== bootstrap CI, latest published run ==")
-    from validation.db import latest_run_picks
+    from pipeline.db import latest_run_picks
     run_id, model, rows = latest_run_picks()
     p = pd.DataFrame(rows).rename(columns={"war": "peak_war"})
-    p = p[(p.modelled == 1) & (p.labelled == 1) & p.pred.notna() & p.year.isin(C.VAL_YEARS)]
+    p = p[(p.modelled == 1) & (p.labelled == 1) & p.pred.notna() & p.year.isin(C.HOLDOUT_YEARS)]
     gap = lambda df: np.mean([spearmanr(g.pred, g.peak_war).correlation - spearmanr(-g.actual_pick, g.peak_war).correlation for _, g in df.groupby("year")])
     boots = []
     for _ in range(2000):

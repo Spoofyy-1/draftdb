@@ -1,5 +1,5 @@
 -- Postgres schema for the redraft results the web app reads (replaces outputs/results.sqlite).
--- Apply once per project: Supabase dashboard -> SQL editor, or `python -m validation.db --schema` with SUPABASE_DB_URL set.
+-- Apply once per project: Supabase dashboard -> SQL editor, or `python -m pipeline.db --schema` with SUPABASE_DB_URL set.
 -- Safe to re-run.
 
 create table if not exists public.runs (
@@ -13,7 +13,6 @@ create table if not exists public.runs (
   target_desc       text,
   feature_hash      text,
   n_features        integer,
-  holdout_evaluated integer,
   gpus              integer
 );
 

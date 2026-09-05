@@ -22,7 +22,7 @@ NUMERIC_FEATURES = [
 ]
 CATEGORICAL_FEATURES = ["conf", "role"]
 # Published pure feature set ("ALL" in the tournament). Mock history is kept as an explicitly labelled pre-draft
-# variant; sportsbook odds and scouting grades did not improve the 2011-2018 validation score.
+# variant; sportsbook odds and scouting grades did not improve the 2011-2018 context score.
 _OPTIONAL = external.optional_columns()
 FEATURES = NUMERIC_FEATURES + external.EXTERNAL_FEATURES + [c for c in _OPTIONAL if not c.startswith(("mo_", "odds_", "sc_"))]
 # This reproduces the tournament's validated "all old groups + momentum" configuration, including sparse legacy columns.
@@ -49,7 +49,7 @@ LEAN_FEATURES = ["bpm", "obpm", "dbpm", "porpag", "dporpag", "adjoe", "adrtg", "
                  "eFG", "ORB_per", "DRB_per", "AST_per", "TO_per", "FT_per", "twoP_per", "TP_per", "blk_per", "stl_per", "ftr", "ast_tov",
                  *external.TRAJECTORY_FEATURES, *external.PHYSICAL_FEATURES, *external.INTL_FIBA,
                  *[c for c in external.optional_columns() if c.startswith(("iz_", "t_"))]]
-MARKET_FEATURE = "pick"  # actual draft slot; only used by the explicit "+market" model variants
+MARKET_FEATURE = "pick"  # scoring benchmark metadata only; forbidden as a model feature
 
 
 def norm_name(s: str) -> str:
@@ -114,12 +114,20 @@ def build_table() -> pd.DataFrame:
     table["key"] = table.player.map(norm_name)
     for src in [external.ayush(norm_name), external.jasong(norm_name), external.intl(), *external.optional_sources()]:
         table = table.merge(src, on=["key", "draft_year"], how="left")
-    # A draftee is modelled if he has a final college season (Torvik, or -- for the pre-Torvik 2003-2007 classes and Torvik
-    # misses -- a hoopR/ESPN season line, feat_hoopr h_gp) or a pre-draft pro season abroad / in the G League.
+    # A draftee is modelled if he has a final college season (Torvik, Ayush/Sports-Reference, or -- for Torvik misses --
+    # a hoopR/ESPN season line), a pre-draft pro season, or NBA-combine measurements. The combine fallback matters for
+    # the 2003 class, where no complete public college box-score feed exists.
     # a hoopR line counts as a college season only with at least 5 games (the 2003-04 ESPN feed has 1-game stubs)
-    has_college = d.torvik_idx.notna().values | ((table["h_gp"] >= 5).values if "h_gp" in table else False)
-    table["source"] = np.where(has_college, "college", np.where(table.i_has_pro.fillna(0) > 0, "intl", "none"))
-    table["modelled"] = table.source != "none"
+    listed_college = d.college.notna().values
+    has_college = listed_college & (
+        d.torvik_idx.notna().values
+        | table["a_G"].notna().values
+        | ((table["h_gp"] >= 5).values if "h_gp" in table else False)
+    )
+    has_pro = table.i_has_pro.fillna(0).values > 0
+    has_combine = table.c_height_noshoes.notna().values if "c_height_noshoes" in table else np.zeros(len(table), dtype=bool)
+    table["source"] = np.where(has_college, "college", np.where(has_pro, "intl", np.where(has_combine, "other", "none")))
+    table["modelled"] = has_college | has_pro | has_combine
     table = table.merge(target, on=["bbref_id", "draft_year"], how="left")
 
     cov = table.groupby("draft_year").agg(picks=("pick", "size"), college=("source", lambda s: (s == "college").sum()),

@@ -22,8 +22,8 @@ export default async function Home() {
           Did the AI model draft better than NBA scouts?
         </h1>
         <p className="mt-5 text-[15px] leading-7 text-muted-foreground text-pretty">
-          We re-ran every draft since 2010 with an AI model using everything publicly knowable before draft night—including
-          player data, public mock rankings, and how those rankings changed. Then we checked
+          We trained on the 2003–2018 drafts, then re-ran 2019–2025 using only information available before each draft—including
+          player data and public mock rankings. Then we checked
           whose order better matched how the players actually turned out: the AI model, or the NBA scouts who made the real
           picks. Players are ranked by <WarModal target={target}>{targetName(target)}</WarModal>,{" "}
           {target === "peak" ? "how many wins a season they were worth at their best." : "how many wins they were worth over their first five NBA seasons."}
@@ -47,14 +47,14 @@ export default async function Home() {
 
       <p className="mt-5 text-[13px] leading-6 text-muted-foreground">
         Order accuracy: how closely a draft order matches the players&apos; actual {targetName(target)} ranking. 100% is a perfect order,
-        0% is no relationship. Averaged over the test drafts only.
+        0% is no relationship. Averaged over the holdout drafts only.
       </p>
       {latest && <VariantNote v={latest.variants} nba={latest.nba} headline={usesMarket(latest.redraft_model) ? "market" : usesConsensus(latest.redraft_model) ? "consensus" : usesMomentum(latest.redraft_model) ? "momentum" : "pure"} />}
 
       {splits.length > 0 && (
         <section className="mt-20">
           <div className="border-b pb-3">
-            <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was tested</h2>
+            <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was scored</h2>
           </div>
           <div className="mt-6">
             <Splits splits={splits} />

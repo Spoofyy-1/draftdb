@@ -1,7 +1,7 @@
 import type { Pick } from "@/lib/db";
 
-export type YearAccuracy = { year: number; test: boolean; n: number; ours: number | null; nba: number | null };
-export type Accuracy = Omit<YearAccuracy, "year" | "test">;
+export type YearAccuracy = { year: number; holdout: boolean; n: number; ours: number | null; nba: number | null };
+export type Accuracy = Omit<YearAccuracy, "year" | "holdout">;
 export type RunSummary = ReturnType<typeof summarizeRun>;
 
 /** 0.62 -> "62%". */
@@ -48,12 +48,12 @@ export function orderAccuracy(picks: Pick[]): Accuracy {
   };
 }
 
-/** Per-year accuracy for every redrafted year, plus run-level averages over the test years only. */
-export function summarizeRun(byYear: Map<number, Pick[]>, testYears: number[]) {
+/** Per-year accuracy for every redrafted year, plus run-level averages over the holdout years only. */
+export function summarizeRun(byYear: Map<number, Pick[]>, holdoutYears: number[]) {
   const years: YearAccuracy[] = [...byYear.keys()]
     .sort((a, b) => a - b)
-    .map((year) => ({ year, test: testYears.includes(year), ...orderAccuracy(byYear.get(year) ?? []) }));
-  const scored = years.filter((y) => y.test && y.ours != null && y.nba != null);
+    .map((year) => ({ year, holdout: holdoutYears.includes(year), ...orderAccuracy(byYear.get(year) ?? []) }));
+  const scored = years.filter((y) => y.holdout && y.ours != null && y.nba != null);
   return {
     years,
     scored: scored.length,

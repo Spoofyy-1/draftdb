@@ -36,6 +36,7 @@ unique surname, then a logged fuzzy match; unmatched names are undrafted players
     python -m infra.builders.mocks                 # rebuild + coverage / provenance / Spearman-vs-pick sanity report
 """
 
+import concurrent.futures as cf
 import json
 import re
 import time
@@ -671,13 +672,19 @@ def _board_frame(meta: dict, year: int, pool: pd.DataFrame) -> pd.DataFrame:
 def build(years=None, verbose: bool = True) -> pd.DataFrame:
     years = list(years or C.DRAFT_YEARS)
     d = _draftees()
+    with cf.ThreadPoolExecutor(max_workers=4) as ex:
+        futures = {
+            (s, y): ex.submit(fetch_board, s, y, d[d.draft_year == y], verbose)
+            for s in SOURCES for y in years
+        }
+        boards = {k: f.result() for k, f in futures.items()}
     frames, prov = [], []
     for y in years:
         pool = d[d.draft_year == y]
         base = pool[KEYS].copy()
         ranks, missing = [], {}
         for s in SOURCES:
-            meta = fetch_board(s, y, pool, verbose=verbose)
+            meta = boards[s, y]
             if meta is None:
                 continue
             assert f"{y}{EARLIEST_MMDD}" <= meta["snapshot"] <= DRAFT_NIGHT[y] + CUTOFF_HHMM, (s, y, meta["snapshot"])  # pre-draft guard

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { aiLabel, getRun, targetName, testYears, usesConsensus, usesMarket, usesMomentum } from "@/lib/db";
+import { aiLabel, getRun, targetName, holdoutYears, usesConsensus, usesMarket, usesMomentum } from "@/lib/db";
 import { pct, summarizeRun } from "@/lib/order";
 import { Redraft } from "@/components/redraft";
 import { Splits } from "@/components/splits";
@@ -16,7 +16,7 @@ export default async function RunPage({ params, searchParams }: { params: Promis
   if (!data) notFound();
   const { run, byYear, splits, variants } = data;
 
-  const s = summarizeRun(byYear, testYears(splits));
+  const s = summarizeRun(byYear, holdoutYears(splits));
   const years = s.years.map((y) => y.year);
   const labelled = s.years.filter((y) => y.ours != null);
   const aiWins = s.ours != null && s.nba != null && s.ours > s.nba;
@@ -62,7 +62,7 @@ export default async function RunPage({ params, searchParams }: { params: Promis
 
       <section className="mt-16">
         <div className="border-b pb-3">
-          <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was tested</h2>
+          <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was scored</h2>
         </div>
         <div className="mt-6">
           <Splits splits={splits} />
@@ -89,12 +89,12 @@ export default async function RunPage({ params, searchParams }: { params: Promis
               const barWidth = d == null ? 0 : Math.min(50, 100 * Math.abs(d));
               const active = y.year === year;
               return (
-                <tr key={y.year} className={`border-b transition-colors hover:bg-muted/60 ${active ? "bg-muted/40" : ""} ${y.test ? "" : "opacity-50"}`}>
+                <tr key={y.year} className={`border-b transition-colors hover:bg-muted/60 ${active ? "bg-muted/40" : ""} ${y.holdout ? "" : "opacity-50"}`}>
                   <td className="py-2.5">
                     <Link href={`/runs/${id}?year=${y.year}`} className={`font-mono tabular-nums underline-offset-4 hover:underline ${active ? "font-medium" : ""}`}>
                       {y.year}
                     </Link>
-                    {y.test && <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">test</span>}
+                    {y.holdout && <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">holdout</span>}
                   </td>
                   <td className="py-2.5 text-right font-mono tabular-nums">{pct(y.ours)}</td>
                   <td className="py-2.5 text-right font-mono tabular-nums text-muted-foreground">{pct(y.nba)}</td>

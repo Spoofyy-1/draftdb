@@ -8,8 +8,8 @@ Env (repo-root .env is read automatically):
   SUPABASE_SECRET_KEY  service-role key -- writes bypass RLS; never expose this to the browser
   SUPABASE_DB_URL      optional, only for --schema: postgres connection string for the DDL
 
-  python -m validation.db            push every run
-  python -m validation.db --schema   apply supabase_schema.sql first (needs SUPABASE_DB_URL)
+  python -m pipeline.db            push every run
+  python -m pipeline.db --schema   apply supabase_schema.sql first (needs SUPABASE_DB_URL)
 """
 
 import asyncio
@@ -56,7 +56,7 @@ def _run_row(r: dict) -> dict:
         "run_id": r["run_id"], "created": r["created"], "tag": r["tag"], "models": ",".join(r["models"]),
         "redraft_model": r["redraft_model"], "north_star": r["north_star"], "target": r["target"],
         "target_desc": r.get("target_desc", ""), "feature_hash": r["feature_hash"], "n_features": len(r["features"]),
-        "holdout_evaluated": int(r["holdout_evaluated"]), "gpus": r["gpus"],
+        "gpus": r["gpus"],
     }
 
 
@@ -174,7 +174,7 @@ async def apply_schema() -> None:
 
 
 def rebuild() -> None:
-    """Sync entrypoint kept for validation/run.py, which calls this at the end of a run."""
+    """Sync entrypoint kept for pipeline/run.py, which calls this at the end of a run."""
     asyncio.run(push())
 
 

@@ -13,11 +13,14 @@ Usage: python -m tournament.integration_test
 
 import sys
 
+import numpy as np
 import pandas as pd
+from scipy.stats import spearmanr
 
 from infra import config as C
 from infra.dataset import FEATURES, LEAN_FEATURES, MARKET_FEATURE
 from tournament import contract as F
+from pipeline.run import context_years, split_table
 
 RESULTS: list[tuple[str, bool, str]] = []
 
@@ -30,6 +33,43 @@ def main():
     t = pd.read_parquet(C.PROC / "draft_table.parquet")
     m = t[t.modelled]
     G = F.groups(t)
+
+    # -------------------------------------------------------------- protocol
+    splits = {s["year"]: s for s in split_table()}
+    check("protocol: context years exactly 2003-2018", C.CONTEXT_YEARS == tuple(range(2003, 2019)))
+    check("protocol: holdout years exactly 2019-2025", C.HOLDOUT_YEARS == tuple(range(2019, 2026)))
+    check("protocol: split roles mark 2003-2018 context and 2019-2025 holdout",
+          all(splits[y]["role"] == "context" for y in C.CONTEXT_YEARS) and all(splits[y]["role"] == "holdout" for y in C.HOLDOUT_YEARS))
+    check("protocol: holdout is walk-forward with no same/future draft",
+          context_years(2019, "causal", list(range(2003, 2026))) == list(range(2003, 2019))
+          and context_years(2025, "causal", list(range(2003, 2026))) == list(range(2003, 2025)))
+
+    # -------------------------------------------------------------- target
+    swar = pd.read_parquet(C.PROC / "season_war.parquet")
+    formula = swar.war_source == "formula"
+    expected = C.WAR_PER_MIN * (swar.loc[formula, "rating"] + C.WAR_REPLACEMENT) * swar.loc[formula, "mp"] * swar.loc[formula, "pace_adjustment"]
+    check("target: official regular-season multiplier is 0.0005102", C.WAR_PER_MIN == 0.0005102)
+    check("target: formula rows apply rating, replacement, minutes and pace adjustment exactly",
+          np.allclose(swar.loc[formula, "war"], expected, equal_nan=True))
+    check("target: frozen WAR overrides are present for 2019-2025", (swar.war_source == "reference").sum() > 1000)
+    check("target: RAPTOR-era rows use a non-neutral individual pace adjustment",
+          (swar.loc[swar.season <= C.RAPTOR_LAST_SEASON, "pace_adjustment"] != 1).any())
+    target = pd.read_parquet(C.PROC / "target.parquet")
+    drafts = pd.read_parquet(C.PROC / "drafts.parquet", columns=["bbref_id", "draft_year"])
+    played = drafts.merge(swar[["bbref_id", "season", "war"]], on="bbref_id")
+    played = played[played.season > played.draft_year].sort_values("season").groupby("bbref_id").head(5)
+    expected5 = played.groupby("bbref_id").war.sum()
+    observed5 = target[target.seasons_played > 0].set_index("bbref_id")[C.TARGET]
+    check("target: career score sums exactly the first five NBA seasons",
+          np.allclose(observed5, expected5.reindex(observed5.index)))
+    check("target: a drafted player who never plays has 0 WAR",
+          C.NEVER_PLAYED_WAR == 0 and (target.loc[target.seasons_played == 0, C.TARGET] == 0).all())
+    scouts = np.mean([
+        spearmanr(-g[MARKET_FEATURE], g[C.TARGET]).statistic
+        for _, g in t[t.draft_year.isin(C.HOLDOUT_YEARS)].groupby("draft_year")
+    ])
+    check("target: full-pool 2019-2025 scouts benchmark is fixed at 26%",
+          np.isclose(scouts, 0.26041810563), f"{scouts:.2%}")
 
     # -------------------------------------------------------------- pool
     per_year = t.groupby("draft_year").size()
@@ -73,6 +113,16 @@ def main():
         check(f"source {g}: coverage >= {thr:.0%} on its population", c >= thr, f"{c:.0%} over {len(G[g])} cols")
     for g in ("game", "eurocamp", "bwb", "academy", "transfers", "shrunk"):
         check(f"source {g}: present", g in G, "ok" if g in G else "not materialised yet")
+    physical_derived = {
+        "c_wing_height_ratio", "c_reach_height_ratio", "c_hand_length_height_ratio", "c_hand_width_height_ratio",
+        "c_weight_per_in", "c_bmi_like", "c_lean_mass", "c_fat_mass", "c_lean_mass_height_ratio",
+        "c_approach_vert_gain", "c_max_touch", "c_standing_touch", "c_anthro_n", "c_drills_n",
+    }
+    check("source combine: derived geometry/composition/explosion features present",
+          physical_derived <= set(t.columns), sorted(physical_derived - set(t.columns)) or "ok")
+    touch = t.dropna(subset=["c_max_touch", "c_standing_reach", "c_vert_max"])
+    check("source combine: max-touch formula is exact",
+          np.allclose(touch.c_max_touch, touch.c_standing_reach + touch.c_vert_max), f"{len(touch)} measured players")
     mock_cov = t.loc[t.draft_year >= 2008, "mock_rank_consensus"].notna().mean() if "mock_rank_consensus" in t.columns else 0.0
     check("consensus: pre-draft mock ranks present for the '+consensus' variant (kept out of pure FEATURES)", mock_cov >= 0.95, f"{mock_cov:.0%} of 2008+ draftees")
 

@@ -19,6 +19,7 @@ from infra.config import DRAFT_YEARS, NBA_SEASONS, PROC, RAW, TORVIK_YEARS
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36"}
 RAPTOR_URL = "https://raw.githubusercontent.com/fivethirtyeight/data/master/nba-raptor/historical_RAPTOR_by_player.csv"
+REFERENCE_WAR_URL = "https://raw.githubusercontent.com/Spoofyy-1/draftdb/9a5ae8025379ccc0f9b0177b4d17ef79cfb407ef/data/answers/answers_{year}.csv"
 
 TORVIK_COLS = [
     "player_name", "team", "conf", "GP", "Min_per", "ORtg", "usg", "eFG", "TS_per", "ORB_per",
@@ -46,6 +47,8 @@ def download_all():
         for y in TORVIK_YEARS:
             ex.submit(_get, f"https://barttorvik.com/getadvstats.php?year={y}&csv=1", RAW / "torvik" / f"advstats_{y}.csv")
         ex.submit(_get, RAPTOR_URL, RAW / "raptor" / "historical_RAPTOR_by_player.csv")
+        for y in range(2019, 2026):
+            ex.submit(_get, REFERENCE_WAR_URL.format(year=y), RAW / "reference_war" / f"answers_{y}.csv")
     # bbref rate-limits (~20 req/min): sequential + polite sleep
     for y in DRAFT_YEARS:
         _get(f"https://www.basketball-reference.com/draft/NBA_{y}.html", RAW / "bbref" / f"draft_{y}.html", sleep=3.5)
@@ -117,7 +120,9 @@ def parse_nba_seasons() -> pd.DataFrame:
 
 def parse_raptor() -> pd.DataFrame:
     r = pd.read_csv(RAW / "raptor" / "historical_RAPTOR_by_player.csv")
-    r = r.rename(columns={"player_id": "bbref_id"})[["bbref_id", "season", "poss", "mp", "raptor_total", "war_total", "war_reg_season"]]
+    r = r.rename(columns={"player_id": "bbref_id"})[
+        ["bbref_id", "season", "poss", "mp", "raptor_total", "pace_impact", "war_total", "war_reg_season"]
+    ]
     return r
 
 

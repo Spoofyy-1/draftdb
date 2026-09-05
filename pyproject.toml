@@ -6,10 +6,20 @@ requires-python = ">=3.11"
 # Pinned to the versions the pipeline was last run with.
 dependencies = [
     "tabfm[pytorch]==1.0.1",
+    "tabicl==2.2.0",
+    "tabpfn==8.5.0",
+    "xgboost==3.4.1",
+    "xiaomi-tabldm @ git+https://github.com/xiaomi-research/xiaomi-tabldm.git@b8ec5c87b66434d941f701795584d86853fd7f29",
+    "exaonetabular @ git+https://github.com/LGAI-Research/EXAONE-Tabular.git@8638e07d09fad154249bd75ba4786181491f7025",
     "huggingface_hub>=1.30",
     "safetensors>=0.8",
+    "supabase==2.31.0",
+    "asyncpg>=0.30",
+    "catboost==1.2.10",
+    "pdfplumber>=0.11",
     "pandas>=3.0",
     "numpy>=2.5",
+    "optuna==4.9.0",
     "pyarrow>=25",
     "requests>=2.34",
     "lxml>=6.1",
@@ -19,4 +29,4 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["infra", "tournament", "validation"]
+packages = ["infra", "tournament", "pipeline"]

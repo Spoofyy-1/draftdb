@@ -14,7 +14,7 @@ function open(): SupabaseClient | null {
 
 export type Run = {
   run_id: string; created: string; tag: string; models: string; redraft_model: string; north_star: string; target: TargetKind; target_desc: string;
-  feature_hash: string; n_features: number; holdout_evaluated: number; gpus: number;
+  feature_hash: string; n_features: number; gpus: number;
 };
 /** The score both draft orders are judged against. "war5": WAR summed over a player's first five NBA seasons;
  * "peak": mean WAR over his five best seasons. */
@@ -28,7 +28,7 @@ export type Pick = {
 };
 
 /** What one draft class was used for in a run, and which earlier classes trained the model that scored it. */
-export type Split = { year: number; role: "no_features" | "context" | "validation" | "holdout" | "unlabelled"; labelled: number; causal_context: number[] };
+export type Split = { year: number; role: "no_features" | "context" | "holdout" | "unlabelled"; labelled: number; causal_context: number[] };
 
 /** Read a whole table selection, following PostgREST's row cap until a short page comes back. */
 async function page<T>(db: SupabaseClient, table: string, runId: string, order: string[]): Promise<T[]> {
@@ -54,7 +54,7 @@ const readPicks = (db: SupabaseClient, id: string) => page<Pick>(db, "redraft_pi
 const readSplits = (db: SupabaseClient, id: string) => page<Split>(db, "splits", id, ["year"]);
 
 /** The draft classes a run is judged on. */
-export const testYears = (splits: Split[]) => splits.filter((s) => s.role === "validation" || s.role === "holdout").map((s) => s.year);
+export const holdoutYears = (splits: Split[]) => splits.filter((s) => s.role === "holdout").map((s) => s.year);
 
 /** Explicitly labelled variants of the pure redraft model. */
 export const usesMarket = (model: string) => model.endsWith("+market");
@@ -63,7 +63,7 @@ export const usesMomentum = (model: string) => model.includes("+momentum");
 export const aiLabel = (model: string) => (usesMarket(model) ? "AI + scouts' pick" : "AI model");
 export const pureModel = (model: string) => model.replace("+market", "").replace("+consensus", "").replace("+momentum", "");
 
-/** Mean test-year Spearman of each variant of the redraft's base model present in the run's metrics. */
+/** Mean holdout-year Spearman of each variant of the redraft's base model present in the run's metrics. */
 export type Variants = { pure: number | null; momentum: number | null; consensus: number | null; market: number | null };
 type MetricRow = { model: string; spearman: number | null };
 
@@ -80,7 +80,7 @@ async function variantAccuracies(db: SupabaseClient, runId: string, model: strin
   return { pure: get(base), momentum: get(`${base}+momentum`), consensus: get(`${base}+consensus`), market: get(`${base}+market`) };
 }
 
-/** Runs, newest first, each with its draft-order accuracy summary (AI model vs. NBA scouts) over its test years. */
+/** Runs, newest first, each with its draft-order accuracy summary (AI model vs. NBA scouts) over its holdout years. */
 export async function listRuns(): Promise<(Run & RunSummary & { variants: Variants })[]> {
   const db = open();
   if (!db) return [];
@@ -90,7 +90,7 @@ export async function listRuns(): Promise<(Run & RunSummary & { variants: Varian
   return Promise.all(
     runs.map(async (r) => {
       const [picks, splits, variants] = await Promise.all([readPicks(db, r.run_id), readSplits(db, r.run_id), variantAccuracies(db, r.run_id, r.redraft_model)]);
-      return { ...r, ...summarizeRun(groupByYear(picks), testYears(splits)), variants };
+      return { ...r, ...summarizeRun(groupByYear(picks), holdoutYears(splits)), variants };
     }),
   );
 }

@@ -34,6 +34,7 @@ Run:  python -m infra.builders.game_features     # idempotent downloads, then re
 
 from __future__ import annotations
 
+import concurrent.futures as cf
 import difflib
 import time
 
@@ -79,15 +80,19 @@ def _log(*a):
 def download() -> None:
     """Fetch every hoopR file that is missing (never re-downloads)."""
     HOOPR.mkdir(parents=True, exist_ok=True)
-    for kind in KINDS:
-        for s in SEASONS:
-            f = HOOPR / f"{kind}_{s}.parquet"
-            if f.exists() and f.stat().st_size > 0:
-                continue
-            r = requests.get(URL.format(kind=kind, season=s), timeout=180)
-            r.raise_for_status()
-            f.write_bytes(r.content)
-            _log("downloaded", f.name, len(r.content))
+    def fetch(kind: str, season: int) -> None:
+        f = HOOPR / f"{kind}_{season}.parquet"
+        if f.exists() and f.stat().st_size > 0:
+            return
+        remote = f"mbb_schedule_{season}" if kind == "schedules" else f"{kind}_{season}"
+        url = f"https://raw.githubusercontent.com/sportsdataverse/hoopR-mbb-data/main/mbb/{kind}/parquet/{remote}.parquet"
+        r = requests.get(url, timeout=180)
+        r.raise_for_status()
+        f.write_bytes(r.content)
+        _log("downloaded", f.name, len(r.content))
+
+    with cf.ThreadPoolExecutor(max_workers=8) as ex:
+        list(ex.map(lambda x: fetch(*x), ((kind, s) for kind in KINDS for s in SEASONS)))
 
 
 # --------------------------------------------------------------------------- 1. player_game

@@ -57,6 +57,7 @@ PREFIX = {
     "bwb": "bwb_",          # Basketball Without Borders selection
     "academy": "acad_",     # NBA Academy membership / stats
     "transfers": "tr_",     # college transfers inferred from Torvik: deltas across the move, level change
+    "mock": "mock_",        # pre-draft public mock consensus and source ranks; explicitly excluded from pure pipeline FEATURES
     "momentum": "mo_",      # pre-draft mock-rank movement across 90/60/30/7-day snapshots
     "odds": "odds_",        # pre-draft sportsbook position markets, vig removed
     "scouting": "sc_",      # archived pre-draft NBADraft.net grades and text-derived flags
@@ -69,9 +70,24 @@ MODELS = {
     "tabfm_cls": "TabFM classification head on within-class quantile bins, read out as the expected bin",
     "exaone": "LG EXAONE-Tabular regressor (21M, in-context); wants narrow feature sets",
     "exaone_cls": "EXAONE-Tabular classifier on within-class bins, expected-bin readout; best with ~30-50 features",
+    "xgb": "shallow XGBoost regressor with a monotone age constraint",
+    "xgbrank": "pairwise XGBoost ranker grouped by draft class",
+    "catboost": "CatBoost regressor",
+    "catrank": "pairwise CatBoost ranker grouped by draft class",
+    "extratrees": "randomised-tree regression baseline",
+    "tabicl": "TabICL v2 in-context regressor; complementary rank-stack member",
+    "tabldm": "Xiaomi-TabLDM in-context regressor",
+    "tabpfn26": "TabPFN 2.6 regressor (internal evaluation only; restricted model license)",
+    "tabpfn3": "TabPFN 3 regressor (internal evaluation only; restricted model license)",
     "ridge": "RidgeCV baseline (median-impute + standardise); cheap diverse stack member",
 }
-LABELS = {"raw": "the WAR target as is", "zscore": "z-scored within each draft class (default; matches the rank metric)", "rank": "percentile within class"}
+LABELS = {
+    "raw": "the WAR target as is",
+    "zscore": "z-scored within each draft class",
+    "rank": "percentile within class",
+    "gaussrank": "Gaussianised percentile within class",
+    "disc85_gaussrank": "first-five-season WAR discounted 0.85 per season, clipped, then Gaussian-ranked within class",
+}
 
 # --------------------------------------------------------------------------- api
 
@@ -81,7 +97,7 @@ def groups(table: pd.DataFrame) -> dict[str, list[str]]:
         cols = [c for c in table.columns if c.startswith(p) and pd.api.types.is_numeric_dtype(table[c])]
         if cols:
             g[name] = cols
-    g["pipeline"] = list(FEATURES)                       # exactly what validation.run publishes today
+    g["pipeline"] = list(FEATURES)                       # exactly what pipeline.run publishes today
     g["all_torvik"] = NUMERIC_FEATURES + CATEGORICAL_FEATURES
     return g
 
@@ -129,7 +145,9 @@ def assert_covered(configs: list[dict], g: dict[str, list[str]]):
         used_groups |= set(TORVIK)
     groups_needed = {k for k in g if k not in ("pipeline", "all_torvik")}
     missing_g = groups_needed - used_groups
-    missing_m = {"tabfm", "tabfm_cls", "exaone_cls"} - used_models
+    # TabPFN checkpoints are license-gated and therefore optional unless the machine is authenticated.
+    missing_m = {"tabfm", "tabfm_cls", "exaone_cls", "xgb", "xgbrank", "catboost", "catrank",
+                 "extratrees", "tabicl", "tabldm"} - used_models
     assert not missing_g, f"grid never uses feature groups: {sorted(missing_g)}"
     assert not missing_m, f"grid never uses models: {sorted(missing_m)}"
     print(f"contract check: {len(used_groups)} groups, models {sorted(used_models)} -- all covered")
