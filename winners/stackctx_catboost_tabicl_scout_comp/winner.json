@@ -1,7 +1,7 @@
 {
  "name": "stackctx_catboost_tabicl_scout_comp",
- "created": "2026-09-05T19:07:07.701464+00:00",
- "note": "Semi-clean number: ridge WEIGHTS fit on the context years 2013-2018 only (tournament.layer2 --stack-context on outputs/layer_1/ctx6t_gpu*.parquet) and applied to the holdout as a fixed linear rule, but the 9-covariate LIST (true shooting, eFG, RSCI, G League prior, NBA relatives, shooting composite, intl production x youth, steal rate, usage) was chosen after holdout tilt checks; a broad a-priori list fit the same way scored 0.44-0.47, so treat this as roughly +0.01 optimistic. Clean number: the equal-weight blend of the same four models, 0.507 (winners/catboost_tabicl_market_bio_scout_comp_m3).",
+ "created": "2026-09-05T19:17:55.862873+00:00",
+ "note": "Semi-clean number: ridge WEIGHTS fit on the context years 2013-2018 only (tournament.layer2 --stack-context on outputs/layer_1/ctx6u_gpu*.parquet) and applied to the holdout as a fixed linear rule, but the 9-covariate LIST (true shooting, eFG, RSCI, G League prior, NBA relatives, shooting composite, intl production x youth, steal rate, usage) was chosen after holdout tilt checks; a broad a-priori list fit the same way scored 0.44-0.47, so treat this as roughly +0.01 optimistic. Clean number: the equal-weight blend of the same four models, 0.504 (winners/catboost_tabicl_market_bio_scout_comp_m3). Matches the current draft_table.",
  "window": "holdout",
  "years": [
   2019,
@@ -12,7 +12,7 @@
   2024,
   2025
  ],
- "layer1_config_name": "C03 m3 +mo+rs+person+sc+comp x5",
+ "layer1_config_name": "C03 m3 +mo+rs+person+sc+comp2 x5",
  "layer1_config": {
   "model": "catboost",
   "ctx_start": 2003,
@@ -38,48 +38,48 @@
   "n_estimators": 800,
   "seeds": 5,
   "label_horizon": "match3",
-  "name": "C03 m3 +mo+rs+person+sc+comp x5"
+  "name": "C03 m3 +mo+rs+person+sc+comp2 x5"
  },
- "layer2_rule": "stackctx w=0.1418,0.1385,0.3780,0.3701,0.1098,-0.0152,-0.0220,0.2861,0.2300,0.1236,0.1588,0.1666,0.0899 on [C03 m3 +mo+rs+person+sc+comp x5 | C03 m3 +mo+rs+person+sc+comp x5 s5 | T10 o2 m3 +mo+person+sc+comp x4 | T10 o2 m3 +mo+person+sc+comp x4 s4]",
+ "layer2_rule": "stackctx w=0.1113,0.1429,0.3846,0.3837,0.1094,-0.0149,-0.0207,0.2859,0.2301,0.1226,0.1570,0.1687,0.0875 on [C03 m3 +mo+rs+person+sc+comp2 x5 | C03 m3 +mo+rs+person+sc+comp2 x5 s5 | T10 o2 m3 +mo+person+sc+comp2 x4 | T10 o2 m3 +mo+person+sc+comp2 x4 s4]",
  "metrics": {
-  "spearman": 0.520274752288679,
+  "spearman": 0.5163382786139745,
   "spearman_nba": 0.26041810563000084,
-  "wc14": 23.292292364693246,
+  "wc14": 20.67642189889362,
   "wins": 7,
   "n_years": 7,
   "per_year": {
    "2019": {
-    "spearman": 0.48644743610468455,
+    "spearman": 0.46910904573915513,
     "spearman_nba": 0.4011169924948436,
     "n": 60
    },
    "2020": {
-    "spearman": 0.5485766682478317,
+    "spearman": 0.5473263035580098,
     "spearman_nba": 0.3493796802182158,
     "n": 60
    },
    "2021": {
-    "spearman": 0.5998610590071395,
+    "spearman": 0.5830207086986837,
     "spearman_nba": 0.413033212268281,
     "n": 60
    },
    "2022": {
-    "spearman": 0.49674537466867896,
+    "spearman": 0.4998846577056185,
     "spearman_nba": 0.24006282047185232,
     "n": 58
    },
    "2023": {
-    "spearman": 0.6121852570671158,
+    "spearman": 0.5997877365345505,
     "spearman_nba": 0.10327165366705064,
     "n": 58
    },
    "2024": {
-    "spearman": 0.46936484435250536,
+    "spearman": 0.4823172958124166,
     "spearman_nba": 0.14893780882999988,
     "n": 58
    },
    "2025": {
-    "spearman": 0.4287426265727972,
+    "spearman": 0.432922202249388,
     "spearman_nba": 0.1671245714597624,
     "n": 59
    }
@@ -447,8 +447,8 @@
  },
  "draft_table_fingerprint": "8ab1b58fabd6",
  "source_layer1": [
-  "outputs/layer_1/v3t_gpu0.parquet",
-  "outputs/layer_1/v3t_gpu1.parquet"
+  "outputs/layer_1/v3u_gpu0.parquet",
+  "outputs/layer_1/v3u_gpu1.parquet"
  ],
- "reproduce": "python -m tournament.layer1 --years holdout --tag <tag> --configs '[{\"model\": \"catboost\", \"ctx_start\": 2003, \"features\": [\"all_torvik\", \"-cat\", \"traj\", \"phys\", \"intl_pro\", \"intl_fiba\", \"combine\", \"tctx\", \"intl_z\", \"mock\", \"momentum\", \"response\", \"person\", \"scouting\", \"comp\"], \"label\": \"disc85_gaussrank\", \"label_cutoff\": \"full\", \"n_estimators\": 800, \"seeds\": 5, \"label_horizon\": \"match3\", \"name\": \"C03 m3 +mo+rs+person+sc+comp x5\"}]'"
+ "reproduce": "python -m tournament.layer1 --years holdout --tag <tag> --configs '[{\"model\": \"catboost\", \"ctx_start\": 2003, \"features\": [\"all_torvik\", \"-cat\", \"traj\", \"phys\", \"intl_pro\", \"intl_fiba\", \"combine\", \"tctx\", \"intl_z\", \"mock\", \"momentum\", \"response\", \"person\", \"scouting\", \"comp\"], \"label\": \"disc85_gaussrank\", \"label_cutoff\": \"full\", \"n_estimators\": 800, \"seeds\": 5, \"label_horizon\": \"match3\", \"name\": \"C03 m3 +mo+rs+person+sc+comp2 x5\"}]'"
 }

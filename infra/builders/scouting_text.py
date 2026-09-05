@@ -88,19 +88,26 @@ def build() -> pd.DataFrame:
         out.loc[te.index, "sct_pred_strengths"] = _fit_predict(tr.strengths, yv, te.strengths)
         out.loc[te.index, "sct_pred_weaknesses"] = _fit_predict(tr.weaknesses, yv, te.weaknesses)
         print(f"{y}: {len(te)} profiles scored from {len(tr)} earlier write-ups", flush=True)
-    # comparison player's realised value, known on draft night
+    # comparison player's realised value, known on draft night: WAR per season through the season before the draft.
+    # Names come from basketball-reference (2004+) and FiveThirtyEight's historical RAPTOR file (1977-2022), so comps to
+    # players who retired before 2004 (Shawn Kemp, Mark Price ...) are valued too.
     from infra.builders.population import _nba_names
     names = pd.Series(_nba_names())
+    raptor_raw = pd.read_csv(C.RAW / "raptor" / "historical_RAPTOR_by_player.csv", usecols=["player_name", "player_id", "season", "war_reg_season"])
+    names = pd.concat([names, raptor_raw.drop_duplicates("player_id").set_index("player_id").player_name]).groupby(level=0).first()
     by_key = names.map(norm_name).reset_index().rename(columns={"index": "bbref_id", 0: "ckey"})
     by_key = by_key.drop_duplicates("ckey", keep=False)  # ambiguous names dropped
-    comp = d.compares_to.fillna("").str.split(r"/|,| or | and ", regex=True).str[0].str.strip().map(norm_name)
+    war = pd.concat([raptor_raw.rename(columns={"player_id": "bbref_id", "war_reg_season": "war"})[["bbref_id", "season", "war"]],
+                     seasons.loc[seasons.season > 2022, ["bbref_id", "season", "war"]]], ignore_index=True)
+    comp = (d.compares_to.fillna("").str.replace(r"\(.*?\)", "", regex=True).str.replace(r"\bNico Van den Bogaerd.*$", "", regex=True)
+            .str.replace(r"^(?:a |the )?(?:poor|rich) man'?s ", "", regex=True, case=False)
+            .str.split(r"/|,| or | and |;", regex=True).str[0].str.strip().map(norm_name))
     m = pd.DataFrame({"ckey": comp, "draft_year": d.draft_year}).merge(by_key, on="ckey", how="left")
-    sw = seasons[["bbref_id", "season", "war"]]
     vals, ns = [], []
     for cid, y in zip(m.bbref_id, m.draft_year):
         if pd.isna(cid):
             vals.append(np.nan); ns.append(np.nan); continue
-        s = sw[(sw.bbref_id == cid) & (sw.season <= y)]
+        s = war[(war.bbref_id == cid) & (war.season <= y)]
         vals.append(s.war.mean() if len(s) else np.nan); ns.append(float(len(s)))
     out["sct_comp_war"], out["sct_comp_n"] = vals, ns
     print(f"scouting text for {len(out)} draftees; comp matched for {out.sct_comp_war.notna().sum()}")
