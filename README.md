@@ -23,6 +23,46 @@ We re-ran every NBA draft from 2019 to 2025 with a tabular model that sees only 
 
 *Value of the order: the WAR actually delivered by each draft slot, weighted linearly by slot (pick 1 counts most), scaled so the perfect order = 100% and the worst possible order = 0%; a random order scores 50%. Boards are in `model/board_preds_v3.csv` (pid-keyed).*
 
+
+### Example: the 2022 class, scored on four seasons
+
+Fifty-two drafted players. The teams' order correlates with the four-season WAR ranking at 26%, the model's at 52%; value of the order 74.7% for the teams, 81.1% for the model. Left: what the model would have done with the first 15 picks. Right: what the teams did.
+
+| model pick | player | real pick | 4-yr WAR | WAR rank | | real pick | player | 4-yr WAR | WAR rank | model rank |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 1 | Chet Holmgren | 2 | 19.9 | 2 | | 1 | Paolo Banchero | 18.5 | 3 | 4 |
+| 2 | Mark Williams | 15 | 8.4 | 9 | | 2 | Chet Holmgren | 19.9 | 2 | 1 |
+| 3 | Jabari Smith Jr. | 3 | 7.5 | 12 | | 3 | Jabari Smith Jr. | 7.5 | 12 | 3 |
+| 4 | Paolo Banchero | 1 | 18.5 | 3 | | 4 | Keegan Murray | 8.4 | 10 | 5 |
+| 5 | Keegan Murray | 4 | 8.4 | 10 | | 5 | Jaden Ivey | -0.5 | 38 | 27 |
+| 6 | Jeremy Sochan | 9 | -0.1 | 32 | | 6 | Bennedict Mathurin | -1.3 | 46 | 9 |
+| 7 | Jalen Duren | 13 | 17.1 | 4 | | 7 | Shaedon Sharpe | 2.7 | 19 | 21 |
+| 8 | Christian Braun | 21 | 8.1 | 11 | | 8 | Dyson Daniels | 15.4 | 5 | 20 |
+| 9 | Bennedict Mathurin | 6 | -1.3 | 46 | | 9 | Jeremy Sochan | -0.1 | 32 | 6 |
+| 10 | Jake LaRavia | 19 | 3.5 | 16 | | 10 | Johnny Davis | -1.9 | 47 | 34 |
+| 11 | Wendell Moore Jr. | 26 | -0.1 | 30 | | 11 | Ousmane Dieng | -0.6 | 39 | 36 |
+| 12 | Dalen Terry | 18 | 0.8 | 24 | | 12 | Jalen Williams | 22.4 | 1 | 19 |
+| 13 | Jaylin Williams | 34 | 8.7 | 7 | | 13 | Jalen Duren | 17.1 | 4 | 7 |
+| 14 | Nikola Jović | 27 | 3.2 | 18 | | 14 | Ochai Agbaji | -0.8 | 41 | 31 |
+| 15 | TyTy Washington Jr. | 29 | -0.9 | 42 | | 15 | Mark Williams | 8.4 | 9 | 2 |
+
+The ten best four-season outcomes of the class and where each order had them:
+
+| WAR rank | player | 4-yr WAR | real pick | model pick |
+|---|---|---|---|---|
+| 1 | Jalen Williams | 22.4 | 12 | 19 |
+| 2 | Chet Holmgren | 19.9 | 2 | 1 |
+| 3 | Paolo Banchero | 18.5 | 1 | 4 |
+| 4 | Jalen Duren | 17.1 | 13 | 7 |
+| 5 | Dyson Daniels | 15.4 | 8 | 20 |
+| 6 | Walker Kessler | 12.9 | 22 | 16 |
+| 7 | Jaylin Williams | 8.7 | 34 | 13 |
+| 8 | Tari Eason | 8.6 | 17 | 17 |
+| 9 | Mark Williams | 8.4 | 15 | 2 |
+| 10 | Keegan Murray | 8.4 | 4 | 5 |
+
+Reading it: both orders had Holmgren and Banchero in the top four and both took Jabari Smith third. The model's gain came in the middle of the first round — Mark Williams at 2 (taken 15th, 8.4 WAR), Jalen Duren at 7 (taken 13th, 17.1 WAR), Christian Braun at 8 (taken 21st), Jaylin Williams at 13 (taken 34th, 8.7 WAR) — and from what it refused to take: Jaden Ivey 27th, Johnny Davis 34th and Ousmane Dieng 36th, three lottery picks who have produced nothing yet. Its misses are just as visible: it took Jeremy Sochan sixth and Bennedict Mathurin ninth, and it had Jalen Williams, the best player in the class, 19th and Dyson Daniels 20th, both worse than the teams did.
+
 ### How to read the table
 
 - **class** — the draft year; the pool is every player actually drafted in rounds 1–2 who has a row in the data.
