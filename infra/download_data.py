@@ -15,7 +15,7 @@ import pandas as pd
 import requests
 from lxml import html
 
-from nbadraft.config import DRAFT_YEARS, NBA_SEASONS, PROC, RAW, TORVIK_YEARS
+from infra.config import DRAFT_YEARS, NBA_SEASONS, PROC, RAW, TORVIK_YEARS
 
 UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36"}
 RAPTOR_URL = "https://raw.githubusercontent.com/fivethirtyeight/data/master/nba-raptor/historical_RAPTOR_by_player.csv"

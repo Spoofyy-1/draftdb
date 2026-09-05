@@ -1,6 +1,7 @@
 import type { Pick } from "@/lib/db";
 
-export type YearAccuracy = { year: number; n: number; ours: number | null; nba: number | null };
+export type YearAccuracy = { year: number; test: boolean; n: number; ours: number | null; nba: number | null };
+export type Accuracy = Omit<YearAccuracy, "year" | "test">;
 export type RunSummary = ReturnType<typeof summarizeRun>;
 
 /** 0.62 -> "62%". */
@@ -36,10 +37,10 @@ export function spearman(a: number[], b: number[]): number | null {
   return da && db ? num / Math.sqrt(da * db) : null;
 }
 
-/** How well each draft order (the AI model's, the scouts') ranked one class by realised peak WAR, over the same players. */
-export function orderAccuracy(picks: Pick[]): Omit<YearAccuracy, "year"> {
-  const rows = picks.filter((p) => p.modelled && p.labelled && p.peak_war != null && p.pred != null);
-  const war = rows.map((p) => p.peak_war as number);
+/** How well each draft order (the AI model's, the scouts') ranked one class by the realised WAR target, over the same players. */
+export function orderAccuracy(picks: Pick[]): Accuracy {
+  const rows = picks.filter((p) => p.modelled && p.labelled && p.war != null && p.pred != null);
+  const war = rows.map((p) => p.war as number);
   return {
     n: rows.length,
     ours: spearman(rows.map((p) => p.pred as number), war),
@@ -47,10 +48,12 @@ export function orderAccuracy(picks: Pick[]): Omit<YearAccuracy, "year"> {
   };
 }
 
-/** Per-year accuracy plus run-level averages over the years whose players have played at least one season. */
-export function summarizeRun(byYear: Map<number, Pick[]>) {
-  const years: YearAccuracy[] = [...byYear.keys()].sort((a, b) => a - b).map((year) => ({ year, ...orderAccuracy(byYear.get(year) ?? []) }));
-  const scored = years.filter((y) => y.ours != null && y.nba != null);
+/** Per-year accuracy for every redrafted year, plus run-level averages over the test years only. */
+export function summarizeRun(byYear: Map<number, Pick[]>, testYears: number[]) {
+  const years: YearAccuracy[] = [...byYear.keys()]
+    .sort((a, b) => a - b)
+    .map((year) => ({ year, test: testYears.includes(year), ...orderAccuracy(byYear.get(year) ?? []) }));
+  const scored = years.filter((y) => y.test && y.ours != null && y.nba != null);
   return {
     years,
     scored: scored.length,

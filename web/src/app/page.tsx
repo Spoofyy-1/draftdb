@@ -1,6 +1,8 @@
 import Link from "next/link";
-import { listRuns } from "@/lib/db";
+import { aiLabel, getSplits, listRuns, targetName, usesConsensus, usesMarket, usesMomentum } from "@/lib/db";
 import { pct } from "@/lib/order";
+import { Splits } from "@/components/splits";
+import { VariantNote } from "@/components/variants";
 import { WarModal } from "@/components/war-modal";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +11,8 @@ export default function Home() {
   const runs = listRuns();
   const latest = runs[0];
   const aiWins = latest?.ours != null && latest?.nba != null && latest.ours > latest.nba;
+  const splits = latest ? getSplits(latest.run_id) : [];
+  const target = latest?.target ?? "war3";
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-24">
@@ -18,16 +22,18 @@ export default function Home() {
           Did the AI model draft better than NBA scouts?
         </h1>
         <p className="mt-5 text-[15px] leading-7 text-muted-foreground text-pretty">
-          We re-ran every draft since 2010 with an AI model that only knew what was knowable on draft night. Then we checked
+          We re-ran every draft since 2010 with an AI model using everything publicly knowable before draft night—including
+          player data, public mock rankings, and how those rankings changed. Then we checked
           whose order better matched how the players actually turned out: the AI model, or the NBA scouts who made the real
-          picks. Players are ranked by <WarModal>peak WAR</WarModal>, how many wins a season they were worth at their best.
+          picks. Players are ranked by <WarModal target={target}>{targetName(target)}</WarModal>,{" "}
+          {target === "peak" ? "how many wins a season they were worth at their best." : "how many wins they were worth over their first three NBA seasons."}
         </p>
       </header>
 
       {latest && (
         <dl className="mt-14 grid grid-cols-3 gap-px overflow-hidden rounded-md border bg-border">
           {[
-            { k: "AI model accuracy", v: pct(latest.ours), dim: !aiWins },
+            { k: `${aiLabel(latest.redraft_model)} accuracy`, v: pct(latest.ours), dim: !aiWins },
             { k: "NBA scouts accuracy", v: pct(latest.nba), dim: aiWins },
             { k: "Drafts the AI won", v: latest.scored ? `${latest.wins} of ${latest.scored}` : "-", dim: false },
           ].map(({ k, v, dim }) => (
@@ -40,9 +46,21 @@ export default function Home() {
       )}
 
       <p className="mt-5 text-[13px] leading-6 text-muted-foreground">
-        Order accuracy: how closely a draft order matches the players&apos; actual peak WAR ranking. 100% is a perfect order,
-        0% is no relationship.
+        Order accuracy: how closely a draft order matches the players&apos; actual {targetName(target)} ranking. 100% is a perfect order,
+        0% is no relationship. Averaged over the test drafts only.
       </p>
+      {latest && <VariantNote v={latest.variants} nba={latest.nba} headline={usesMarket(latest.redraft_model) ? "market" : usesConsensus(latest.redraft_model) ? "consensus" : usesMomentum(latest.redraft_model) ? "momentum" : "pure"} />}
+
+      {splits.length > 0 && (
+        <section className="mt-20">
+          <div className="border-b pb-3">
+            <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was tested</h2>
+          </div>
+          <div className="mt-6">
+            <Splits splits={splits} />
+          </div>
+        </section>
+      )}
 
       <section className="mt-20">
         <div className="border-b pb-3">
@@ -59,7 +77,7 @@ export default function Home() {
               <tr className="border-b text-left font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
                 <th className="py-3 font-normal">When</th>
                 <th className="py-3 font-normal">Model</th>
-                <th className="py-3 text-right font-normal">AI model</th>
+                <th className="py-3 text-right font-normal">AI</th>
                 <th className="py-3 text-right font-normal">NBA scouts</th>
                 <th className="py-3 text-right font-normal">Drafts the AI won</th>
               </tr>
@@ -72,7 +90,11 @@ export default function Home() {
                       {r.created.slice(0, 16).replace("T", " ")}
                     </Link>
                   </td>
-                  <td className="py-3.5 pr-4 font-mono text-xs text-muted-foreground">{r.redraft_model}</td>
+                  <td className="py-3.5 pr-4 font-mono text-xs text-muted-foreground">
+                    {r.redraft_model}
+                    {usesMarket(r.redraft_model) && <span className="ml-2 text-[10px] uppercase tracking-[0.16em]">sees pick</span>}
+                    {usesConsensus(r.redraft_model) && <span className="ml-2 text-[10px] uppercase tracking-[0.16em]">pre-draft consensus</span>}
+                  </td>
                   <td className="py-3.5 pr-4 text-right font-mono tabular-nums">{pct(r.ours)}</td>
                   <td className="py-3.5 pr-4 text-right font-mono tabular-nums text-muted-foreground">{pct(r.nba)}</td>
                   <td className="py-3.5 text-right font-mono tabular-nums">{r.scored ? `${r.wins} of ${r.scored}` : "-"}</td>

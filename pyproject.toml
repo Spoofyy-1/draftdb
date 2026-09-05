@@ -1,7 +1,7 @@
 [project]
-name = "nbadraft"
+name = "nba-redraft"
 version = "0.1.0"
-description = "Redraft every NBA draft since 2010 with TabFM and score it against the scouts on peak WAR"
+description = "Redraft every NBA draft since 2010 with TabFM and score it against the scouts on 3-year WAR"
 requires-python = ">=3.11"
 # Pinned to the versions the pipeline was last run with.
 dependencies = [
@@ -19,4 +19,4 @@ dependencies = [
 ]
 
 [tool.setuptools]
-packages = ["nbadraft"]
+packages = ["infra", "tournament", "validation"]

@@ -6,15 +6,15 @@
 * rating  = BPM mapped onto the RAPTOR scale (linear fit on the 2008-2022 overlap) for
             2023-2026, since 538 stopped publishing RAPTOR.
 * minutes = basketball-reference regular-season minutes for every season.
-* target  = peak WAR: mean over the player's PEAK_SEASONS best seasons since the draft (all of them if
-            fewer), so a rookie's one season and a veteran's fifteen sit on one scale and an injury-
-            shortened career is judged on what it was, not how it ended. Never played = NEVER_PLAYED_WAR.
+* target  = config.TARGET_KIND: "war3" = WAR summed over the player's first TARGET_SEASONS NBA seasons (all of
+            them if fewer) -- what the pick produced early; or "peak" = mean over his TARGET_SEASONS best seasons
+            -- how good he became. Never played = NEVER_PLAYED_WAR, below every real value.
 """
 
 import numpy as np
 import pandas as pd
 
-from nbadraft.config import LAST_SEASON, NEVER_PLAYED_WAR, PEAK_SEASONS, PROC, RAPTOR_LAST_SEASON, WAR_PER_MIN, WAR_REPLACEMENT
+from infra.config import LAST_SEASON, NEVER_PLAYED_WAR, PROC, RAPTOR_LAST_SEASON, TARGET, TARGET_KIND, TARGET_SEASONS, WAR_PER_MIN, WAR_REPLACEMENT
 
 
 def war_from_rating(rating, minutes):
@@ -46,8 +46,8 @@ def season_war(nba: pd.DataFrame, raptor: pd.DataFrame) -> pd.DataFrame:
     return d[["bbref_id", "season", "mp", "rating", "rating_source", "war"]]
 
 
-def peak_war(drafts: pd.DataFrame, swar: pd.DataFrame, through: int = LAST_SEASON) -> pd.DataFrame:
-    """Peak WAR over seasons draft_year+1 .. `through`, one row per draftee in input order.
+def war_target(drafts: pd.DataFrame, swar: pd.DataFrame, through: int = LAST_SEASON) -> pd.DataFrame:
+    """The target (column TARGET) over seasons draft_year+1 .. `through`, one row per draftee in input order.
 
     `through` is the last season known to whoever is judging: today that is LAST_SEASON; for the labelled
     context a model sees on draft night Y it is Y, so nothing from the future leaks into training labels.
@@ -55,11 +55,16 @@ def peak_war(drafts: pd.DataFrame, swar: pd.DataFrame, through: int = LAST_SEASO
     """
     m = drafts[["bbref_id", "draft_year"]].merge(swar[["bbref_id", "season", "war"]], on="bbref_id", how="left")
     m = m[(m.season > m.draft_year) & (m.season <= through)]
-    best = m.sort_values("war", ascending=False).groupby("bbref_id").head(PEAK_SEASONS)
-    agg = pd.DataFrame({"peak_war": best.groupby("bbref_id").war.mean(), "seasons_played": m.groupby("bbref_id").season.count()})
+    if TARGET_KIND == "war3":  # first seasons played, summed
+        sel = m.sort_values("season").groupby("bbref_id").head(TARGET_SEASONS)
+        score = sel.groupby("bbref_id").war.sum()
+    else:  # best seasons, averaged
+        sel = m.sort_values("war", ascending=False).groupby("bbref_id").head(TARGET_SEASONS)
+        score = sel.groupby("bbref_id").war.mean()
+    agg = pd.DataFrame({TARGET: score, "seasons_played": m.groupby("bbref_id").season.count()})
     out = drafts[["bbref_id", "draft_year"]].merge(agg, left_on="bbref_id", right_index=True, how="left")
     out["seasons_played"] = out.seasons_played.fillna(0).astype(int)
-    out["peak_war"] = out.peak_war.fillna(NEVER_PLAYED_WAR)
+    out[TARGET] = out[TARGET].fillna(NEVER_PLAYED_WAR)
     out["labelled"] = out.draft_year < through
     return out
 
@@ -70,7 +75,8 @@ if __name__ == "__main__":
     drafts = pd.read_parquet(PROC / "drafts.parquet")
     swar = season_war(nba, raptor)
     swar.to_parquet(PROC / "season_war.parquet", index=False)
-    tgt = peak_war(drafts, swar)
+    tgt = war_target(drafts, swar)
     tgt.to_parquet(PROC / "target.parquet", index=False)
-    top = tgt.merge(drafts[["bbref_id", "player", "pick"]], on="bbref_id").sort_values("peak_war", ascending=False)
-    print(top.head(10)[["draft_year", "pick", "player", "peak_war", "seasons_played"]].to_string(index=False))
+    top = tgt.merge(drafts[["bbref_id", "player", "pick"]], on="bbref_id").sort_values(TARGET, ascending=False)
+    print(f"target {TARGET_KIND} ({TARGET}); worst real value {tgt.loc[tgt.seasons_played > 0, TARGET].min():.2f}, never played = {NEVER_PLAYED_WAR}")
+    print(top.head(10)[["draft_year", "pick", "player", TARGET, "seasons_played"]].to_string(index=False))

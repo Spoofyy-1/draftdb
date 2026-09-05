@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getRun } from "@/lib/db";
+import { aiLabel, getRun, targetName, testYears, usesConsensus, usesMarket, usesMomentum } from "@/lib/db";
 import { pct, summarizeRun } from "@/lib/order";
 import { Redraft } from "@/components/redraft";
+import { Splits } from "@/components/splits";
+import { VariantNote } from "@/components/variants";
 import { WarModal } from "@/components/war-modal";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +14,9 @@ export default async function RunPage({ params, searchParams }: { params: Promis
   const sp = await searchParams;
   const data = getRun(id);
   if (!data) notFound();
-  const { run, byYear } = data;
+  const { run, byYear, splits, variants } = data;
 
-  const s = summarizeRun(byYear);
+  const s = summarizeRun(byYear, testYears(splits));
   const years = s.years.map((y) => y.year);
   const labelled = s.years.filter((y) => y.ours != null);
   const aiWins = s.ours != null && s.nba != null && s.ours > s.nba;
@@ -39,14 +41,14 @@ export default async function RunPage({ params, searchParams }: { params: Promis
         </h1>
         <p className="mt-4 text-[15px] leading-7 text-muted-foreground text-pretty">
           For each draft: what the scouts actually did on the left, what the AI model would have done on the right, and how closely each
-          order matched the players&apos; real <WarModal>peak WAR</WarModal> ranking. The AI model only saw earlier draft classes,
-          and only what they had done up to that draft night.
+          order matched the players&apos; real <WarModal target={run.target}>{targetName(run.target)}</WarModal> ranking. The AI model only saw earlier draft classes,
+          plus player data and public mock rankings available before that draft began.
         </p>
       </header>
 
       <dl className="mt-12 grid grid-cols-3 gap-px overflow-hidden rounded-md border bg-border">
         {[
-          { k: "AI model accuracy", v: pct(s.ours), dim: !aiWins },
+          { k: `${aiLabel(run.redraft_model)} accuracy`, v: pct(s.ours), dim: !aiWins },
           { k: "NBA scouts accuracy", v: pct(s.nba), dim: aiWins },
           { k: "Drafts the AI won", v: s.scored ? `${s.wins} of ${s.scored}` : "-", dim: false },
         ].map(({ k, v, dim }) => (
@@ -56,6 +58,16 @@ export default async function RunPage({ params, searchParams }: { params: Promis
           </div>
         ))}
       </dl>
+      <VariantNote v={variants} nba={s.nba} headline={usesMarket(run.redraft_model) ? "market" : usesConsensus(run.redraft_model) ? "consensus" : usesMomentum(run.redraft_model) ? "momentum" : "pure"} />
+
+      <section className="mt-16">
+        <div className="border-b pb-3">
+          <h2 className="hash-heading text-lg font-medium tracking-[-0.02em]">How it was tested</h2>
+        </div>
+        <div className="mt-6">
+          <Splits splits={splits} />
+        </div>
+      </section>
 
       <section className="mt-16">
         <div className="border-b pb-3">
@@ -65,7 +77,7 @@ export default async function RunPage({ params, searchParams }: { params: Promis
           <thead>
             <tr className="border-b text-left font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
               <th className="py-3 font-normal">Draft</th>
-              <th className="py-3 text-right font-normal">AI model</th>
+              <th className="py-3 text-right font-normal">{aiLabel(run.redraft_model)}</th>
               <th className="py-3 text-right font-normal">NBA scouts</th>
               <th className="py-3 text-right font-normal">Gap</th>
               <th className="py-3 pl-8 font-normal">AI minus scouts</th>
@@ -77,11 +89,12 @@ export default async function RunPage({ params, searchParams }: { params: Promis
               const barWidth = d == null ? 0 : Math.min(50, 100 * Math.abs(d));
               const active = y.year === year;
               return (
-                <tr key={y.year} className={`border-b transition-colors hover:bg-muted/60 ${active ? "bg-muted/40" : ""}`}>
+                <tr key={y.year} className={`border-b transition-colors hover:bg-muted/60 ${active ? "bg-muted/40" : ""} ${y.test ? "" : "opacity-50"}`}>
                   <td className="py-2.5">
                     <Link href={`/runs/${id}?year=${y.year}`} className={`font-mono tabular-nums underline-offset-4 hover:underline ${active ? "font-medium" : ""}`}>
                       {y.year}
                     </Link>
+                    {y.test && <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">test</span>}
                   </td>
                   <td className="py-2.5 text-right font-mono tabular-nums">{pct(y.ours)}</td>
                   <td className="py-2.5 text-right font-mono tabular-nums text-muted-foreground">{pct(y.nba)}</td>
@@ -118,7 +131,7 @@ export default async function RunPage({ params, searchParams }: { params: Promis
           </nav>
         </div>
         <div className="mt-6">
-          <Redraft picks={picks} accuracy={acc} />
+          <Redraft picks={picks} accuracy={acc} model={run.redraft_model} target={run.target} />
         </div>
       </section>
     </main>
