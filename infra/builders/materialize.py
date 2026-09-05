@@ -51,6 +51,7 @@ SOURCES = {
     "response": ("infra.builders.response", "load_response"),
     "bio": ("infra.builders.bio", "load_bio"),
     "hoopexplorer": ("infra.builders.hoopexplorer", "load_hoopexplorer"),
+    "scouting_text": ("infra.builders.scouting_text", "load_scouting_text"),
     "torvik_context": PROC / "prospect_torvik_context.parquet",
     "game": PROC / "prospect_game_features.parquet",
 }
