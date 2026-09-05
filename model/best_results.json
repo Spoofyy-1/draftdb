@@ -1,0 +1,223 @@
+{
+ "styles": {
+  "BEST MODEL (v2 gen17)": {
+   "weights": {
+    "xgb": 0.5,
+    "tabicl": 0.5
+   },
+   "rows": [
+    {
+     "style": "EVO2 gen17",
+     "k": 5,
+     "season": 2019,
+     "kind": "BLIND",
+     "xgb": 0.3985050293764804,
+     "tabicl": 0.3582084961087699,
+     "stack": 0.39992616752348037,
+     "draft": 0.40213479344181613
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 5,
+     "season": 2020,
+     "kind": "BLIND",
+     "xgb": 0.32904734073641145,
+     "tabicl": 0.3519333107754776,
+     "stack": 0.3383995381166042,
+     "draft": 0.35021071088006406
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 5,
+     "season": 2021,
+     "kind": "BLIND",
+     "xgb": 0.6825017088174984,
+     "tabicl": 0.5950786056049214,
+     "stack": 0.6676350993843702,
+     "draft": 0.4084073820915926
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 4,
+     "season": 2022,
+     "kind": "BLIND",
+     "xgb": 0.5499871937163835,
+     "tabicl": 0.4865534022026808,
+     "stack": 0.5265562368649191,
+     "draft": 0.2623580636899172
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 3,
+     "season": 2023,
+     "kind": "BLIND",
+     "xgb": 0.29074317747200357,
+     "tabicl": 0.39604231110210153,
+     "stack": 0.3517790622431389,
+     "draft": 0.1106307353328877
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 2,
+     "season": 2024,
+     "kind": "BLIND",
+     "xgb": 0.543637481988036,
+     "tabicl": 0.5876898688680063,
+     "stack": 0.5874923350078708,
+     "draft": 0.13403326556845988
+    },
+    {
+     "style": "EVO2 gen17",
+     "k": 1,
+     "season": 2025,
+     "kind": "BLIND",
+     "xgb": 0.3658137391089825,
+     "tabicl": 0.31230452645115225,
+     "stack": 0.34800648462764006,
+     "draft": 0.17640862779925506
+    }
+   ],
+   "secs": 0,
+   "phase": "BEST",
+   "genome": {
+    "hw": "disc85",
+    "norm": "none",
+    "clip": "clip40",
+    "label": "gaussrank",
+    "fx": "base",
+    "M": 400.0,
+    "thin": "none",
+    "anchor": "none",
+    "cons": 0.0,
+    "intl": 1,
+    "bag": 3,
+    "fm": 0,
+    "mono": "on",
+    "hurdle": 0,
+    "mingp": 0
+   }
+  },
+  "V3 BEST (rebuilt data)": {
+   "weights": {
+    "rich": [
+     0.5,
+     0.5
+    ],
+    "thin": [
+     0.5,
+     0.5
+    ]
+   },
+   "rows": [
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 5,
+     "season": 2019,
+     "kind": "BLIND",
+     "xgb": 0.3793718662524224,
+     "tabicl": 0.3918607154941709,
+     "stack": 0.39134849757643475,
+     "draft": 0.40213479344181613
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 5,
+     "season": 2020,
+     "kind": "BLIND",
+     "xgb": 0.2842597434556585,
+     "tabicl": 0.3244947552985328,
+     "stack": 0.3106407856496213,
+     "draft": 0.35021071088006406
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 5,
+     "season": 2021,
+     "kind": "BLIND",
+     "xgb": 0.6695146958304854,
+     "tabicl": 0.5626110731373889,
+     "stack": 0.6301341972770359,
+     "draft": 0.4084073820915926
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 4,
+     "season": 2022,
+     "kind": "BLIND",
+     "xgb": 0.5073849568855118,
+     "tabicl": 0.4636728421412106,
+     "stack": 0.5166649214063426,
+     "draft": 0.2623580636899172
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 3,
+     "season": 2023,
+     "kind": "BLIND",
+     "xgb": 0.2871545994028181,
+     "tabicl": 0.3661716707928819,
+     "stack": 0.3455194968153449,
+     "draft": 0.1106307353328877
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 2,
+     "season": 2024,
+     "kind": "BLIND",
+     "xgb": 0.5793556335123362,
+     "tabicl": 0.5944366308225962,
+     "stack": 0.6008084280259892,
+     "draft": 0.13403326556845988
+    },
+    {
+     "style": "V3 BEST (rebuilt data)",
+     "k": 1,
+     "season": 2025,
+     "kind": "BLIND",
+     "xgb": 0.3390105175050906,
+     "tabicl": 0.2907517545447579,
+     "stack": 0.30305682772832265,
+     "draft": 0.17640862779925506
+    }
+   ],
+   "secs": 136,
+   "phase": "V3",
+   "genome": {
+    "hw": "disc85",
+    "norm": "none",
+    "clip": "clip40",
+    "label": "gaussrank",
+    "fx": "base",
+    "M": 400.0,
+    "thin": "none",
+    "anchor": "none",
+    "cons": 0.0,
+    "intl": 1,
+    "bag": 3,
+    "fm": 0,
+    "mono": "on",
+    "hurdle": 0,
+    "mingp": 0,
+    "el": 0,
+    "wk": 0,
+    "ridge_alpha": 30.0,
+    "icl_topk": 0,
+    "icl_ctx": "all",
+    "resid": 0,
+    "knn": 0,
+    "cat": 0,
+    "ixc": 0,
+    "pss": 0,
+    "icl_norm": "default",
+    "icl_outlier": 4.0,
+    "icl_shuffle": "latin",
+    "labelmix": "single",
+    "hz": 0,
+    "covw": 0,
+    "risk": "mean",
+    "ridge": 0,
+    "icl_n": 8
+   }
+  }
+ }
+}

@@ -1,0 +1,6 @@
+training pool: all labeled rows, 770
+data version: v3 | inputs: 222 | ledger before: 661
+WF v3 +0.3685 (v1 +0.3805)  folds 2014:+0.411(-0.017) 2015:+0.338(-0.063) 2016:+0.227(-0.008) 2017:+0.480(-0.013) 2018:+0.386(-0.014)  wts {'rich': (0.5, 0.5), 'thin': (0.5, 0.5)}  (37s)
+BLIND v3 edge +0.179 (v1 +0.197) | 2019:-0.011 2020:-0.040 2021:+0.222 2022:+0.254 2023:+0.235 2024:+0.467 2025:+0.127 | 4/7 >= .2 | ledger 682
+wemby 2023 rank v3 #4 (v1 #12) | wrote r7/board_preds_v3.csv
+EVAL_V3_DONE

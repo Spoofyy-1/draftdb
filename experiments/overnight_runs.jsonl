@@ -1,0 +1,55 @@
+{"name": "data wk", "delta": {"wk": 1}, "wf": 0.3726, "gain": -0.0079, "folds": 2, "passed": false, "wemby_2023_rank": 15, "secs": 43}
+{"name": "data el", "delta": {"el": 1}, "wf": 0.3758, "gain": -0.0048, "folds": 3, "passed": false, "wemby_2023_rank": 16, "secs": 46}
+{"name": "data wk+el", "delta": {"wk": 1, "el": 1}, "wf": 0.3777, "gain": -0.0028, "folds": 1, "passed": false, "wemby_2023_rank": 18, "secs": 46}
+{"name": "data wk,intl off", "delta": {"wk": 1, "intl": 0}, "wf": 0.372, "gain": -0.0085, "folds": 2, "passed": false, "wemby_2023_rank": 20, "secs": 45}
+{"name": "label cum3", "delta": {"hw": "cum3"}, "wf": 0.3711, "gain": -0.0094, "folds": 2, "passed": false, "wemby_2023_rank": 18, "secs": 43}
+{"name": "label cum4", "delta": {"hw": "cum4"}, "wf": 0.3766, "gain": -0.004, "folds": 1, "passed": false, "wemby_2023_rank": 17, "secs": 42}
+{"name": "label uniform", "delta": {"hw": "uniform"}, "wf": 0.3669, "gain": -0.0136, "folds": 0, "passed": false, "wemby_2023_rank": 11, "secs": 42}
+{"name": "label disc70", "delta": {"hw": "disc70"}, "wf": 0.3759, "gain": -0.0047, "folds": 2, "passed": false, "wemby_2023_rank": 14, "secs": 41}
+{"name": "label front", "delta": {"hw": "front"}, "wf": 0.3815, "gain": 0.001, "folds": 3, "passed": false, "wemby_2023_rank": 16, "secs": 41}
+{"name": "label top2", "delta": {"hw": "top2"}, "wf": 0.3316, "gain": -0.0489, "folds": 1, "passed": false, "wemby_2023_rank": 10, "secs": 40}
+{"name": "label rank(not gauss)", "delta": {"label": "rank"}, "wf": 0.3685, "gain": -0.0121, "folds": 1, "passed": false, "wemby_2023_rank": 12, "secs": 43}
+{"name": "label noclip", "delta": {"clip": "none"}, "wf": 0.3805, "gain": 0.0, "folds": 0, "passed": false, "wemby_2023_rank": 12, "secs": 43}
+{"name": "label log1p", "delta": {"clip": "log1p"}, "wf": 0.3805, "gain": 0.0, "folds": 0, "passed": false, "wemby_2023_rank": 12, "secs": 43}
+{"name": "shrink M250", "delta": {"M": 250.0}, "wf": 0.3834, "gain": 0.0029, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 41}
+{"name": "icl topk100", "delta": {"icl_topk": 100}, "wf": 0.3747, "gain": -0.0059, "folds": 2, "passed": false, "wemby_2023_rank": 13, "secs": 40}
+{"name": "icl topk60", "delta": {"icl_topk": 60}, "wf": 0.3778, "gain": -0.0027, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 37}
+{"name": "icl ctx drafted", "delta": {"icl_ctx": "drafted"}, "wf": 0.3666, "gain": -0.0139, "folds": 1, "passed": false, "wemby_2023_rank": 12, "secs": 43}
+{"name": "icl n32", "delta": {"icl_n": 32}, "wf": 0.382, "gain": 0.0015, "folds": 4, "passed": false, "wemby_2023_rank": 12, "secs": 48}
+{"name": "icl norm none", "delta": {"icl_norm": "none"}, "wf": 0.3796, "gain": -0.0009, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 31}
+{"name": "icl norm power", "delta": {"icl_norm": "power"}, "wf": 0.3832, "gain": 0.0026, "folds": 4, "passed": false, "wemby_2023_rank": 11, "secs": 41}
+{"name": "icl norm quantile", "delta": {"icl_norm": "quantile"}, "wf": 0.3765, "gain": -0.004, "folds": 2, "passed": false, "wemby_2023_rank": 13, "secs": 33}
+{"name": "icl outlier2", "delta": {"icl_outlier": 2.0}, "wf": 0.3876, "gain": 0.0071, "folds": 3, "passed": false, "wemby_2023_rank": 14, "secs": 43}
+{"name": "icl outlier8", "delta": {"icl_outlier": 8.0}, "wf": 0.3801, "gain": -0.0004, "folds": 2, "passed": false, "wemby_2023_rank": 12, "secs": 45}
+{"name": "icl shuffle random", "delta": {"icl_shuffle": "random"}, "wf": 0.3771, "gain": -0.0035, "folds": 1, "passed": false, "wemby_2023_rank": 11, "secs": 44}
+{"name": "ridge a30", "delta": {"ridge": 1, "ridge_alpha": 30.0}, "wf": 0.4052, "gain": 0.0247, "folds": 3, "passed": false, "wemby_2023_rank": 14, "secs": 42}
+{"name": "ridge a100", "delta": {"ridge": 1, "ridge_alpha": 100.0}, "wf": 0.395, "gain": 0.0144, "folds": 2, "passed": false, "wemby_2023_rank": 14, "secs": 41}
+{"name": "ridge a300", "delta": {"ridge": 1, "ridge_alpha": 300.0}, "wf": 0.3966, "gain": 0.0161, "folds": 3, "passed": false, "wemby_2023_rank": 14, "secs": 43}
+{"name": "ridge a1000", "delta": {"ridge": 1, "ridge_alpha": 1000.0}, "wf": 0.3885, "gain": 0.008, "folds": 3, "passed": false, "wemby_2023_rank": 14, "secs": 41}
+{"name": "knn", "delta": {"knn": 1}, "wf": 0.3519, "gain": -0.0286, "folds": 1, "passed": false, "wemby_2023_rank": 18, "secs": 40}
+{"name": "catboost", "delta": {"cat": 1}, "wf": 0.3684, "gain": -0.0121, "folds": 1, "passed": false, "wemby_2023_rank": 12, "secs": 70}
+{"name": "cat+ridge300", "delta": {"cat": 1, "ridge": 1, "ridge_alpha": 300.0}, "wf": 0.3964, "gain": 0.0159, "folds": 2, "passed": false, "wemby_2023_rank": 14, "secs": 69}
+{"name": "cat+knn", "delta": {"cat": 1, "knn": 1}, "wf": 0.3485, "gain": -0.032, "folds": 0, "passed": false, "wemby_2023_rank": 17, "secs": 68}
+{"name": "resid stack", "delta": {"resid": 1}, "wf": 0.3635, "gain": -0.017, "folds": 3, "passed": false, "wemby_2023_rank": 15, "secs": 119}
+{"name": "interaction constraints", "delta": {"ixc": 1}, "wf": 0.3902, "gain": 0.0097, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 49}
+{"name": "per-season target", "delta": {"pss": 1}, "wf": 0.3541, "gain": -0.0264, "folds": 1, "passed": false, "wemby_2023_rank": 9, "secs": 202}
+{"name": "horizon models", "delta": {"hz": 1}, "wf": 0.3867, "gain": 0.0062, "folds": 2, "passed": false, "wemby_2023_rank": 22, "secs": 175}
+{"name": "cov weights", "delta": {"covw": 1}, "wf": 0.3914, "gain": 0.0109, "folds": 4, "passed": true, "wemby_2023_rank": 12, "secs": 44, "blind_edge": 0.1887, "ge02": 4, "edges": {"2019": -0.023, "2020": -0.01, "2021": 0.235, "2022": 0.273, "2023": 0.244, "2024": 0.462, "2025": 0.139}}
+{"name": "hz+covw", "delta": {"hz": 1, "covw": 1}, "wf": 0.3977, "gain": 0.0171, "folds": 4, "passed": true, "wemby_2023_rank": 16, "secs": 177, "blind_edge": 0.1717, "ge02": 4, "edges": {"2019": -0.033, "2020": -0.016, "2021": 0.22, "2022": 0.251, "2023": 0.224, "2024": 0.384, "2025": 0.171}}
+{"name": "labelmix2", "delta": {"labelmix": "mix2"}, "wf": 0.376, "gain": -0.0045, "folds": 1, "passed": false, "wemby_2023_rank": 12, "secs": 84}
+{"name": "labelmix3", "delta": {"labelmix": "mix3"}, "wf": 0.3791, "gain": -0.0014, "folds": 2, "passed": false, "wemby_2023_rank": 12, "secs": 115}
+{"name": "thin mild", "delta": {"thin": "mild"}, "wf": 0.3802, "gain": -0.0003, "folds": 3, "passed": false, "wemby_2023_rank": 17, "secs": 38}
+{"name": "thin strong", "delta": {"thin": "strong"}, "wf": 0.3644, "gain": -0.0161, "folds": 2, "passed": false, "wemby_2023_rank": 21, "secs": 40}
+{"name": "anchor top1", "delta": {"anchor": "top1"}, "wf": 0.3816, "gain": 0.0011, "folds": 1, "passed": false, "wemby_2023_rank": 8, "secs": 41}
+{"name": "anchor top3", "delta": {"anchor": "top3"}, "wf": 0.3713, "gain": -0.0092, "folds": 1, "passed": false, "wemby_2023_rank": 8, "secs": 41}
+{"name": "cons .1", "delta": {"cons": 0.1}, "wf": 0.3777, "gain": -0.0028, "folds": 3, "passed": false, "wemby_2023_rank": 11, "secs": 42}
+{"name": "cons .2", "delta": {"cons": 0.2}, "wf": 0.3731, "gain": -0.0074, "folds": 2, "passed": false, "wemby_2023_rank": 10, "secs": 44}
+{"name": "mono off", "delta": {"mono": "off"}, "wf": 0.381, "gain": 0.0005, "folds": 2, "passed": false, "wemby_2023_rank": 14, "secs": 41}
+{"name": "hurdle", "delta": {"hurdle": 1}, "wf": 0.3884, "gain": 0.0079, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 49}
+{"name": "bag9", "delta": {"bag": 9}, "wf": 0.384, "gain": 0.0035, "folds": 3, "passed": false, "wemby_2023_rank": 12, "secs": 79}
+{"name": "mingp10", "delta": {"mingp": 10}, "wf": 0.3805, "gain": 0.0, "folds": 0, "passed": false, "wemby_2023_rank": 12, "secs": 41}
+{"name": "risk q25", "delta": {"risk": "q25"}, "wf": 0.3727, "gain": -0.0078, "folds": 2, "passed": false, "wemby_2023_rank": 16, "secs": 41}
+{"name": "fx shoot", "delta": {"fx": "shoot"}, "wf": 0.3765, "gain": -0.004, "folds": 1, "passed": false, "wemby_2023_rank": 12, "secs": 47}
+{"name": "fx shoot+age", "delta": {"fx": "shoot+age"}, "wf": 0.3721, "gain": -0.0084, "folds": 2, "passed": false, "wemby_2023_rank": 13, "secs": 44}
+{"name": "fx posz", "delta": {"fx": "posz"}, "wf": 0.3842, "gain": 0.0037, "folds": 2, "passed": false, "wemby_2023_rank": 14, "secs": 46}
+{"name": "fx eraz", "delta": {"fx": "eraz"}, "wf": 0.3638, "gain": -0.0167, "folds": 1, "passed": false, "wemby_2023_rank": null, "secs": 36}

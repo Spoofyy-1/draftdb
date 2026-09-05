@@ -1,0 +1,104 @@
+# Every permutation tried (2026-09-04 → 2026-09-05)
+
+All selection was on **walk-forward** folds inside the training window (train on earlier classes, predict the held-out 2014–2018 class). A change is accepted only if the mean walk-forward IC gains ≥ 0.005 **and** it wins at least 4 of the 5 folds head-to-head. Accepted configurations get one sealed blind scoring on 2019–2025, which is written to the append-only ledger (`experiments/ledger.jsonl`). Blind results are never used for selection.
+
+## Overnight queue — 57 single changes vs the frozen best model
+
+Each row is one change to the frozen genome. `gain` = walk-forward IC minus the frozen model's +0.3805; `folds` = folds won of 5; `wemby` = Wembanyama's 2023 predicted rank (diagnostic only, never used for selection).
+
+| # | change | walk-forward | gain | folds | passed | blind edge (passers only) | wemby 2023 |
+|---|---|---|---|---|---|---|---|
+| 1 | data wk `{"wk": 1}` | +0.3726 | -0.0079 | 2/5 | fail |  | 15 |
+| 2 | data el `{"el": 1}` | +0.3758 | -0.0048 | 3/5 | fail |  | 16 |
+| 3 | data wk+el `{"wk": 1, "el": 1}` | +0.3777 | -0.0028 | 1/5 | fail |  | 18 |
+| 4 | data wk,intl off `{"wk": 1, "intl": 0}` | +0.3720 | -0.0085 | 2/5 | fail |  | 20 |
+| 5 | label cum3 `{"hw": "cum3"}` | +0.3711 | -0.0094 | 2/5 | fail |  | 18 |
+| 6 | label cum4 `{"hw": "cum4"}` | +0.3766 | -0.0040 | 1/5 | fail |  | 17 |
+| 7 | label uniform `{"hw": "uniform"}` | +0.3669 | -0.0136 | 0/5 | fail |  | 11 |
+| 8 | label disc70 `{"hw": "disc70"}` | +0.3759 | -0.0047 | 2/5 | fail |  | 14 |
+| 9 | label front `{"hw": "front"}` | +0.3815 | +0.0010 | 3/5 | fail |  | 16 |
+| 10 | label top2 `{"hw": "top2"}` | +0.3316 | -0.0489 | 1/5 | fail |  | 10 |
+| 11 | label rank(not gauss) `{"label": "rank"}` | +0.3685 | -0.0121 | 1/5 | fail |  | 12 |
+| 12 | label noclip `{"clip": "none"}` | +0.3805 | +0.0000 | 0/5 | fail |  | 12 |
+| 13 | label log1p `{"clip": "log1p"}` | +0.3805 | +0.0000 | 0/5 | fail |  | 12 |
+| 14 | shrink M250 `{"M": 250.0}` | +0.3834 | +0.0029 | 3/5 | fail |  | 12 |
+| 15 | icl topk100 `{"icl_topk": 100}` | +0.3747 | -0.0059 | 2/5 | fail |  | 13 |
+| 16 | icl topk60 `{"icl_topk": 60}` | +0.3778 | -0.0027 | 3/5 | fail |  | 12 |
+| 17 | icl ctx drafted `{"icl_ctx": "drafted"}` | +0.3666 | -0.0139 | 1/5 | fail |  | 12 |
+| 18 | icl n32 `{"icl_n": 32}` | +0.3820 | +0.0015 | 4/5 | fail |  | 12 |
+| 19 | icl norm none `{"icl_norm": "none"}` | +0.3796 | -0.0009 | 3/5 | fail |  | 12 |
+| 20 | icl norm power `{"icl_norm": "power"}` | +0.3832 | +0.0026 | 4/5 | fail |  | 11 |
+| 21 | icl norm quantile `{"icl_norm": "quantile"}` | +0.3765 | -0.0040 | 2/5 | fail |  | 13 |
+| 22 | icl outlier2 `{"icl_outlier": 2.0}` | +0.3876 | +0.0071 | 3/5 | fail |  | 14 |
+| 23 | icl outlier8 `{"icl_outlier": 8.0}` | +0.3801 | -0.0004 | 2/5 | fail |  | 12 |
+| 24 | icl shuffle random `{"icl_shuffle": "random"}` | +0.3771 | -0.0035 | 1/5 | fail |  | 11 |
+| 25 | ridge a30 `{"ridge": 1, "ridge_alpha": 30.0}` | +0.4052 | +0.0247 | 3/5 | fail |  | 14 |
+| 26 | ridge a100 `{"ridge": 1, "ridge_alpha": 100.0}` | +0.3950 | +0.0144 | 2/5 | fail |  | 14 |
+| 27 | ridge a300 `{"ridge": 1, "ridge_alpha": 300.0}` | +0.3966 | +0.0161 | 3/5 | fail |  | 14 |
+| 28 | ridge a1000 `{"ridge": 1, "ridge_alpha": 1000.0}` | +0.3885 | +0.0080 | 3/5 | fail |  | 14 |
+| 29 | knn `{"knn": 1}` | +0.3519 | -0.0286 | 1/5 | fail |  | 18 |
+| 30 | catboost `{"cat": 1}` | +0.3684 | -0.0121 | 1/5 | fail |  | 12 |
+| 31 | cat+ridge300 `{"cat": 1, "ridge": 1, "ridge_alpha": 300.0}` | +0.3964 | +0.0159 | 2/5 | fail |  | 14 |
+| 32 | cat+knn `{"cat": 1, "knn": 1}` | +0.3485 | -0.0320 | 0/5 | fail |  | 17 |
+| 33 | resid stack `{"resid": 1}` | +0.3635 | -0.0170 | 3/5 | fail |  | 15 |
+| 34 | interaction constraints `{"ixc": 1}` | +0.3902 | +0.0097 | 3/5 | fail |  | 12 |
+| 35 | per-season target `{"pss": 1}` | +0.3541 | -0.0264 | 1/5 | fail |  | 9 |
+| 36 | horizon models `{"hz": 1}` | +0.3867 | +0.0062 | 2/5 | fail |  | 22 |
+| 37 | cov weights `{"covw": 1}` | +0.3914 | +0.0109 | 4/5 | PASS | +0.189 (4/7 ≥ +0.2) | 12 |
+| 38 | hz+covw `{"hz": 1, "covw": 1}` | +0.3977 | +0.0171 | 4/5 | PASS | +0.172 (4/7 ≥ +0.2) | 16 |
+| 39 | labelmix2 `{"labelmix": "mix2"}` | +0.3760 | -0.0045 | 1/5 | fail |  | 12 |
+| 40 | labelmix3 `{"labelmix": "mix3"}` | +0.3791 | -0.0014 | 2/5 | fail |  | 12 |
+| 41 | thin mild `{"thin": "mild"}` | +0.3802 | -0.0003 | 3/5 | fail |  | 17 |
+| 42 | thin strong `{"thin": "strong"}` | +0.3644 | -0.0161 | 2/5 | fail |  | 21 |
+| 43 | anchor top1 `{"anchor": "top1"}` | +0.3816 | +0.0011 | 1/5 | fail |  | 8 |
+| 44 | anchor top3 `{"anchor": "top3"}` | +0.3713 | -0.0092 | 1/5 | fail |  | 8 |
+| 45 | cons .1 `{"cons": 0.1}` | +0.3777 | -0.0028 | 3/5 | fail |  | 11 |
+| 46 | cons .2 `{"cons": 0.2}` | +0.3731 | -0.0074 | 2/5 | fail |  | 10 |
+| 47 | mono off `{"mono": "off"}` | +0.3810 | +0.0005 | 2/5 | fail |  | 14 |
+| 48 | hurdle `{"hurdle": 1}` | +0.3884 | +0.0079 | 3/5 | fail |  | 12 |
+| 49 | bag9 `{"bag": 9}` | +0.3840 | +0.0035 | 3/5 | fail |  | 12 |
+| 50 | mingp10 `{"mingp": 10}` | +0.3805 | +0.0000 | 0/5 | fail |  | 12 |
+| 51 | risk q25 `{"risk": "q25"}` | +0.3727 | -0.0078 | 2/5 | fail |  | 16 |
+| 52 | fx shoot `{"fx": "shoot"}` | +0.3765 | -0.0040 | 1/5 | fail |  | 12 |
+| 53 | fx shoot+age `{"fx": "shoot+age"}` | +0.3721 | -0.0084 | 2/5 | fail |  | 13 |
+| 54 | fx posz `{"fx": "posz"}` | +0.3842 | +0.0037 | 2/5 | fail |  | 14 |
+| 55 | fx eraz `{"fx": "eraz"}` | +0.3638 | -0.0167 | 1/5 | fail |  | None |
+
+Seed stability of the frozen model: seed-stability: base WF over seed sets [0.387, 0.3837, 0.3794]  sd 0.0031
+
+Greedy combination of the passers → final genome changes: `['hz+covw']`, walk-forward +0.3977, blind edge +0.172 (4/7 seasons ≥ +0.2), Wembanyama 2023 rank 16. Verdict: the walk-forward gain did not carry to the blind seasons; the frozen model was kept.
+
+## Evolution on data v1 — 257 generations, 6 accepted
+
+Single- and two-gene mutations of the frozen genome, same gate. Every 10 generations an Opus 4.8 critic reviewed the walk-forward misses (names attached only on the analyst machine) and proposed gene changes, which the evolution tried before random mutations (113 critic suggestions tried). Full history: `experiments/evolution_v1_runs.jsonl`, log: `experiments/evolution_v1.log`.
+
+| gen | mutation (vs champion at the time) | walk-forward | gain | folds | blind edge after acceptance |
+|---|---|---|---|---|---|
+| 8 | `covw=1` | +0.3914 | +0.0109 | 4/5 |  |
+| 14 | `hz=1/covw=1` | +0.3977 | +0.0171 | 4/5 | +0.189 (2019 -0.023, 2020 -0.010, 4/7 ≥ +0.2) |
+| 17 | `fx=posz` | +0.4060 | +0.0146 | 4/5 | +0.168 (2019 -0.034, 2020 -0.046, 4/7 ≥ +0.2) |
+| 28 | `ridge=1` | +0.4192 | +0.0131 | 4/5 | +0.149 (2019 -0.059, 2020 -0.021, 3/7 ≥ +0.2) |
+| 50 | `icl_outlier=2.0/knn=1` | +0.4256 | +0.0064 | 4/5 | +0.154 (2019 -0.006, 2020 -0.017, 2/7 ≥ +0.2) |
+| 86 | `icl_norm=quantile/el=1` | +0.4487 | +0.0231 | 4/5 | +0.167 (2019 +0.008, 2020 -0.056, 3/7 ≥ +0.2) |
+
+Rejected mutations: 255 (distinct: 149). The champion's walk-forward climbed from +0.3805 to +0.4487 while its blind edge fell from +0.193 to +0.167: the search fitted the five walk-forward folds. This is why the frozen model, not the champion, is the shipped model.
+
+## Data v3 ablations (walk-forward only, no blind looks)
+
+```
+ABLATION v1        WF +0.3805  folds 2014:+0.427 2015:+0.399 2016:+0.190 2017:+0.487 2018:+0.400  (32s)
+ABLATION v3        WF +0.3647  folds 2014:+0.431 2015:+0.332 2016:+0.215 2017:+0.451 2018:+0.394  (37s)
+ABLATION nonew     WF +0.3682  folds 2014:+0.426 2015:+0.350 2016:+0.191 2017:+0.472 2018:+0.402  (34s)
+restored intl rows: 16
+ABLATION nointl    WF +0.3748  folds 2014:+0.438 2015:+0.354 2016:+0.231 2017:+0.460 2018:+0.390  (37s)
+undid college fills: 5
+ABLATION nocol     WF +0.3730  folds 2014:+0.417 2015:+0.353 2016:+0.234 2017:+0.459 2018:+0.402  (34s)
+```
+
+## Earlier phases (before the frozen model)
+
+- Label transforms tried: cumulative 5-season WAR, WAR per season played, per-season z-scored WAR, 3- and 4-season windows, peak WAR, tier labels, hurdle (played/not), **discounted 5-season WAR (0.85 per season, clipped at 40) with a Gaussian-rank transform within class — winner**.
+- Normalizations tried: none, per-year z, era z, position z, age-adjusted labels, sample-size shrinkage toward the prior (M = 400 pseudo-minutes — kept), international league-level adjustment (kept), thin-data penalties, consensus anchoring/blending (rejected: market deference).
+- Members tried: XGBoost (kept, 3 seeds, age monotone), TabICL (kept, 50/50 rank average), TabFM (dropped: weaker and slow), ridge, kNN comparables, CatBoost, XGBRanker, residual stacking, per-season targets, horizon models, interaction constraints, quantile (q25) risk objective.
+- Data blocks tried: EuroLeague/EuroCup official API block, Wikipedia career block (both rejected by the gate as extra columns; the corrected rows were instead written into the base international block in data v3).
+- Synthetic data: tried early, then banned by rule.

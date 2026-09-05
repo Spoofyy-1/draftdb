@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model Runs — DraftDB</title>
-<meta name="description" content="The STACK ledger: every blind evaluation of the DraftDB ensemble against the draft baseline, per season and mutation.">
+<meta name="description" content="DraftDB backtest: the model\u2019s draft order versus the real NBA draft order on the 2019\u20132025 classes, scored by WAR.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Pixel&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fragment+Mono&display=swap" rel="stylesheet">
@@ -52,19 +52,30 @@
 
   <section class="runs-hero frame">
     <div class="container">
-      <div class="runs-hero__eyebrow">// Model · STACK ledger //</div>
+      <div class="runs-hero__eyebrow">// Model · Backtest //</div>
       <h1 class="runs-hero__title">Model Runs</h1>
-      <p class="runs-hero__sub">Every blind evaluation of the STACK ensemble against the draft baseline, per season and per mutation. Selection happens on walk-forward only and outcomes are vault-locked — the goal is <strong>stack &ge; draft&nbsp;+&nbsp;0.20 every blind season</strong>.</p>
-      <div class="runs-meta" id="runs-meta"><!-- built by js/runs.js --></div>
+      <p class="runs-hero__sub">We re-ran every draft since 2019 with a tabular model using everything publicly knowable before draft night — college and international box scores, measurements, recruiting and scouting-report grades, and the final mock-draft consensus. Then we checked whose order better matched how the players actually turned out: the model, or the NBA teams that made the real picks. Players are ranked by <strong>WAR</strong>, the wins they were worth over the NBA seasons they have played so far.</p>
+      <div class="stat-grid" id="stat-grid"><!-- built by js/runs.js --></div>
+      <p class="stat-note">Order accuracy: how closely a draft order matches the players' actual WAR ranking (Spearman rank correlation as a percentage). 100% is a perfect order, 0% is no relationship. Averaged over the seven test drafts only.</p>
     </div>
   </section>
 
   <section class="section--tight frame">
     <div class="container">
-      <div id="runs-root"><!-- mutation tables built by js/runs.js --></div>
+      <h2 class="runs-h2">How it was tested <span class="hash">#</span></h2>
+      <div class="years" id="years"><!-- built by js/runs.js --></div>
+      <p class="runs-p"><strong>Training: 2010–2018. Test: 2019–2025.</strong> The model is trained once on the 2010–2018 classes — every drafted player plus every undrafted player who reached the NBA — and never sees a test class. Every test draft is scored on the NBA seasons its players have completed so far: 2019 to 2021 on five seasons, 2022 on four, 2023 on three, 2024 on two, 2025 on one. Model selection used walk-forward folds inside the training window only (train on 2010 to y&minus;1, predict class y). Test outcomes sit in a hash-locked vault; every look at them is written to an append-only ledger. Nothing from a draft's own year or later is ever visible to the model.</p>
+    </div>
+  </section>
+
+  <section class="section--tight frame">
+    <div class="container">
+      <h2 class="runs-h2">Runs <span class="hash">#</span></h2>
+      <div id="runs-root"><!-- built by js/runs.js --></div>
+      <h2 class="runs-h2 runs-h2--sp">Per class, shipped model <span class="hash">#</span></h2>
+      <div id="class-root"><!-- built by js/runs.js --></div>
       <p class="runs-foot-note">
-        Snapshot of the STACK ledger; live figures run on the training box. STACK = weighted ensemble of xgb / tabicl / tabfm.
-        edge = STACK &minus; draft. Rows shaded green clear the +0.20 goal. k = NBA seasons of outcome data available (capped at 5).
+        Value of the order = WAR delivered by each draft slot, weighted linearly by slot, scaled so the perfect order is 100% and the worst is 0% (random = 50%). Shipped model: XGBoost + TabICL rank stack on data v3. Every formula, every permutation tried and the data rebuild are documented in the repository: <a href="https://github.com/Spoofyy-1/draftdb" rel="noopener">github.com/Spoofyy-1/draftdb</a> (docs/METHODS.md, docs/EXPERIMENTS.md).
       </p>
     </div>
   </section>

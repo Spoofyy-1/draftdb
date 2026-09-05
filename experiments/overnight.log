@@ -1,0 +1,74 @@
+training pool: all labeled rows, 770
+BASE WF +0.3805 folds [0.427, 0.399, 0.19, 0.487, 0.4]  wemby2023 #12  (41s)
+[17:05:14] fail data wk                    WF +0.3726 gain -0.0079 folds 2/5 wemby#15
+[17:06:01] fail data el                    WF +0.3758 gain -0.0048 folds 3/5 wemby#16
+[17:06:47] fail data wk+el                 WF +0.3777 gain -0.0028 folds 1/5 wemby#18
+[17:07:32] fail data wk,intl off           WF +0.3720 gain -0.0085 folds 2/5 wemby#20
+[17:08:15] fail label cum3                 WF +0.3711 gain -0.0094 folds 2/5 wemby#18
+[17:08:57] fail label cum4                 WF +0.3766 gain -0.0040 folds 1/5 wemby#17
+[17:09:38] fail label uniform              WF +0.3669 gain -0.0136 folds 0/5 wemby#11
+[17:10:19] fail label disc70               WF +0.3759 gain -0.0047 folds 2/5 wemby#14
+[17:11:01] fail label front                WF +0.3815 gain +0.0010 folds 3/5 wemby#16
+[17:11:41] fail label top2                 WF +0.3316 gain -0.0489 folds 1/5 wemby#10
+[17:12:24] fail label rank(not gauss)      WF +0.3685 gain -0.0121 folds 1/5 wemby#12
+[17:13:07] fail label noclip               WF +0.3805 gain +0.0000 folds 0/5 wemby#12
+[17:13:50] fail label log1p                WF +0.3805 gain +0.0000 folds 0/5 wemby#12
+[17:14:31] fail shrink M250                WF +0.3834 gain +0.0029 folds 3/5 wemby#12
+[17:15:11] fail icl topk100                WF +0.3747 gain -0.0059 folds 2/5 wemby#13
+[17:15:48] fail icl topk60                 WF +0.3778 gain -0.0027 folds 3/5 wemby#12
+[17:16:31] fail icl ctx drafted            WF +0.3666 gain -0.0139 folds 1/5 wemby#12
+[17:17:20] fail icl n32                    WF +0.3820 gain +0.0015 folds 4/5 wemby#12
+[17:17:50] fail icl norm none              WF +0.3796 gain -0.0009 folds 3/5 wemby#12
+[17:18:31] fail icl norm power             WF +0.3832 gain +0.0026 folds 4/5 wemby#11
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (310). n_quantiles is set to n_samples.
+  warnings.warn(
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (394). n_quantiles is set to n_samples.
+  warnings.warn(
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (460). n_quantiles is set to n_samples.
+  warnings.warn(
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (549). n_quantiles is set to n_samples.
+  warnings.warn(
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (666). n_quantiles is set to n_samples.
+  warnings.warn(
+/home/ubuntu/nba/.venv/lib/python3.12/site-packages/sklearn/preprocessing/_data.py:2905: UserWarning: n_quantiles (1000) is greater than the total number of samples (770). n_quantiles is set to n_samples.
+  warnings.warn(
+[17:19:04] fail icl norm quantile          WF +0.3765 gain -0.0040 folds 2/5 wemby#13
+[17:19:47] fail icl outlier2               WF +0.3876 gain +0.0071 folds 3/5 wemby#14
+[17:20:32] fail icl outlier8               WF +0.3801 gain -0.0004 folds 2/5 wemby#12
+[17:21:16] fail icl shuffle random         WF +0.3771 gain -0.0035 folds 1/5 wemby#11
+[17:21:58] fail ridge a30                  WF +0.4052 gain +0.0247 folds 3/5 wemby#14
+[17:22:39] fail ridge a100                 WF +0.3950 gain +0.0144 folds 2/5 wemby#14
+[17:23:22] fail ridge a300                 WF +0.3966 gain +0.0161 folds 3/5 wemby#14
+[17:24:04] fail ridge a1000                WF +0.3885 gain +0.0080 folds 3/5 wemby#14
+[17:24:44] fail knn                        WF +0.3519 gain -0.0286 folds 1/5 wemby#18
+[17:25:54] fail catboost                   WF +0.3684 gain -0.0121 folds 1/5 wemby#12
+[17:27:03] fail cat+ridge300               WF +0.3964 gain +0.0159 folds 2/5 wemby#14
+[17:28:11] fail cat+knn                    WF +0.3485 gain -0.0320 folds 0/5 wemby#17
+[17:30:09] fail resid stack                WF +0.3635 gain -0.0170 folds 3/5 wemby#15
+[17:30:59] fail interaction constraints    WF +0.3902 gain +0.0097 folds 3/5 wemby#12
+[17:34:21] fail per-season target          WF +0.3541 gain -0.0264 folds 1/5 wemby#9
+[17:37:16] fail horizon models             WF +0.3867 gain +0.0062 folds 2/5 wemby#22
+[17:38:50] PASS cov weights                WF +0.3914 gain +0.0109 folds 4/5 wemby#12 | blind edge +0.189 (4/7)
+[17:42:35] PASS hz+covw                    WF +0.3977 gain +0.0171 folds 4/5 wemby#16 | blind edge +0.172 (4/7)
+[17:43:59] fail labelmix2                  WF +0.3760 gain -0.0045 folds 1/5 wemby#12
+[17:45:55] fail labelmix3                  WF +0.3791 gain -0.0014 folds 2/5 wemby#12
+[17:46:33] fail thin mild                  WF +0.3802 gain -0.0003 folds 3/5 wemby#17
+[17:47:13] fail thin strong                WF +0.3644 gain -0.0161 folds 2/5 wemby#21
+[17:47:54] fail anchor top1                WF +0.3816 gain +0.0011 folds 1/5 wemby#8
+[17:48:36] fail anchor top3                WF +0.3713 gain -0.0092 folds 1/5 wemby#8
+[17:49:18] fail cons .1                    WF +0.3777 gain -0.0028 folds 3/5 wemby#11
+[17:50:02] fail cons .2                    WF +0.3731 gain -0.0074 folds 2/5 wemby#10
+[17:50:44] fail mono off                   WF +0.3810 gain +0.0005 folds 2/5 wemby#14
+[17:51:32] fail hurdle                     WF +0.3884 gain +0.0079 folds 3/5 wemby#12
+[17:52:51] fail bag9                       WF +0.3840 gain +0.0035 folds 3/5 wemby#12
+[17:53:33] fail mingp10                    WF +0.3805 gain +0.0000 folds 0/5 wemby#12
+[17:54:13] fail risk q25                   WF +0.3727 gain -0.0078 folds 2/5 wemby#16
+[17:55:00] fail fx shoot                   WF +0.3765 gain -0.0040 folds 1/5 wemby#12
+[17:55:44] fail fx shoot+age               WF +0.3721 gain -0.0084 folds 2/5 wemby#13
+[17:56:30] fail fx posz                    WF +0.3842 gain +0.0037 folds 2/5 wemby#14
+[17:57:06] fail fx eraz                    WF +0.3638 gain -0.0167 folds 1/5 wemby#None
+seed-stability: base WF over seed sets [0.387, 0.3837, 0.3794]  sd 0.0031
+passers: ['hz+covw', 'cov weights']
+  combine + hz+covw: WF +0.3977
+FINAL: +['hz+covw'] | WF +0.3977 | blind edge +0.172 (4/7) | wemby2023 #16 | ledger 567
+OVERNIGHT_DONE

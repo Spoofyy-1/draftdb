@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Model Stack</title>
+<style>
+:root{--bg:#0e1116;--panel:#161b22;--line:#262d36;--tx:#e6edf3;--dim:#8b949e;--good:#3fb950;--bad:#f85149;--acc:#58a6ff}
+body{margin:0;background:var(--bg);color:var(--tx);font:13px/1.5 ui-monospace,Menlo,monospace}
+header{padding:14px 20px;border-bottom:1px solid var(--line);display:flex;gap:22px;align-items:baseline}
+h1{font-size:15px;margin:0;letter-spacing:.08em;text-transform:uppercase}.k{color:var(--dim)}.v{color:var(--acc)}
+main{padding:14px 20px}section{margin-bottom:26px}h2{font-size:13px;color:var(--acc);margin:0 0 6px}
+table{border-collapse:collapse;font-size:12px}th,td{padding:5px 10px;border-bottom:1px solid #1c222b;text-align:right;font-variant-numeric:tabular-nums}
+th{color:var(--dim);background:var(--panel)}td:first-child,th:first-child{text-align:left}
+.g{color:var(--good);font-weight:600}.b{color:var(--bad)}.w{background:rgba(63,185,80,.08)}.dim{color:var(--dim)}
+.sum td{border-top:1px solid var(--line);font-weight:600}
+</style></head><body>
+<header><h1>Model Stack</h1><div><span class="k">goal</span> <span class="v">stack ≥ draft + 0.20 every blind season</span></div>
+<div><span class="k">conditions tested</span> <span class="v" id="cnt">0</span></div><div><span class="k">updated</span> <span class="v" id="upd">—</span></div><div><span class="k">sealed blind evaluations (ledger)</span> <span class="v" id="led">—</span></div><div class="k">no synthetic · selection on walk-forward only · vault-locked outcomes</div></header>
+<main id="m"></main>
+<script>
+const f=v=>v==null||Number.isNaN(v)?'—':v.toFixed(3);
+const DESC={'cum5|raw':'round 2 baseline (common outcome)','peak|raw':'target = best single season','wpm|raw':'target = WAR per 1000 min','disc|raw':'target = time-discounted WAR (Pelton)','gaussrank|raw':'target = inverse-normal rank','hurdle|raw':'P(plays) x E[rank|plays]','cum5|eraz':'features z-scored within draft class (era drift)','cum5|posz':'features z-scored within position','cum5|eraz+posz':'era + position normalized',cum5:'5-yr cumulative WAR (baseline)',rate:'WAR per NBA season played',zseason:'per-season-index z-scored WAR (development-curve normalized)',
+ horizon_matched:'HORIZON-MATCHED: each class scored by the model trained for its own completed seasons k'};
+async function load(){
+ const d=await (await fetch('/api/stack')).json(); const m=document.getElementById('m'); let h='';
+ const keys=Object.keys(d.styles||{});  /* completion order: newest at the bottom */
+ document.getElementById('cnt').textContent=keys.length;
+ for(const key of keys){const st=d.styles[key]; const rows=st.rows.filter(r=>r.kind==='BLIND'); const wf=st.rows.filter(r=>r.kind==='WF');
+  const w=st.weights&&Object.keys(st.weights).length?` · stack weights xgb ${st.weights.xgb} / tabicl ${st.weights.tabicl} / tabfm ${st.weights.tabfm}`:'';
+  h+=`<section><h2>${key} <span class="dim">— ${DESC[key]||('horizon model k='+key.slice(-1))}${w}</span></h2>`;
+  h+=`<table><tr><th>season</th><th>k</th><th>xgb</th><th>tabicl</th><th>tabfm</th><th>STACK</th><th>draft</th><th>edge</th></tr>`;
+  const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const row=r=>{const e=r.stack-r.draft;return `<tr class="${e>=0.2?'w':''}"><td>${r.season}</td><td>${r.k}</td><td>${f(r.xgb)}</td><td>${f(r.tabicl)}</td><td>${f(r.tabfm)}</td><td class="g">${f(r.stack)}</td><td>${f(r.draft)}</td><td class="${e>=0.2?'g':(e<0?'b':'')}">${e>=0?'+':''}${f(e)}</td></tr>`};
+  for(const r of rows) h+=row(r);
+  if(rows.length){const ok=rows.filter(r=>r.stack-r.draft>=0.2).length;
+   h+=`<tr class="sum"><td>blind mean</td><td></td><td>${f(mean(rows.map(r=>r.xgb)))}</td><td>${f(mean(rows.map(r=>r.tabicl)))}</td><td>${f(mean(rows.map(r=>r.tabfm)))}</td><td class="g">${f(mean(rows.map(r=>r.stack)))}</td><td>${f(mean(rows.map(r=>r.draft)))}</td><td>+${f(mean(rows.map(r=>r.stack-r.draft)))} · ${ok}/${rows.length} seasons ≥ +0.2</td></tr>`;}
+  if(wf.length) h+=`<tr class="sum dim"><td>walk-forward mean (${wf.length} seasons)</td><td></td><td>${f(mean(wf.map(r=>r.xgb)))}</td><td>${f(mean(wf.map(r=>r.tabicl)))}</td><td>${f(mean(wf.map(r=>r.tabfm)))}</td><td>${f(mean(wf.map(r=>r.stack)))}</td><td>${f(mean(wf.map(r=>r.draft)))}</td><td>+${f(mean(wf.map(r=>r.stack-r.draft)))}</td></tr>`;
+  h+=`</table></section>`;}
+ m.innerHTML=h||'<p class="dim">waiting for first style to finish…</p>'; document.getElementById('upd').textContent=new Date().toLocaleTimeString(); try{const L=await (await fetch('/api/ledger')).json(); document.getElementById('led').textContent=L.blind_evaluations;}catch(e){}}
+load(); setInterval(load,5000);
+</script></body></html>

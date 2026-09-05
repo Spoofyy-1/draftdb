@@ -1,0 +1,24 @@
+{
+ "name": "BEST (v2 gen17)",
+ "genome": {
+  "hw": "disc85",
+  "norm": "none",
+  "clip": "clip40",
+  "label": "gaussrank",
+  "fx": "base",
+  "M": 400.0,
+  "thin": "none",
+  "anchor": "none",
+  "cons": 0.0,
+  "intl": 1,
+  "bag": 3,
+  "fm": 0,
+  "mono": "on",
+  "hurdle": 0,
+  "mingp": 0
+ },
+ "weights": {
+  "xgb": 0.5,
+  "tabicl": 0.5
+ }
+}
