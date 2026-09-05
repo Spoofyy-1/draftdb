@@ -63,6 +63,9 @@ def main():
             continue
         finally:
             signal.alarm(0)
+        if not {"key", "draft_year"}.issubset(df.columns):
+            print(f"{name:15s} skipped: missing key or draft_year")
+            continue
         df = df.drop_duplicates(["key", "draft_year"])
         df["draft_year"] = df.draft_year.astype(int)
         df.to_parquet(EXT / f"feat_{name}.parquet", index=False)
