@@ -9,6 +9,7 @@ Rules
   blend      rank-average of several layer-1 configs (weights)
   upside     E[bin] + lam * P(top bin): reward a high ceiling on top of the expected outcome (classifier members)
   floor      E[bin] - lam * P(bottom bin): penalise bust risk
+  tilt       (1 - |b|) * rank(model) + b * rank(pre-draft column): games played, coach / program pedigree, market disagreement
 
 Usage: python -m tournament.layer2 --layer1 outputs/layer_1/<tag>.parquet [--holdout]
 """
@@ -79,7 +80,8 @@ def wide(layer1: pd.DataFrame, years: str) -> pd.DataFrame:
     out = meta.join(base)
     # population and the deterministic international score come from the table (layer 1 does not carry them)
     tab = pd.read_parquet(C.PROC / "draft_table.parquet").set_index(["draft_year", "bbref_id"])
-    out = out.join(tab[[c for c in ("source", "iz_young_x_eff", "iz_eff_36", "mock_rank_consensus", "mock_n_sources") if c in tab.columns]])
+    extra = dict.fromkeys(("source", "iz_young_x_eff", "iz_eff_36", "mock_rank_consensus", "mock_n_sources", *TILT_COLUMNS))
+    out = out.join(tab[[c for c in extra if c in tab.columns]])
     pcols = [c for c in l1.columns if c.startswith("p") and c[1:].isdigit()]
     for cfg, g in l1[(l1.member >= 0) & l1[pcols].notna().any(axis=1)].groupby("config"):
         first = g[g.member == g.member.min()].set_index(["draft_year", "bbref_id"])
@@ -134,6 +136,21 @@ def rule_age(w: pd.DataFrame, score: pd.Series, b: float) -> pd.Series:
     """(1 - b) * rank(model) + b * rank(youth). Age on draft night is pre-draft information; unknown ages rank neutral."""
     w = w.assign(_s=score, _a=-w["age_at_draft"].fillna(w["age_at_draft"].median()))
     return (1 - b) * _rank_within_year(w, "_s") + b * _rank_within_year(w, "_a")
+
+
+# Pre-draft columns a tilt may lean on: sample size, durability, head coach / program pedigree, market disagreement.
+TILT_COLUMNS = ["GP", "Min_per", "n_college_seasons", "mock_rank_std", "mock_n_sources", "co_tenure_yrs", "co_car_wl", "co_ncaa_car",
+                "co_sw16_car", "co_seas_wl", "co_seas_ap_post", "co_coach_prior_n", "co_coach_prior_rank", "co_coach_prior_vs_pick",
+                "co_prog_prior_n", "co_prog_prior_rank", "co_prog_prior_vs_pick"]
+
+
+def rule_tilt(w: pd.DataFrame, score: pd.Series, col: str, b: float) -> pd.Series:
+    """(1 - |b|) * rank(model) + b * rank(col): lean toward (b > 0) or away from (b < 0) a pre-draft column; rows without
+    the column keep a neutral rank for it. The games-played tilt is the "did he play enough college?" question, the co_*
+    tilts ask whether the head coach or the program should move a prospect."""
+    v = pd.to_numeric(w[col], errors="coerce")
+    w = w.assign(_s=score, _t=v.fillna(v.groupby(w.draft_year).transform("median")))
+    return (1 - abs(b)) * _rank_within_year(w, "_s") + b * _rank_within_year(w, "_t")
 
 
 def rule_route(w: pd.DataFrame, base: str) -> pd.Series:
@@ -243,6 +260,10 @@ def sweep(w: pd.DataFrame, configs: list[str]) -> pd.DataFrame:
                 add(f"intl a={al} on [{pure}]", rule_intl(w, base, al))
         for b in [0.1, 0.2, 0.3]:
             add(f"age b={b} on [{pure}]", rule_age(w, base, b))
+        for col in TILT_COLUMNS:
+            if col in w and w[col].notna().any():
+                for b in [-0.15, -0.08, 0.08, 0.15]:
+                    add(f"tilt {col} b={b} on [{pure}]", rule_tilt(w, base, col, b))
         if "mock_rank_consensus" in w:  # pre-draft consensus: legitimate pre-draft information, reported as its own variant
             for wc in [0.3, 0.4, 0.5, 0.6, 0.7]:
                 add(f"consensus w={wc} on [{pure}]", rule_consensus(w, base, wc))
@@ -334,6 +355,11 @@ def _recompute(w, configs, name):
         b = float(name.split("b=")[1].split(" ")[0])
         inner = name.split("[", 1)[1][:-1]
         return rule_age(w, _recompute(w, configs, inner), b)
+    if name.startswith("tilt "):
+        col, rest = name[5:].split(" b=", 1)
+        b = float(rest.split(" ")[0])
+        inner = name.split("[", 1)[1][:-1]
+        return rule_tilt(w, _recompute(w, configs, inner), col, b)
     if name.startswith("upside ") or name.startswith("floor "):
         kind, rest = name.split(" ", 1)
         cfg, lam = rest.rsplit(" lam=", 1)

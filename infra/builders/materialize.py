@@ -44,6 +44,11 @@ SOURCES = {
     "transfers": ("infra.builders.transfers", "load_transfers"),
     "odds": ("infra.builders.odds", "load_odds"),
     "scouting": ("infra.builders.scouting", "load_scouting"),
+    "coach": ("infra.builders.coaches", "load_coaches"),
+    "development": ("infra.builders.development", "load_development"),
+    "gleague": ("infra.builders.gleague", "load_gleague"),
+    "population": ("infra.builders.population", "load_population"),
+    "response": ("infra.builders.response", "load_response"),
     "torvik_context": PROC / "prospect_torvik_context.parquet",
     "game": PROC / "prospect_game_features.parquet",
 }

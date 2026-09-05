@@ -114,6 +114,13 @@ def build_table() -> pd.DataFrame:
     table["key"] = table.player.map(norm_name)
     for src in [external.ayush(norm_name), external.jasong(norm_name), external.intl(), *external.optional_sources()]:
         table = table.merge(src, on=["key", "draft_year"], how="left")
+    # Physicals: the AyushBatra sheet stops with the 2023 class; the combine measured the same tape (wingspan and weight
+    # agree to 0.2 in / 0.4 lb on the overlap), and Torvik birthdates give the same draft age (sd 0.3 yr).
+    if "c_wingspan" in table:
+        table["wingspan_in"] = table.wingspan_in.fillna(table.c_wingspan)
+        table["weight_lb"] = table.weight_lb.fillna(table.c_weight)
+        table["wing_minus_height"] = table.wing_minus_height.fillna(table.c_wingspan - table.height_in)
+    table["draft_age_x"] = table.draft_age_x.fillna(table.age_at_draft)
     # A draftee is modelled if he has a final college season (Torvik, Ayush/Sports-Reference, or -- for Torvik misses --
     # a hoopR/ESPN season line), a pre-draft pro season, or NBA-combine measurements. The combine fallback matters for
     # the 2003 class, where no complete public college box-score feed exists.

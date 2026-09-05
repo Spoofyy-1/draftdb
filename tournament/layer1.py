@@ -10,9 +10,9 @@ already-completed context classes use their full five-season outcomes.
 
 Config keys: name, model (tabfm | tabfm_cls | exaone | exaone_cls | xgb | tabicl | tabldm | tabpfn26 | tabpfn3 | ridge),
 features (group/column list, '-group' removes), label (raw | zscore | rank | gaussrank | disc85_gaussrank),
-label_cutoff (causal | full), label_horizon (full | match | short3 | 1..5 -- how many NBA seasons a training label
-spans; "match" mirrors what the scored year's own label can cover, "short3" trains 1-2 season classes on 3-season
-labels), bins, n_estimators, model_options, seeds, seed_start, segment (bool), ctx_start,
+label_cutoff (causal | full), label_horizon (full | match | match3 | short3 | multi | 1..5 -- how many NBA seasons a training
+label spans; "match" mirrors what the scored year's own label can cover, "short3" trains 1-2 season classes on 3-season
+labels, "multi" stacks every completed horizon of every context class with the horizon as a feature), bins, n_estimators, model_options, seeds, seed_start, segment (bool), ctx_start,
 ctx_end, ctx_last, ctx_min_seasons, stack ([member configs], rank-averaged, optional weight per member).
 
 Usage: python -m tournament.layer1 --device cuda:0 --years context --tag sweep1 --configs '[{"name": ...}, ...]'
@@ -48,11 +48,15 @@ def label_horizon_for(year: int, horizon) -> int:
     the model to rank something the scorer cannot see."""
     if horizon in (None, "full"):
         return C.TARGET_SEASONS
+    if horizon == "multi":  # every context class labelled once per horizon it has completed, horizon as a feature
+        return "multi"
     visible = max(1, min(C.TARGET_SEASONS, C.LAST_SEASON - year))
     if horizon == "match":
         return visible
     if horizon == "short3":  # tournament.horizon: 1-2 season labels are rookie noise; 3-season labels rank them best
         return 3 if visible <= 2 else C.TARGET_SEASONS
+    if horizon == "match3":  # match the scorer's horizon, but never train on fewer than three seasons
+        return max(3, visible)
     return max(1, min(C.TARGET_SEASONS, int(horizon)))
 
 
@@ -68,6 +72,23 @@ def horizon_target(ctx: pd.DataFrame, seasons: pd.DataFrame, horizon: int, throu
     values = pd.Series(C.NEVER_PLAYED_WAR, index=np.arange(len(ctx)), dtype=float)
     values.loc[score.index] = score.values
     return values.to_numpy()
+
+
+HORIZON_FEATURE = "_h"  # seasons the label spans; a model input only under label_horizon="multi"
+
+
+def stacked_horizons(ctx0: pd.DataFrame, seasons: pd.DataFrame, how: str, through: int) -> pd.DataFrame:
+    """Multi-horizon context: each class appears once per horizon h it has completed by `through`, labelled with its
+    first-h-season WAR (transformed within class and horizon) and carrying h as the feature HORIZON_FEATURE. One fit
+    then serves every evaluation horizon; the scored class is given the horizon its own label can hold."""
+    blocks = []
+    for h in range(1, C.TARGET_SEASONS + 1):
+        rows = ctx0[through - ctx0.draft_year >= h]
+        if len(rows) < 10:
+            continue
+        rows = rows.assign(**{TARGET: horizon_target(rows, seasons, h, through)})
+        blocks.append(transform_labels(rows, how, seasons, through, h).assign(**{HORIZON_FEATURE: float(h)}))
+    return pd.concat(blocks, ignore_index=True)
 
 
 def transform_labels(ctx: pd.DataFrame, how: str, seasons: pd.DataFrame | None = None, through: int | None = None,
@@ -213,20 +234,27 @@ def main():
             ctx0 = t[t.modelled & t.labelled & t.draft_year.isin(cy)]
             label_through = C.LAST_SEASON if cfg.get("label_cutoff", "causal") == "full" else y
             horizon = label_horizon_for(y, cfg.get("label_horizon"))
-            if horizon == C.TARGET_SEASONS:
+            if horizon == "multi":
+                pass  # labels are built per horizon block in stacked_horizons
+            elif horizon == C.TARGET_SEASONS:
                 ctx0 = ctx0.assign(**{TARGET: war_target(ctx0, seasons, through=label_through)[TARGET].values})
             else:
                 ctx0 = ctx0.assign(**{TARGET: horizon_target(ctx0, seasons, horizon, label_through)})
             # Candidate pool is every player drafted that year. Rows without a complete feature source remain candidates;
             # the tabular models score their NaNs through the same fitted missing-value handling as any sparse prospect.
             pool = t[t.draft_year == y]
+            if horizon == "multi":
+                pool = pool.assign(**{HORIZON_FEATURE: float(label_horizon_for(y, "match"))})
             assert pool["pick"].notna().all(), "candidate without an actual pick -- the pool must be the real draftees"
             parts = []
             for i, m in enumerate(members):
                 # member-level horizon filter: a "long-horizon" member learns only from classes with >= k seasons of
                 # outcomes (who eventually became good), to complement members that lean toward early production
                 ctx_m = ctx0[ctx0.draft_year <= y - m["ctx_min_seasons"]] if m.get("ctx_min_seasons") else ctx0
-                ctx = transform_labels(ctx_m, m["label"], seasons, label_through, horizon)
+                if horizon == "multi":
+                    ctx = stacked_horizons(ctx_m, seasons, m["label"], label_through)
+                else:
+                    ctx = transform_labels(ctx_m, m["label"], seasons, label_through, horizon)
                 seeds = m.get("seeds", cfg.get("seeds", 1))
                 seed_start = m.get("seed_start", cfg.get("seed_start", 0))
                 # segment: one in-context fit per population (college / intl); z-scored labels put both on one scale
@@ -241,6 +269,8 @@ def main():
                         ci, m["_feats"], m.get("min_coverage", cfg.get("min_coverage", 0.0)),
                         m.get("feature_topk", cfg.get("feature_topk")),
                     )
+                    if horizon == "multi":
+                        selected = selected + [HORIZON_FEATURE]
                     outs = [predict(m["model"], ci, pool[ti], selected, a.device, a.seed + seed_start + s, m["bins"],
                                     m.get("n_estimators", cfg.get("n_estimators", 32)),
                                     m.get("model_options", cfg.get("model_options"))) for s in range(seeds)]

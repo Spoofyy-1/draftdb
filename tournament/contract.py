@@ -61,6 +61,11 @@ PREFIX = {
     "momentum": "mo_",      # pre-draft mock-rank movement across 90/60/30/7-day snapshots
     "odds": "odds_",        # pre-draft sportsbook position markets, vig removed
     "scouting": "sc_",      # archived pre-draft NBADraft.net grades and text-derived flags
+    "dev": "dv_",           # population development priors: expected next-season improvement for the profile, projected level, surprise
+    "gleague": "gl_",       # G League translation priors: expected first-pro-season WS/48, PER, TS, usage, minutes for the college profile
+    "population": "pop_",   # every-D1-player NBA-outcome priors: P(NBA minutes), expected 3-season WAR and minutes for the profile
+    "response": "rs_",      # challenge -> response from the final-season game log: rematches, bounce-back, error persistence, close games
+    "coach": "co_",         # head coach tenure / record / tournament history, team record, causal coach + program NBA track record
 }
 
 # --------------------------------------------------------------------------- models and labels

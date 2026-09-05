@@ -50,6 +50,28 @@ def _resolve_collisions(df: pd.DataFrame, team: str) -> pd.DataFrame:
 
 # --------------------------------------------------------------------------- 1. NBA.com draft combine
 
+# stats.nba.com refuses cloud hosts; this public dump of the same `draftcombinestats` endpoint (identical values on the
+# 2022-23 overlap) supplies the combines the local JSON archive lacks, written in the endpoint's own resultSets layout.
+COMBINE_MIRROR = "https://raw.githubusercontent.com/MichLitt/nba-draft-oracle-pro/main/data/raw/combine_2000_2026_raw.csv"
+
+
+def _mirror_recent_combines():
+    folder = EXT / "nba_combine"
+    have = {f.stem.split("_")[1] for f in folder.glob("draftcombinestats_*.json")}
+    want = {f"{y}-{str(y + 1)[-2:]}" for y in range(2000, C.LAST_SEASON + 1)} - have
+    if not want:
+        return
+    csv = folder / "combine_mirror.csv"
+    if not csv.exists():
+        import urllib.request
+        urllib.request.urlretrieve(COMBINE_MIRROR, csv)
+    m = pd.read_csv(csv, encoding="utf-8-sig")
+    for season, rows in m[m.SEASON.isin(want)].groupby("SEASON"):
+        rows = rows.drop(columns=["TEMP_PLAYER_ID", "DRAFT_YEAR"], errors="ignore").astype(object).where(lambda d: d.notna(), None)
+        payload = {"resultSets": [{"name": "DraftCombineStats", "headers": rows.columns.tolist(), "rowSet": rows.values.tolist()}]}
+        (folder / f"draftcombinestats_{season}.json").write_text(json.dumps(payload))
+        print(f"combine {season}: {len(rows)} rows from mirror")
+
 def load_combine() -> pd.DataFrame:
     """data/external/nba_combine/draftcombinestats_<SeasonYear>.json (also *anthro* / *drillresults* files, subsets).
     SeasonYear 'YYYY-YY' is the combine held in May YYYY for the YYYY draft (2019-20 rows are 2019 draftees, not 2020).
@@ -60,6 +82,7 @@ def load_combine() -> pd.DataFrame:
             "BODY_FAT_PCT": "c_body_fat", "HAND_LENGTH": "c_hand_length", "HAND_WIDTH": "c_hand_width",
             "STANDING_VERTICAL_LEAP": "c_vert_standing", "MAX_VERTICAL_LEAP": "c_vert_max", "LANE_AGILITY_TIME": "c_lane_agility",
             "MODIFIED_LANE_AGILITY_TIME": "c_shuttle", "THREE_QUARTER_SPRINT": "c_sprint", "BENCH_PRESS": "c_bench"}
+    _mirror_recent_combines()
     frames = []
     for f in sorted((EXT / "nba_combine").glob("draftcombinestats_*.json")):
         rs = json.loads(f.read_text())["resultSets"][0]
