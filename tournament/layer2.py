@@ -10,6 +10,7 @@ Rules
   upside     E[bin] + lam * P(top bin): reward a high ceiling on top of the expected outcome (classifier members)
   floor      E[bin] - lam * P(bottom bin): penalise bust risk
   tilt       (1 - |b|) * rank(model) + b * rank(pre-draft column): games played, coach / program pedigree, market disagreement
+  stackctx   ridge over model ranks + fixed pre-draft covariate ranks, weights fit on the context years only (--stack-context)
 
 Usage: python -m tournament.layer2 --layer1 outputs/layer_1/<tag>.parquet [--holdout]
 """
@@ -80,7 +81,7 @@ def wide(layer1: pd.DataFrame, years: str) -> pd.DataFrame:
     out = meta.join(base)
     # population and the deterministic international score come from the table (layer 1 does not carry them)
     tab = pd.read_parquet(C.PROC / "draft_table.parquet").set_index(["draft_year", "bbref_id"])
-    extra = dict.fromkeys(("source", "iz_young_x_eff", "iz_eff_36", "mock_rank_consensus", "mock_n_sources", *TILT_COLUMNS))
+    extra = dict.fromkeys(("source", "iz_young_x_eff", "iz_eff_36", "mock_rank_consensus", "mock_n_sources", *TILT_COLUMNS, *STACK_RAW))
     out = out.join(tab[[c for c in extra if c in tab.columns]])
     pcols = [c for c in l1.columns if c.startswith("p") and c[1:].isdigit()]
     for cfg, g in l1[(l1.member >= 0) & l1[pcols].notna().any(axis=1)].groupby("config"):
@@ -151,6 +152,55 @@ def rule_tilt(w: pd.DataFrame, score: pd.Series, col: str, b: float) -> pd.Serie
     v = pd.to_numeric(w[col], errors="coerce")
     w = w.assign(_s=score, _t=v.fillna(v.groupby(w.draft_year).transform("median")))
     return (1 - abs(b)) * _rank_within_year(w, "_s") + b * _rank_within_year(w, "_t")
+
+
+# --------------------------------------------------------------------------- stacking fit on the context years
+
+# Pre-draft columns the stacker may lean on, next to the layer-1 model ranks. Fixed list: the fit chooses weights only.
+STACK_RAW = ["TS_per", "eFG", "rec_rank", "gl_pred_ws48", "bio_nba_relative_n", "FT_per", "TP_per", "TPA_pg", "stl_per", "usg", "iz_young_x_eff"]
+STACK_COVARIATES = ["ts", "efg", "rsci", "gl", "rel", "shoot", "iz", "stl", "usg"]
+
+
+def _pct(g: pd.DataFrame, v) -> np.ndarray:
+    v = pd.to_numeric(v, errors="coerce")
+    r = v.rank(pct=True)
+    return r.fillna(0.5).values
+
+
+def stack_features(w: pd.DataFrame, configs: list[str]) -> pd.DataFrame:
+    """Within-class percentile ranks of each layer-1 config and of the STACK_COVARIATES, one row per player."""
+    parts = []
+    for _, g in w.groupby("draft_year"):
+        f = pd.DataFrame(index=g.index)
+        for c in configs:
+            f[c] = _pct(g, g[c])
+        f["ts"], f["efg"], f["stl"], f["usg"] = _pct(g, g.TS_per), _pct(g, g.eFG), _pct(g, g.stl_per), _pct(g, g.usg)
+        f["rsci"] = _pct(g, -pd.to_numeric(g.rec_rank, errors="coerce"))
+        f["gl"], f["rel"] = _pct(g, g.gl_pred_ws48), _pct(g, g.bio_nba_relative_n)
+        tpa = pd.to_numeric(g.TPA_pg, errors="coerce").fillna(0)
+        tp_shrunk = (pd.to_numeric(g.TP_per, errors="coerce") * tpa + 33 * 2) / (tpa + 2)  # 3P% pulled to 33% by attempts
+        f["shoot"] = _pct(g, pd.Series(_pct(g, g.FT_per) + _pct(g, tp_shrunk), index=g.index))
+        intl = g.source.eq("intl") & g.iz_young_x_eff.notna()
+        f["iz"] = np.where(intl, _pct(g, g.iz_young_x_eff), 0.5)
+        parts.append(f)
+    return pd.concat(parts).loc[w.index]
+
+
+def rule_stack(w: pd.DataFrame, configs: list[str], weights: list[float]) -> pd.Series:
+    f = stack_features(w, configs)
+    return f[configs + STACK_COVARIATES].values @ np.asarray(weights)
+
+
+def fit_stack(w_ctx: pd.DataFrame, configs: list[str]) -> str:
+    """Ridge on the context years only: Gaussian-ranked outcome ~ model ranks + covariate ranks. Returns the rule name
+    carrying the fitted weights, so the holdout application is a fixed linear rule, not a fit."""
+    from scipy.stats import norm
+    from sklearn.linear_model import RidgeCV
+    f = stack_features(w_ctx, configs)
+    y = np.concatenate([norm.ppf(((g[TARGET].rank() - 0.5) / len(g)).clip(0.01, 0.99)) for _, g in w_ctx.groupby("draft_year")])
+    idx = np.concatenate([g.index.values for _, g in w_ctx.groupby("draft_year")])
+    m = RidgeCV(alphas=np.logspace(-2, 3, 20)).fit(f.loc[idx, configs + STACK_COVARIATES], y)
+    return f"stackctx w={','.join(f'{c:.4f}' for c in m.coef_)} on [{' | '.join(configs)}]"
 
 
 def rule_route(w: pd.DataFrame, base: str) -> pd.Series:
@@ -300,6 +350,8 @@ def main():
     ap.add_argument("--holdout", action="store_true", help="evaluate on the holdout years (logged to outputs/layer_2/holdout_looks.jsonl)")
     ap.add_argument("--rules", nargs="*", help="with --holdout: only these rule names (from a prior context sweep)")
     ap.add_argument("--years", default=None, help="context window tag in the layer-1 files (default: context; e.g. context7)")
+    ap.add_argument("--stack-context", nargs="*", help="layer-1 files scored on context years: fit the stackctx rule on them, then evaluate it")
+    ap.add_argument("--stack-years", default="context6", help="years tag of the --stack-context files")
     a = ap.parse_args()
     years = "holdout" if a.holdout else (a.years or "context")
     l1 = pd.concat([pd.read_parquet(p) for p in a.layer1], ignore_index=True)
@@ -307,9 +359,17 @@ def main():
         l1 = l1[l1.draft_year.isin(C.HOLDOUT_YEARS)]
     configs = a.configs or sorted(l1.config.unique())
     w = wide(l1, years)
-    if a.holdout and a.rules:  # pre-registered rules only, computed exactly as named on the context years
+    rules = list(a.rules or [])
+    if a.stack_context:  # weights come from the context years; the holdout only ever sees the finished linear rule
+        ctx = pd.concat([pd.read_parquet(p) for p in a.stack_context], ignore_index=True)
+        ctx = ctx[ctx.years.astype(str) == a.stack_years]
+        w_ctx = wide(ctx, a.stack_years)
+        stack_configs = [c for c in configs if c in w_ctx]
+        rules.append(fit_stack(w_ctx, stack_configs))
+        print("fitted on context:", rules[-1])
+    if a.holdout and rules:  # pre-registered rules only, computed exactly as named on the context years
         rows = []
-        for name in a.rules:
+        for name in rules:
             w["_r"] = _recompute(w, configs, name)
             rows.append({"rule": name, "uses_pick": False, "robust": True,
                          "gain_vs_l1": 0.0, "fold_wins_vs_l1": 0, **evaluate(w, "_r")})
@@ -355,6 +415,10 @@ def _recompute(w, configs, name):
         b = float(name.split("b=")[1].split(" ")[0])
         inner = name.split("[", 1)[1][:-1]
         return rule_age(w, _recompute(w, configs, inner), b)
+    if name.startswith("stackctx w="):
+        prefix, body = name.split(" on [", 1)
+        weights = [float(v) for v in prefix.split("w=", 1)[1].split(",")]
+        return pd.Series(rule_stack(w, body[:-1].split(" | "), weights), index=w.index)
     if name.startswith("tilt "):
         col, rest = name[5:].split(" b=", 1)
         b = float(rest.split(" ")[0])
