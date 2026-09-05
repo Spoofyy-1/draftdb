@@ -15,6 +15,7 @@ In-context models (TabFM, EXAONE) do no training: `fit` stores the context rows 
   catrank     pairwise CatBoost ranker grouped by draft class
   extratrees  randomised-tree regression baseline
   tabicl      TabICL v2 regressor; paired with xgb in a diverse rank stack
+  tabicl_cls  TabICL v2 classifier on within-class bins, expected-bin readout
   tabldm      Xiaomi-TabLDM regressor
   tabpfn26    TabPFN 2.6 regressor (internal evaluation only; restricted model license)
   tabpfn3     TabPFN 3 regressor (internal evaluation only; restricted model license)
@@ -32,7 +33,7 @@ from infra.config import MODEL_DIR, TARGET
 from infra.dataset import CATEGORICAL_FEATURES, FEATURES, LEAN_FEATURES, MOMENTUM_FEATURES
 
 MODELS = ["ridge", "lgbm", "xgb", "xgbrank", "catboost", "catrank", "extratrees", "tabicl", "tabldm", "tabpfn26", "tabpfn3", "tabfm", "tabfm_cls", "exaone", "exaone_cls", "stack", "stack+momentum", "stack+consensus", "tabfm_ens"]
-ZOO = {"tabfm", "tabfm_cls", "tabfm_ens", "exaone", "exaone_cls", "xgb", "xgbrank", "catboost", "catrank", "extratrees", "tabicl", "tabldm", "tabpfn26", "tabpfn3", "ridge", "lgbm"}
+ZOO = {"tabfm", "tabfm_cls", "tabfm_ens", "exaone", "exaone_cls", "xgb", "xgbrank", "catboost", "catrank", "extratrees", "tabicl", "tabicl_cls", "tabldm", "tabpfn26", "tabpfn3", "ridge", "lgbm"}
 CLS_BINS = 5
 # Consensus blends with mock drafts published before draft night, never with the actual pick.
 CONSENSUS_WEIGHT = 0.4
@@ -144,6 +145,9 @@ def predict(model: str, ctx: pd.DataFrame, pool: pd.DataFrame, feats: list[str],
             "random_seed": seed, "verbose": False, "allow_writing_files": False, "thread_count": 8,
         }
         params.update(model_options)
+        if "monotone" in params:  # {feature name: +1 / -1}: domain-knowledge monotonicity, by column position
+            mono = params.pop("monotone")
+            params["monotone_constraints"] = [int(mono.get(f, 0)) for f in feats]
         if model == "catrank":
             order = np.argsort(ctx.draft_year.values, kind="stable")
             ranker = CatBoostRanker(loss_function="YetiRankPairwise", **params)
@@ -167,6 +171,14 @@ def predict(model: str, ctx: pd.DataFrame, pool: pd.DataFrame, feats: list[str],
         params.update(model_options)
         reg = TabICLRegressor(**params)
         return np.asarray(reg.fit(Xc, y.astype(float)).predict(Xn), dtype=float), None
+    if model == "tabicl_cls":  # TabICL classification head on within-class quantile bins, expected-bin readout
+        from tabicl import TabICLClassifier
+        Xc, Xn = _numeric(ctx, pool, feats)
+        params = {"device": device, "n_estimators": n_estimators, "batch_size": 8, "random_state": seed}
+        params.update(model_options)
+        clf = TabICLClassifier(**params).fit(Xc, bins(ctx, k))
+        p = np.asarray(clf.predict_proba(Xn), dtype=float)
+        return p @ np.asarray(clf.classes_, dtype=float), _dist(p, clf.classes_, k)
     if model == "tabldm":
         from tabldm import TabLDMRegressor
         Xc, Xn = _numeric(ctx, pool, feats)

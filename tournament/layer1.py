@@ -122,6 +122,17 @@ def transform_labels(ctx: pd.DataFrame, how: str, seasons: pd.DataFrame | None =
     raise ValueError(how)
 
 
+def class_zscore(df: pd.DataFrame, feats: list[str]) -> pd.DataFrame:
+    """Numeric features standardised within each draft class: the label is a within-class rank, so a stat's standing
+    against the same year's field is what it measures. The scored class is standardised against itself (pre-draft
+    information: everyone in it is known on draft night). Non-numeric columns are left as they are."""
+    df = df.copy()
+    num = [f for f in feats if f in df.columns and pd.api.types.is_numeric_dtype(df[f]) and f != HORIZON_FEATURE]
+    g = df.groupby("draft_year")[num]
+    df[num] = (df[num] - g.transform("mean")) / g.transform("std").replace(0, np.nan)
+    return df
+
+
 def select_features(ctx: pd.DataFrame, feats: list[str], min_coverage: float = 0.0, topk: int | None = None) -> list[str]:
     """Fold-local coverage and univariate selection; evaluation rows never influence the chosen columns."""
     keep = [f for f in feats if ctx[f].notna().mean() >= min_coverage and ctx[f].nunique(dropna=True) > 1]
@@ -271,7 +282,8 @@ def main():
                     )
                     if horizon == "multi":
                         selected = selected + [HORIZON_FEATURE]
-                    outs = [predict(m["model"], ci, pool[ti], selected, a.device, a.seed + seed_start + s, m["bins"],
+                    ci, pi = (class_zscore(ci, selected), class_zscore(pool[ti], selected)) if cfg.get("class_zscore") else (ci, pool[ti])
+                    outs = [predict(m["model"], ci, pi, selected, a.device, a.seed + seed_start + s, m["bins"],
                                     m.get("n_estimators", cfg.get("n_estimators", 32)),
                                     m.get("model_options", cfg.get("model_options"))) for s in range(seeds)]
                     score[ti] = np.mean([o[0] for o in outs], axis=0)
