@@ -23,6 +23,28 @@ We re-ran every NBA draft from 2019 to 2025 with a tabular model that sees only 
 
 *Value of the order: the WAR actually delivered by each draft slot, weighted linearly by slot (pick 1 counts most), scaled so the perfect order = 100% and the worst possible order = 0%; a random order scores 50%. Boards are in `model/board_preds_v3.csv` (pid-keyed).*
 
+### How to read the table
+
+- **class** — the draft year; the pool is every player actually drafted in rounds 1–2 who has a row in the data.
+- **seasons scored (k)** — NBA seasons that class has completed, capped at 5: a 2025 pick is judged on one season, a 2019 pick on five.
+- **outcome** — each player's WAR (wins above replacement) summed over those k seasons; a player who never played scores 0.
+- **AI accuracy** — Spearman rank correlation between the model's order and the WAR order, times 100: 100% is the identical order, 0% no relationship, negative means backwards. It is a correlation, not "percent of picks correct".
+- **NBA scouts** — the same statistic for the real pick order.
+- **won** — the AI's correlation beat the teams' for that class.
+- **value of the order** — the WAR captured at each slot, weighted by slot (pick 1 heaviest), scaled so the perfect order is 100%, the worst 0%, a random order 50%. It rewards getting the top of the board right; the correlation does not.
+- **mean** — the plain average of the seven classes; "5 of 7" is the count of classes won.
+
+### Findings, one line each
+
+- The model orders a draft better than the teams did in 5 of 7 classes, by 18 points on average (44% vs 26%).
+- It loses 2019 and 2020 narrowly: the consensus top of those classes was right, and the model under-rated the shooters (Edwards, Garland, Herro, Maxey).
+- Its edge comes from the middle and bottom of the draft — bust avoidance and second-round value — not from beating teams at the first pick.
+- 2023 shows why both metrics are reported: the model orders the class better (35% vs 11%) but the teams win on value (75.0% vs 71.6%), because they took Wembanyama first and the model had him fourth.
+- Across the seven classes the ordering gain is worth about 5 points of captured WAR (76.7% vs 71.3%).
+- Recent classes are scored on few seasons, so their numbers will move: 2024's 60% rests on two seasons, 2025's 30% on one.
+- A single class's correlation has a standard error near 0.13, so one-class wins and losses mean little; the seven-class mean (about ±0.05) is what to read.
+- The pool is drafted players only, so this measures how to order a draft, not whom to take from outside it.
+
 ## How it was tested
 
 **Training: 2010–2018. Test: 2019–2025 (2026 has no outcomes yet).** The model is trained once on the 2010–2018 classes — every drafted player plus every undrafted player who reached the NBA, 770 rows — and never sees a test class. Model selection (which label, which features, which members, which weights) used walk-forward folds *inside* the training window only: train on 2010…y−1, predict class y, for y = 2014…2018. The test outcomes live in a hash-locked vault on the training box; the scoring function returns aggregates only, and every blind scoring is appended to a hash-chained ledger (`experiments/ledger.jsonl`). Nothing from a test class's own year or later is visible to the model.
