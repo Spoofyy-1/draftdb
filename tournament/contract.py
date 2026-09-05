@@ -65,6 +65,7 @@ PREFIX = {
     "gleague": "gl_",       # G League translation priors: expected first-pro-season WS/48, PER, TS, usage, minutes for the college profile
     "population": "pop_",   # every-D1-player NBA-outcome priors: P(NBA minutes), expected 3-season WAR and minutes for the profile
     "response": "rs_",      # challenge -> response from the final-season game log: rematches, bounce-back, error persistence, close games
+    "person": "bio_",       # basketball-reference biography: NBA relatives, shooting hand, birthplace, high-school path
     "coach": "co_",         # head coach tenure / record / tournament history, team record, causal coach + program NBA track record
 }
 

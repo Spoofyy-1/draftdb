@@ -49,6 +49,7 @@ SOURCES = {
     "gleague": ("infra.builders.gleague", "load_gleague"),
     "population": ("infra.builders.population", "load_population"),
     "response": ("infra.builders.response", "load_response"),
+    "bio": ("infra.builders.bio", "load_bio"),
     "torvik_context": PROC / "prospect_torvik_context.parquet",
     "game": PROC / "prospect_game_features.parquet",
 }
