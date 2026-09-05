@@ -1,0 +1,52 @@
+/* ==========================================================================
+   DraftDB — runs.css  (Model Runs / STACK ledger; depends on css/base.css)
+   ========================================================================== */
+
+.runs-hero{padding:44px 0 30px;border-bottom:1px solid var(--line)}
+.runs-hero__eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.runs-hero__title{font-family:var(--font-pixel);font-weight:400;font-size:clamp(32px,5vw,52px);line-height:1.05;letter-spacing:-.01em;margin-top:14px;text-wrap:balance}
+.runs-hero__sub{margin-top:16px;max-width:72ch;color:var(--text-2);font-size:16px;line-height:1.5}
+.runs-hero__sub strong{color:#fff}
+
+/* meta ledger bar */
+.runs-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.runs-meta__cell{background:var(--panel);padding:15px 16px}
+.runs-meta__k{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-4)}
+.runs-meta__v{margin-top:7px;font-family:var(--font-mono);font-size:13px;line-height:1.4;color:var(--text)}
+.runs-meta__v .hl{color:var(--accent)}
+
+/* one mutation block */
+.mut{margin-top:44px}
+.mut:first-of-type{margin-top:8px}
+.mut__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 12px;padding-bottom:12px;margin-bottom:2px;border-bottom:1px solid var(--line)}
+.mut__id{font-family:var(--font-mono);font-size:15px;color:var(--accent);letter-spacing:.02em}
+.mut__desc{font-family:var(--font-mono);font-size:13px;color:var(--text-2)}
+.mut__w{font-family:var(--font-mono);font-size:12px;color:var(--text-4);margin-left:auto}
+
+.rtable-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.rtable{width:100%;border-collapse:collapse;font-family:var(--font-mono);font-size:13px;min-width:660px}
+.rtable th,.rtable td{padding:9px 12px;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rtable th:first-child,.rtable td:first-child{text-align:left}
+.rtable thead th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-4);background:var(--panel-2);border-bottom:1px solid var(--line);font-weight:400}
+.rtable tbody td{border-bottom:1px solid rgba(255,255,255,.06);color:var(--text-3)}
+.rtable tbody tr:hover td{background:rgba(255,255,255,.02)}
+.rtable td.season{color:var(--text)}
+.rtable td.stack{color:var(--green);font-weight:500}
+.rtable td.edge.pos{color:var(--green)}
+.rtable td.edge.neg{color:var(--red)}
+/* season that meets the +0.20 goal — faint green stripe like the ledger */
+.rtable tr.goal td{background:rgba(53,208,127,.07)}
+.rtable tr.goal td.edge{font-weight:600}
+/* summary rows */
+.rtable tr.sum td{border-top:1px solid var(--line-strong);border-bottom:0;color:var(--text);font-weight:500;background:var(--bg);padding-top:12px}
+.rtable tr.sum td.season{font-weight:500}
+.rtable tr.sum--wf td{color:var(--text-3);font-weight:400;border-top-color:var(--line)}
+
+.mut__empty{padding:22px 16px;border:1px dashed rgba(255,255,255,.16);color:var(--text-4);font-family:var(--font-mono);font-size:13px;line-height:1.5;margin-top:4px}
+
+.runs-foot-note{margin-top:40px;padding-top:20px;border-top:1px solid var(--line);color:var(--text-4);font-family:var(--font-mono);font-size:12px;line-height:1.6}
+
+@media (max-width:720px){
+  .mut__w{margin-left:0;flex-basis:100%}
+  .runs-hero{padding:32px 0 24px}
+}

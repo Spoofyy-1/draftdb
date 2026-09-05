@@ -187,7 +187,7 @@
 .radar__data{transform-box:view-box;transform-origin:156px 156px;transform:scale(1);transition:transform .9s var(--ease-out)}
 .js-ready .radar__data{transform:scale(0)}
 .js-ready .p-row.is-in .radar__data{transform:scale(1)}
-.radar__poly{fill:rgba(255,87,26,.55);stroke:var(--accent);stroke-width:1.5;stroke-linejoin:miter}
+.radar__poly{fill:rgba(168,85,247,.55);stroke:var(--accent);stroke-width:1.5;stroke-linejoin:miter}
 .radar__pt{cursor:crosshair;outline:0}
 .radar__pt .hit{fill:transparent}
 .radar__pt .dot{fill:#fff;transition:transform .2s var(--ease-out);transform-box:fill-box;transform-origin:center}
@@ -250,7 +250,7 @@
   font-size:13px;line-height:1.45;color:var(--text-2);background:var(--bg);
   transition:border-color .3s var(--ease-io);
 }
-.sum:hover{border-color:rgba(255,87,26,.5)}
+.sum:hover{border-color:rgba(168,85,247,.5)}
 .sum__mark{flex:none;width:8px;height:8px;background:var(--accent);margin-top:3px}
 .sum__k{font-family:var(--font-mono);font-size:10px;line-height:1;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4);margin-bottom:7px}
 .sum__v{color:var(--text-2)}

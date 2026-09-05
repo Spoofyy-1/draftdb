@@ -81,7 +81,7 @@
   var ORDER = ['whitaker', 'vranic'];      /* slot 0 = Player A (left), slot 1 = Player B (right) */
   var slots = ORDER.slice();
 
-  var AVATAR_INK = { a: '#3b3f42', b: '#5f6569', c: '#9aa0a4', o: '#ff571a' };
+  var AVATAR_INK = { a: '#3b3f42', b: '#5f6569', c: '#9aa0a4', o: '#a855f7' };
 
   /* ---------------------------------------------------------------------
      Pixel bitmaps → SVG rects (crisp, no images)
@@ -139,7 +139,7 @@
     var rows = CRESTS[key] || CRESTS.duke;
     return '<svg class="crest" viewBox="0 0 40 40" aria-hidden="true" focusable="false" shape-rendering="crispEdges">' +
       '<rect x="0.5" y="0.5" width="39" height="39" fill="#161819" stroke="rgba(255,255,255,.2)"/>' +
-      '<g transform="translate(5 5)">' + rectsFromBitmap(rows, { '#': '#e6e6e6', 'o': '#ff571a' }, 6) + '</g></svg>';
+      '<g transform="translate(5 5)">' + rectsFromBitmap(rows, { '#': '#e6e6e6', 'o': '#a855f7' }, 6) + '</g></svg>';
   }
 
   /* country flag — 40x28, crude stripes */

@@ -136,7 +136,7 @@
       p.style.setProperty('--len', String(len));
       var g = el('g', { 'class': 'end' }, svg);
       var ex = X(5), ey = Y(s.v[5]);
-      var fill = s.key === 'a' ? '#ff571a' : s.key === 'w' ? '#fff' : '#f9c425';
+      var fill = s.key === 'a' ? '#a855f7' : s.key === 'w' ? '#fff' : '#f9c425';
       el('rect', { x: ex - 3.5, y: ey - 3.5, width: 7, height: 7, fill: fill, transform: 'rotate(45 ' + ex + ' ' + ey + ')' }, g);
       if (s.key === 'a') {
         var l1 = el('text', { 'class': 'endl ' + s.lab, x: ex + 10, y: ey - 6, 'text-anchor': 'start' }, g);
@@ -228,7 +228,7 @@
      moment it scrolls into view and takes ~data-growth ms to fill in, then
      keeps flickering. Same cells / palette / markers as DraftDB.dendrite.
      --------------------------------------------------------------------- */
-  var PALETTE = ['#ff571a', '#ff7a3d', '#ffb454', '#f9c425', '#fff1d6'], OLD = '#7a2d10';
+  var PALETTE = ['#a855f7', '#b975fa', '#cf9dfc', '#e6ccfe', '#f7edff'], OLD = '#3b1466';
   function rand(a, b) { return a + Math.random() * (b - a); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function pixelTree(canvas) {
@@ -438,14 +438,10 @@
     return api;
   }
 
-  function lazyTrees() {
-    $all('canvas[data-dendrite]').forEach(function (c) {
-      var r = c.getBoundingClientRect();
-      if (r.top < win.innerHeight * 1.2) return;            // in/near the first viewport: base.js handles it
-      if (c.__dendrite && typeof c.__dendrite.destroy === 'function') c.__dendrite.destroy();
-      pixelTree(c);
-    });
-  }
+  /* Superseded: base.js DraftDB.sprout renders every [data-dendrite] canvas (the rising-arrow
+     pixel motion, visibility-gated so below-the-fold canvases start when scrolled into view).
+     The old pixelTree above is kept only for reference and is no longer wired up. */
+  function lazyTrees() { /* no-op */ }
 
   function init() {
     buildChart();

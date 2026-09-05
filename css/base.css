@@ -14,8 +14,8 @@
   --text-2:#c6c6c7;
   --text-3:#999;
   --text-4:#757575;
-  --accent:#ff571a;
-  --accent-soft:rgba(255,87,26,.08);
+  --accent:#a855f7;
+  --accent-soft:rgba(168,85,247,.10);
   --yellow:#f9c425;
   --green:#35d07f;
   --red:#ff3b3b;
@@ -165,7 +165,7 @@ strong,b{font-weight:600;color:var(--text)}
 .btn--primary{background:#fff;color:#000;border-color:#fff}
 .btn--primary:hover{background:#e2e2e2;border-color:#e2e2e2}
 .btn--accent{background:var(--accent);color:#fff;border-color:var(--accent)}
-.btn--accent:hover{background:#ff6a33;border-color:#ff6a33}
+.btn--accent:hover{background:#b975fa;border-color:#b975fa}
 .btn--ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.25)}
 .btn--ghost:hover{border-color:rgba(255,255,255,.6)}
 .btn--dark{background:#1a1a1a;color:#fff;border-color:var(--line)}
@@ -226,7 +226,7 @@ strong,b{font-weight:600;color:var(--text)}
 
 /* ---------- 8. Cards / panels ---------- */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:0;padding:32px;transition:border-color .3s var(--ease-io)}
-.card:hover{border-color:rgba(255,87,26,.5)}
+.card:hover{border-color:rgba(168,85,247,.5)}
 .card--static:hover{border-color:var(--line)}
 .card--2{background:var(--panel-2)}
 .card--accent{border-color:var(--accent)}

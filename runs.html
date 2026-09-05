@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Player Comparison — DraftDB</title>
-<meta name="description" content="Side-by-side scouting comparison card: radar, rates, model verdicts and bio for any two prospects.">
+<title>Model Runs — DraftDB</title>
+<meta name="description" content="The STACK ledger: every blind evaluation of the DraftDB ensemble against the draft baseline, per season and mutation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist+Pixel&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fragment+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/base.css">
-<link rel="stylesheet" href="css/compare.css">
+<link rel="stylesheet" href="css/runs.css">
 </head>
 <body>
 
@@ -23,7 +23,6 @@
   <div class="nav__inner">
     <a class="nav__logo" href="index.html" aria-label="DraftDB home">
       <svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true" focusable="false">
-        <!-- 4-cell pixel mark: two solid squares + two stepped quarter cells -->
         <rect x="2" y="2" width="16" height="16" fill="#fff"/>
         <path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/>
         <path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/>
@@ -51,89 +50,22 @@
 
 <main id="main">
 
-  <!-- ===== 1. Toolbar ===== -->
-  <section class="cmp-toolbar" aria-label="Comparison controls">
-    <div class="container cmp-toolbar__inner">
-      <div class="cmp-toolbar__title-wrap">
-        <div class="cmp-toolbar__eyebrow">// Player Comparison //</div>
-        <h1 class="cmp-toolbar__title">Player Comparison // Wings</h1>
-      </div>
-      <div class="cmp-controls">
-        <label class="sel" for="sel-a">
-          <span class="sel__key">Player A:</span>
-          <select id="sel-a" data-slot="0" aria-label="Player A"></select>
-        </label>
-        <label class="sel" for="sel-b">
-          <span class="sel__key">Player B:</span>
-          <select id="sel-b" data-slot="1" aria-label="Player B"></select>
-        </label>
-        <button class="btn btn--ghost btn--sm cmp-swap" type="button" id="swap-btn" aria-label="Swap players">
-          <svg class="cmp-swap__ico" viewBox="0 0 14 14" width="14" height="14" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
-            <g fill="currentColor"><rect x="0" y="3" width="10" height="2"/><rect x="9" y="1" width="1" height="6"/><rect x="10" y="2" width="1" height="4"/><rect x="11" y="3" width="1" height="2"/>
-            <rect x="4" y="9" width="10" height="2"/><rect x="4" y="7" width="1" height="6"/><rect x="3" y="8" width="1" height="4"/><rect x="2" y="9" width="1" height="2"/></g>
-          </svg>
-          Swap
-        </button>
-        <span class="tag">Sample data</span>
-      </div>
+  <section class="runs-hero frame">
+    <div class="container">
+      <div class="runs-hero__eyebrow">// Model · STACK ledger //</div>
+      <h1 class="runs-hero__title">Model Runs</h1>
+      <p class="runs-hero__sub">Every blind evaluation of the STACK ensemble against the draft baseline, per season and per mutation. Selection happens on walk-forward only and outcomes are vault-locked — the goal is <strong>stack &ge; draft&nbsp;+&nbsp;0.20 every blind season</strong>.</p>
+      <div class="runs-meta" id="runs-meta"><!-- built by js/runs.js --></div>
     </div>
   </section>
 
-  <!-- ===== 2. Comparison card ===== -->
-  <section class="cmp-section frame" aria-label="Comparison card">
+  <section class="section--tight frame">
     <div class="container">
-      <article class="cmp-card corner-tl corner-br" id="cmp-card">
-        <header class="cmp-card__head">
-          <div class="cmp-card__meta">
-            <span class="sq sq--sm" aria-hidden="true"></span>
-            <span class="label">Comparison card</span>
-            <span class="cmp-card__sep" aria-hidden="true">/</span>
-            <span class="label">2026 class &middot; wings</span>
-            <span class="cmp-card__sep" aria-hidden="true">/</span>
-            <span class="label">Model v2.6.1 &middot; 4-season VORP tiers</span>
-          </div>
-          <div class="cmp-brand" aria-label="DraftDB Network">
-            <svg viewBox="0 0 40 40" width="16" height="16" aria-hidden="true" focusable="false">
-              <rect x="2" y="2" width="16" height="16" fill="#fff"/>
-              <path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/>
-              <path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/>
-              <rect x="22" y="22" width="16" height="16" fill="#fff"/>
-              <rect x="18" y="18" width="4" height="4" fill="#a855f7"/>
-            </svg>
-            <span class="cmp-brand__name">DraftDB</span>
-            <span class="cmp-brand__net">Network</span>
-          </div>
-        </header>
-        <div class="cmp-body" id="cmp-body">
-          <span class="cmp-divider" aria-hidden="true"></span>
-          <!-- two .p-col columns are rendered here by js/compare.js -->
-        </div>
-      </article>
-
-      <!-- ===== 3. Notes under the card ===== -->
-      <div class="cmp-summary" aria-label="Model summary">
-        <div class="sum">
-          <span class="sum__mark" aria-hidden="true"></span>
-          <div>
-            <div class="sum__k">01 // Model verdict</div>
-            <div class="sum__v"><strong>Model verdict:</strong> Vrani&#263; projects one tier higher over 4 seasons <span class="mono t-4">(p&nbsp;=&nbsp;0.62)</span></div>
-          </div>
-        </div>
-        <div class="sum">
-          <span class="sum__mark" aria-hidden="true"></span>
-          <div>
-            <div class="sum__k">02 // Biggest gap</div>
-            <div class="sum__v"><strong>Biggest gap:</strong> Passes /100 <span class="mono t-accent">(+14 Whitaker)</span></div>
-          </div>
-        </div>
-        <div class="sum">
-          <span class="sum__mark" aria-hidden="true"></span>
-          <div>
-            <div class="sum__k">03 // Archetype</div>
-            <div class="sum__v"><strong>Shared archetype:</strong> Connector wing</div>
-          </div>
-        </div>
-      </div>
+      <div id="runs-root"><!-- mutation tables built by js/runs.js --></div>
+      <p class="runs-foot-note">
+        Snapshot of the STACK ledger; live figures run on the training box. STACK = weighted ensemble of xgb / tabicl / tabfm.
+        edge = STACK &minus; draft. Rows shaded green clear the +0.20 goal. k = NBA seasons of outcome data available (capped at 5).
+      </p>
     </div>
   </section>
 
@@ -213,6 +145,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
 <script src="js/base.js"></script>
-<script src="js/compare.js"></script>
+<script src="js/runs.js"></script>
 </body>
 </html>

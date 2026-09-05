@@ -216,8 +216,8 @@
      (stretch > 1 lets trunks travel further than ~60% of the canvas, e.g. the footer corner trees)
      Returns {canvas, restart(), destroy()}
      --------------------------------------------------------------------- */
-  var PALETTE = ['#ff571a', '#ff7a3d', '#ffb454', '#f9c425', '#fff1d6'];
-  var OLD = '#7a2d10';
+  var PALETTE = ['#a855f7', '#b975fa', '#cf9dfc', '#e6ccfe', '#f7edff'];
+  var OLD = '#3b1466';
   DraftDB.dendrite = function (canvas, opts) {
     canvas = toEl(canvas); if (!canvas) return null;
     opts = Object.assign({
@@ -514,6 +514,183 @@
   };
 
   /* ---------------------------------------------------------------------
+     sprout(canvas, opts) — pixel "draft stock": a rising arrow that grows from the
+     bottom-left, with inspector squares pinning a climbing WAR projection along the
+     way (a prospect trending up every step). Square cells, growth over on-screen time,
+     then a gentle flicker. Replaces the earlier dendrite tree; same [data-dendrite]
+     canvases, same visibility-gated growth clock.
+     data-* : data-growth (ms), data-cell.   Returns {canvas, restart, destroy}.
+     --------------------------------------------------------------------- */
+  DraftDB.sprout = function (canvas, opts) {
+    canvas = toEl(canvas); if (!canvas) return null;
+    opts = Object.assign({ cell: 5, gap: 1, growth: 2600, palette: PALETTE, old: OLD, flicker: true }, opts || {});
+    var ds = canvas.dataset || {};
+    if (ds.growth) opts.growth = +ds.growth;
+    if (ds.cell) opts.cell = +ds.cell;
+    var ctx = canvas.getContext('2d'); if (!ctx) return null;
+    var pitch = opts.cell + opts.gap;
+    var W = 0, H = 0, cols = 0, rows = 0, dpr = 1;
+    var cells = [], markers = [], grown = false, rafId = 0, alive = true, visible = true, elapsed = 0, lastT = 0, lastFlick = 0, p = 0;
+
+    function size() {
+      var r = canvas.getBoundingClientRect();
+      var w = Math.round(r.width) || +canvas.getAttribute('width') || 300;
+      var h = Math.round(r.height) || +canvas.getAttribute('height') || 200;
+      dpr = Math.min(win.devicePixelRatio || 1, 2);
+      W = w; H = h;
+      canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      cols = Math.floor(w / pitch); rows = Math.floor(h / pitch);
+    }
+
+    function build() {
+      var set = {}; cells = []; markers = [];
+      function plot(x, y, seam) {
+        x = Math.round(x); y = Math.round(y);
+        if (x < 0 || y < 0 || x >= cols || y >= rows) return;
+        var k = x + ',' + y;
+        if (set[k]) { if (seam) set[k].seam = true; return; }
+        var c = { x: x, y: y, seam: !!seam }; set[k] = c; cells.push(c);
+      }
+      var nf = [[0.10, 0.82], [0.32, 0.62], [0.50, 0.70], [0.70, 0.42], [0.88, 0.18]];
+      var nodes = nf.map(function (f) { return [f[0] * cols, f[1] * rows]; });
+      var thick = Math.max(1, Math.round(Math.min(cols, rows) * 0.03));
+      for (var i = 0; i < nodes.length - 1; i++) {
+        var a = nodes[i], b = nodes[i + 1], steps = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1])) * 2;
+        for (var s = 0; s <= steps; s++) {
+          var t = s / steps, x = a[0] + (b[0] - a[0]) * t, y = a[1] + (b[1] - a[1]) * t;
+          for (var w = -thick; w <= thick; w++) { plot(x, y + w); plot(x + 0.5, y + w); }
+        }
+      }
+      var hd = nodes[nodes.length - 1], A = Math.max(4, Math.round(rows * 0.16));   /* arrowhead */
+      for (var dx = 0; dx <= A; dx++) for (var dy = 0; dy <= A - dx; dy++) plot(hd[0] - dx, hd[1] + dy, true);
+      /* reveal order + colour: distance from the bottom-left origin, so it climbs the line */
+      var ox = 0, oy = rows - 1, md = 0, ii;
+      for (ii = 0; ii < cells.length; ii++) { cells[ii]._d = Math.hypot(cells[ii].x - ox, cells[ii].y - oy); if (cells[ii]._d > md) md = cells[ii]._d; }
+      md = md || 1;
+      for (ii = 0; ii < cells.length; ii++) {
+        var c = cells[ii], rr = Math.random();
+        c.seq = Math.min(1, Math.max(0, c._d / md + (Math.random() * 0.04 - 0.02)));
+        c.ci = c.seam ? 4 : (rr < 0.34 ? 0 : rr < 0.6 ? 1 : rr < 0.82 ? 2 : 3);
+        c.old = !c.seam && Math.random() < 0.10;
+        c.a = 0.72 + Math.random() * 0.28;
+      }
+      /* inspector squares — climbing WAR projection; fewer on small canvases */
+      var defs = [{ n: 0, label: '+1.2' }, { n: 1, label: '+3.8' }, { n: 3, label: '+6.4' }, { n: 4, label: '+9.7', peak: true }];
+      var use = W >= 520 ? defs : W >= 230 ? [defs[1], defs[3]] : [];
+      markers = use.map(function (o) {
+        var nd = nodes[o.n];
+        return { x: nd[0], y: nd[1], label: o.label, peak: !!o.peak, seq: Math.min(1, Math.hypot(nd[0] - ox, nd[1] - oy) / md + 0.02) };
+      });
+    }
+
+    function drawMarkers() {
+      if (!markers.length) return;
+      var pal = opts.palette, s = Math.max(16, Math.round(opts.cell * 3.6));
+      ctx.save();
+      ctx.font = Math.max(8, Math.round(opts.cell * 1.7)) + 'px "JetBrains Mono", ui-monospace, monospace';
+      ctx.textBaseline = 'middle';
+      for (var i = 0; i < markers.length; i++) {
+        var m = markers[i]; if (m.seq > p) continue;
+        var nx = m.x * pitch + opts.cell / 2, ny = m.y * pitch + opts.cell / 2;
+        var bx = nx - s - 16, by = ny - s - 12;
+        bx = Math.max(2, Math.min(W - s - 2, bx)); by = Math.max(2, Math.min(H - s - 2, by));
+        ctx.setLineDash([2, 2]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.4)';
+        ctx.beginPath(); ctx.moveTo(bx + s / 2, by + s / 2); ctx.lineTo(nx, ny); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = pal[4]; ctx.fillRect(Math.round(nx) - 1, Math.round(ny) - 1, 3, 3);
+        ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(bx) + 1, Math.round(by) + 1, s - 1, s - 1);
+        ctx.lineWidth = 1; ctx.strokeStyle = m.peak ? pal[0] : 'rgba(255,255,255,.85)';
+        ctx.strokeRect(Math.round(bx) + 0.5, Math.round(by) + 0.5, s, s);
+        var lab = m.label, lw = ctx.measureText(lab).width, lx = bx + s + 4;
+        if (lx + lw > W - 2) lx = bx - 4 - lw;
+        ctx.textAlign = 'left'; ctx.fillStyle = m.peak ? pal[0] : '#fff';
+        ctx.fillText(lab, lx, by + s / 2);
+      }
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      var pal = opts.palette;
+      for (var i = 0; i < cells.length; i++) {
+        var c = cells[i]; if (c.seq > p) continue;
+        var lead = p - c.seq, tip = (!grown && lead >= 0 && lead < 0.05);
+        ctx.globalAlpha = tip ? 1 : c.a;
+        ctx.fillStyle = tip ? pal[4] : (c.old ? opts.old : pal[c.ci]);
+        ctx.fillRect(c.x * pitch, c.y * pitch, opts.cell, opts.cell);
+      }
+      ctx.globalAlpha = 1;
+      drawMarkers();
+    }
+
+    function flicker() {
+      if (!opts.flicker || REDUCED) return;
+      var n = cells.length; if (!n) return;
+      var k = Math.max(1, (n * 0.05) | 0);
+      for (var i = 0; i < k; i++) { var c = cells[(Math.random() * n) | 0]; if (c.seq > p) continue; c.a = rand(0.4, 1); if (Math.random() < 0.04 && !c.seam) c.old = !c.old; }
+    }
+
+    function loop() {
+      if (!alive) return;
+      rafId = raf(loop);
+      var t = now();
+      if (!visible) { lastT = 0; return; }              // offscreen: growth clock pauses
+      var dt = lastT ? Math.min(t - lastT, 100) : 0; lastT = t;
+      if (!grown) {
+        elapsed += dt; p = Math.min(1, elapsed / opts.growth);
+        if (p >= 1) grown = true;
+        draw();
+      } else if (t - lastFlick > 90) { flicker(); lastFlick = t; draw(); }
+    }
+
+    function start() {
+      size(); build(); p = 0; grown = false; elapsed = 0; lastT = 0;
+      if (REDUCED) { p = 1; grown = true; draw(); return; }
+      draw();
+      if (!rafId) loop();
+    }
+
+    function relayout() {
+      var wasGrown = grown, wasP = p, wasElapsed = elapsed;
+      size(); build();
+      if (wasGrown || REDUCED) { p = 1; grown = true; } else { p = wasP; elapsed = wasElapsed; }
+      draw();
+      if (!REDUCED && !rafId) loop();
+    }
+
+    var rto, ro = null, io = null;
+    function onResize() {
+      if (!alive) return;
+      clearTimeout(rto);
+      rto = setTimeout(function () {
+        if (!alive) return;
+        var r = canvas.getBoundingClientRect();
+        if (Math.round(r.width) !== W || Math.round(r.height) !== H) relayout();
+      }, 150);
+    }
+    win.addEventListener('resize', onResize);
+    if ('ResizeObserver' in win) { try { ro = new ResizeObserver(onResize); ro.observe(canvas); } catch (e) { ro = null; } }
+    if ('IntersectionObserver' in win) {
+      try { io = new IntersectionObserver(function (en) { visible = en.some(function (e) { return e.isIntersecting; }); }, { rootMargin: '100px' }); io.observe(canvas); } catch (e) { io = null; }
+    }
+    start();
+    var api = {
+      canvas: canvas, restart: start,
+      stats: function () { return { cells: cells.length, grown: grown, p: p, cols: cols, rows: rows, visible: visible, w: W, h: H }; },
+      destroy: function () {
+        alive = false; clearTimeout(rto);
+        win.removeEventListener('resize', onResize);
+        if (ro) { try { ro.disconnect(); } catch (e) {} ro = null; }
+        if (io) { try { io.disconnect(); } catch (e) {} io = null; }
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+        if (canvas.__dendrite === api) canvas.__dendrite = null;
+      }
+    };
+    canvas.__dendrite = api;
+    return api;
+  };
+
+  /* ---------------------------------------------------------------------
      marquee(el, opts) — duplicates .marquee__group so the CSS translateX(-50%) loop is seamless.
      el contains one .marquee__group (or bare .marquee__item children, which get wrapped).
      opts: {duration:'35s'}; data-marquee="35s" also sets the duration.
@@ -612,7 +789,7 @@
       DraftDB.decodeText(el, o);
     });
     $all('[data-roll]', root).forEach(function (el) { DraftDB.rollNumber(el, { trigger: el.dataset.rollTrigger || 'visible' }); });
-    $all('canvas[data-dendrite]', root).forEach(function (c) { DraftDB.dendrite(c); });
+    $all('canvas[data-dendrite]', root).forEach(function (c) { DraftDB.sprout(c); });
     $all('[data-marquee]', root).forEach(function (el) { DraftDB.marquee(el); });
     $all('[data-accordion], .acc', root).forEach(function (el) { if (!el.__acc) { el.__acc = true; DraftDB.accordion(el); } });
     DraftDB.reveal(root);
