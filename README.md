@@ -8,6 +8,18 @@ We re-ran every NBA draft from 2019 to 2025 with a tabular model that sees only 
 
 *Order accuracy = Spearman rank correlation between a draft order and the drafted players' actual WAR ranking, as a percentage. 100% is a perfect order, 0% is no relationship. Averaged over the seven test drafts. Players are ranked by WAR over the NBA seasons they have completed so far (2019–2021: five seasons; 2022: four; 2023: three; 2024: two; 2025: one).*
 
+## Where the edge is, and where it is not
+
+How many of each order's first N picks were actually among the true best N by WAR, summed over the seven test classes:
+
+| | AI | NBA teams |
+|---|---|---|
+| top-5 hits (of 35) | 17 | 17 |
+| top-10 hits (of 70) | 30 | 31 |
+| top-20 hits (of 140) | 80 | 76 |
+
+At the top of the board the model and the teams are a dead heat. The 18-point gap in order accuracy is earned in the middle and bottom of the draft: ordering picks 15 to 58, avoiding lottery busts, finding second-round value. The correlation treats a swap at picks 40 and 45 the same as a swap at picks 2 and 12; the value-of-order metric below weights the top more, and there the gap is about 5 points. The training label is a within-class rank that rewards every position equally, so nothing in the objective says the top ten matter more — a top-weighted label and a star-probability member are the next things being tested.
+
 ## Per class
 
 | class | seasons scored (k) | drafted players | AI accuracy | NBA scouts | won | value of the order: NBA teams | value of the order: AI |
