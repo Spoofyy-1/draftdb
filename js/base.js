@@ -593,13 +593,11 @@
       for (var i = 0; i < markers.length; i++) {
         var m = markers[i]; if (m.seq > p) continue;
         var nx = m.x * pitch + opts.cell / 2, ny = m.y * pitch + opts.cell / 2;
-        var bx = nx - s - 16, by = ny - s - 12;
-        bx = Math.max(2, Math.min(W - s - 2, bx)); by = Math.max(2, Math.min(H - s - 2, by));
-        ctx.setLineDash([2, 2]); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.4)';
-        ctx.beginPath(); ctx.moveTo(bx + s / 2, by + s / 2); ctx.lineTo(nx, ny); ctx.stroke(); ctx.setLineDash([]);
-        ctx.fillStyle = pal[4]; ctx.fillRect(Math.round(nx) - 1, Math.round(ny) - 1, 3, 3);
-        ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(Math.round(bx) + 1, Math.round(by) + 1, s - 1, s - 1);
-        ctx.lineWidth = 1; ctx.strokeStyle = m.peak ? pal[0] : 'rgba(255,255,255,.85)';
+        /* square sits ON the arrow, centred on the node (no leader line) */
+        var bx = nx - s / 2, by = ny - s / 2;
+        bx = Math.max(1, Math.min(W - s - 1, bx)); by = Math.max(1, Math.min(H - s - 1, by));
+        ctx.fillStyle = 'rgba(0,0,0,.72)'; ctx.fillRect(Math.round(bx) + 1, Math.round(by) + 1, s - 1, s - 1);
+        ctx.lineWidth = 1.5; ctx.strokeStyle = m.peak ? pal[0] : 'rgba(255,255,255,.92)';
         ctx.strokeRect(Math.round(bx) + 0.5, Math.round(by) + 0.5, s, s);
         var lab = m.label, lw = ctx.measureText(lab).width, lx = bx + s + 4;
         if (lx + lw > W - 2) lx = bx - 4 - lw;
