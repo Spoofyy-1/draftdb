@@ -153,8 +153,13 @@ def predict(model: str, ctx: pd.DataFrame, pool: pd.DataFrame, feats: list[str],
             ranker = CatBoostRanker(loss_function="YetiRankPairwise", **params)
             ranker.fit(Xc[order], y[order], group_id=ctx.draft_year.values[order])
             return np.asarray(ranker.predict(Xn), dtype=float), None
+        halflife = params.pop("recency_halflife", None)  # weight context classes by recency: 0.5 ** (years before the newest / halflife)
+        weight = None
+        if halflife:
+            age = ctx.draft_year.max() - ctx.draft_year.values
+            weight = np.power(0.5, age / float(halflife))
         reg = CatBoostRegressor(loss_function="RMSE", **params)
-        return np.asarray(reg.fit(Xc, y).predict(Xn), dtype=float), None
+        return np.asarray(reg.fit(Xc, y, sample_weight=weight).predict(Xn), dtype=float), None
     if model == "extratrees":
         from sklearn.ensemble import ExtraTreesRegressor
         from sklearn.impute import SimpleImputer
