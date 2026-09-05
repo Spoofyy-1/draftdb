@@ -17,17 +17,18 @@ NBA_SEASONS = range(2004, 2027)
 LAST_SEASON = 2026
 
 # Target. Two definitions are implemented; TARGET_KIND picks the one every model, rule and page is judged on.
-#   "war3": WAR summed over the player's FIRST TARGET_SEASONS NBA seasons (all of them if he has played fewer) --
-#           what the pick produced early in his career. Switched to this on 2026-09-05 at the user's request.
+#   "war5": WAR summed over the player's FIRST TARGET_SEASONS NBA seasons (all of them if he has played fewer) --
+#           what the pick produced early in his career. Switched to this on 2026-09-05 at the user's request;
+#           the window was 3 seasons until then.
 #   "peak": mean WAR over his TARGET_SEASONS BEST seasons known at the time of judging -- how good he became;
 #           does not punish a career cut short by injury.
 # Either way a class observed for one season is judged on that season, and a player who never played is not
-# "0 wins" -- he is in a bucket of his own, below every real value (the worst real 3-season sum is around -6,
+# "0 wins" -- he is in a bucket of his own, below every real value (the worst real 5-season sum is around -8,
 # the worst real per-season WAR around -3).
-TARGET_KIND = "war3"
-TARGET_SEASONS = 3
-TARGET = {"war3": "war3", "peak": "peak_war"}[TARGET_KIND]  # column name of the score everywhere downstream
-NEVER_PLAYED_WAR = {"war3": -10.0, "peak": -5.0}[TARGET_KIND]
+TARGET_KIND = "war5"
+TARGET_SEASONS = 5
+TARGET = {"war5": "war5", "peak": "peak_war"}[TARGET_KIND]  # column name of the score everywhere downstream
+NEVER_PLAYED_WAR = {"war5": -15.0, "peak": -5.0}[TARGET_KIND]
 PEAK_SEASONS = TARGET_SEASONS  # legacy name
 # Context labels are rewritten within each draft class before the model sees them, so a class observed for one rookie
 # season and one observed for ten sit on one scale (the metric is a within-class rank). Percentile rank won on the full

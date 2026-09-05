@@ -222,7 +222,7 @@ def main():
         "feature_hash": hashlib.md5(",".join(MOMENTUM_FEATURES if "+momentum" in redraft_model else FEATURES).encode()).hexdigest()[:8],
         "model_features": {m: (MOMENTUM_FEATURES if "+momentum" in m else FEATURES) for m in models},
         "target": C.TARGET_KIND,
-        "target_desc": f"{TARGET} = {'sum over first' if C.TARGET_KIND == 'war3' else 'mean over best'} {C.TARGET_SEASONS} NBA seasons of "
+        "target_desc": f"{TARGET} = {'sum over first' if C.TARGET_KIND == 'war5' else 'mean over best'} {C.TARGET_SEASONS} NBA seasons of "
                        f"{C.WAR_PER_MIN} * (rating + {C.WAR_REPLACEMENT}) * minutes; never played = {C.NEVER_PLAYED_WAR}",
         "north_star": NORTH_STAR, "split": split_table(), "val_years": list(C.VAL_YEARS), "holdout_years": list(C.HOLDOUT_YEARS),
         "holdout_evaluated": a.holdout, "gpus": gpus, "metrics": metrics, "summary": summarize(metrics).to_dict("records"), "redrafts": redrafts,

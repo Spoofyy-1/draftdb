@@ -3,8 +3,8 @@ import { targetName, type Pick, type TargetKind } from "@/lib/db";
 import { pct, type Accuracy } from "@/lib/order";
 
 const ROUND_1_PICKS = 30;
-// A value that reads as a clear hit: 5 WAR a season at his peak, or 10 WAR over his first three seasons.
-const STAR_WAR: Record<TargetKind, number> = { peak: 5, war3: 10 };
+// A value that reads as a clear hit: 5 WAR a season at his peak, or 15 WAR over his first five seasons.
+const STAR_WAR: Record<TargetKind, number> = { peak: 5, war5: 15 };
 
 // Never-played players carry a sentinel value below every real one; show the fact, not the number.
 const war = (p: Pick) => (p.war == null ? "-" : p.seasons_played === 0 ? "never played" : p.war.toFixed(1));
@@ -12,7 +12,7 @@ const war = (p: Pick) => (p.war == null ? "-" : p.seasons_played === 0 ? "never 
 type Row = Pick & { slot: number };
 
 function Column({ title, subtitle, rows, showRealPick, target }: { title: string; subtitle: string; rows: Row[]; showRealPick?: boolean; target: TargetKind }) {
-  const star = STAR_WAR[target] ?? STAR_WAR.war3;
+  const star = STAR_WAR[target] ?? STAR_WAR.war5;
   const label = "font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground";
   return (
     <div>

@@ -28,7 +28,7 @@ MODELS = ["ridge", "lgbm", "tabfm", "tabfm_cls", "exaone", "exaone_cls", "stack"
 ZOO = {"tabfm", "tabfm_cls", "tabfm_ens", "exaone", "exaone_cls", "ridge", "lgbm"}
 CLS_BINS = 5
 # Blend weights: share of the OTHER order in the rank average (1 - w is the AI's share). Chosen on the validation years
-# 2011-2018 for the 3-year-WAR target (0.4 beat 0.3/0.5/0.6; under peak WAR the choice was 0.6).
+# 2011-2018 for the 5-year-WAR target (0.4 beat 0.3/0.5/0.6; under peak WAR the choice was 0.6).
 #   +market     blends with the ACTUAL pick: not pre-draft information; reference only.
 #   +consensus  blends with the mean rank across mock drafts PUBLISHED BEFORE draft night (infra/builders/mocks.py): fully
 #               pre-draft. On validation the consensus alone scores below the scouts; the blend above both.

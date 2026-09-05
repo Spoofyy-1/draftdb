@@ -70,11 +70,10 @@ def leakage_audit(table: pd.DataFrame, device: str):
     assert abs(np.mean(perms)) < 0.15, "shuffled labels still predictive -- leak"
 
     print("\n== bootstrap CI, latest published run ==")
-    import sqlite3
-    con = sqlite3.connect(C.OUT / "results.sqlite")
-    run_id, model = con.execute("select run_id, redraft_model from runs order by created desc limit 1").fetchone()
-    p = pd.read_sql("select year, actual_pick, pred, war as peak_war from redraft_picks where run_id=? and modelled=1 and labelled=1 and pred is not null", con, params=(run_id,))
-    p = p[p.year.isin(C.VAL_YEARS)]
+    from validation.db import latest_run_picks
+    run_id, model, rows = latest_run_picks()
+    p = pd.DataFrame(rows).rename(columns={"war": "peak_war"})
+    p = p[(p.modelled == 1) & (p.labelled == 1) & p.pred.notna() & p.year.isin(C.VAL_YEARS)]
     gap = lambda df: np.mean([spearmanr(g.pred, g.peak_war).correlation - spearmanr(-g.actual_pick, g.peak_war).correlation for _, g in df.groupby("year")])
     boots = []
     for _ in range(2000):

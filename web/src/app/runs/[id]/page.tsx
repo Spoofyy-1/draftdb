@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 export default async function RunPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ year?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const data = getRun(id);
+  const data = await getRun(id);
   if (!data) notFound();
   const { run, byYear, splits, variants } = data;
 

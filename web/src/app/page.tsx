@@ -7,12 +7,12 @@ import { WarModal } from "@/components/war-modal";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  const runs = listRuns();
+export default async function Home() {
+  const runs = await listRuns();
   const latest = runs[0];
   const aiWins = latest?.ours != null && latest?.nba != null && latest.ours > latest.nba;
-  const splits = latest ? getSplits(latest.run_id) : [];
-  const target = latest?.target ?? "war3";
+  const splits = latest ? await getSplits(latest.run_id) : [];
+  const target = latest?.target ?? "war5";
 
   return (
     <main className="mx-auto w-full max-w-4xl px-6 py-16 sm:py-24">
@@ -26,7 +26,7 @@ export default function Home() {
           player data, public mock rankings, and how those rankings changed. Then we checked
           whose order better matched how the players actually turned out: the AI model, or the NBA scouts who made the real
           picks. Players are ranked by <WarModal target={target}>{targetName(target)}</WarModal>,{" "}
-          {target === "peak" ? "how many wins a season they were worth at their best." : "how many wins they were worth over their first three NBA seasons."}
+          {target === "peak" ? "how many wins a season they were worth at their best." : "how many wins they were worth over their first five NBA seasons."}
         </p>
       </header>
 

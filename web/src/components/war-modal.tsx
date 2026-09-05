@@ -5,11 +5,11 @@ import { createPortal } from "react-dom";
 import type { TargetKind } from "@/lib/db";
 
 const DEFINITION: Record<TargetKind, { title: string; text: string }> = {
-  war3: {
-    title: "3-year WAR",
+  war5: {
+    title: "5-year WAR",
     text:
-      "Wins Above Replacement: how many games a season a player wins his team over a replacement-level player. 3-year WAR adds up " +
-      "his WAR over his first three NBA seasons, or all of them if he has played fewer, so it measures what a pick produced early in " +
+      "Wins Above Replacement: how many games a season a player wins his team over a replacement-level player. 5-year WAR adds up " +
+      "his WAR over his first five NBA seasons, or all of them if he has played fewer, so it measures what a pick produced early in " +
       "his career, not how good he eventually became. Recent classes are judged on the seasons they have played so far. A player who " +
       "never played ranks below everyone who did.",
   },
@@ -17,8 +17,8 @@ const DEFINITION: Record<TargetKind, { title: string; text: string }> = {
     title: "Peak WAR",
     text:
       "Wins Above Replacement: how many games a season a player wins his team over a replacement-level player. Peak WAR is his " +
-      "average over his three best NBA seasons, or all of them if he has played fewer. It measures how good a player became, so a " +
-      "career cut short by injury is judged on what it was, and a rookie's one season counts the same way a veteran's best three do. " +
+      "average over his five best NBA seasons, or all of them if he has played fewer. It measures how good a player became, so a " +
+      "career cut short by injury is judged on what it was, and a rookie's one season counts the same way a veteran's best five do. " +
       "A player who never played ranks below everyone who did.",
   },
 };
@@ -31,8 +31,8 @@ const INPUTS: [string, string][] = [
 ];
 
 /** Inline link that opens a modal explaining the WAR score both draft orders are judged against. */
-export function WarModal({ target = "war3", children }: { target?: TargetKind; children: ReactNode }) {
-  const def = DEFINITION[target] ?? DEFINITION.war3;
+export function WarModal({ target = "war5", children }: { target?: TargetKind; children: ReactNode }) {
+  const def = DEFINITION[target] ?? DEFINITION.war5;
   const ref = useRef<HTMLDialogElement>(null);
   // The trigger sits inside a <p>, which may only contain phrasing content, so the dialog is portalled to body.
   const [mounted, setMounted] = useState(false);

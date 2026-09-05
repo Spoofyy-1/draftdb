@@ -85,7 +85,7 @@ def main():
               " ".join(f"{k}={v:.0%}" for k, v in have.items()))
 
     # -------------------------------------------------------------- leakage
-    banned = {MARKET_FEATURE, "peak_war", "war3", "war", "seasons_played", "labelled", "modelled"}
+    banned = {MARKET_FEATURE, "peak_war", "war5", "war", "seasons_played", "labelled", "modelled"}
     check("leakage: no target/market column in FEATURES", not (banned & set(FEATURES)), sorted(banned & set(FEATURES)) or "ok")
     check("leakage: no target/market column in LEAN_FEATURES", not (banned & set(LEAN_FEATURES)), sorted(banned & set(LEAN_FEATURES)) or "ok")
     check("leakage: no consensus (mock_*) column in published FEATURES", not any(f.startswith("mock_") for f in FEATURES))

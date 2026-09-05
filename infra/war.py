@@ -6,7 +6,7 @@
 * rating  = BPM mapped onto the RAPTOR scale (linear fit on the 2008-2022 overlap) for
             2023-2026, since 538 stopped publishing RAPTOR.
 * minutes = basketball-reference regular-season minutes for every season.
-* target  = config.TARGET_KIND: "war3" = WAR summed over the player's first TARGET_SEASONS NBA seasons (all of
+* target  = config.TARGET_KIND: "war5" = WAR summed over the player's first TARGET_SEASONS NBA seasons (all of
             them if fewer) -- what the pick produced early; or "peak" = mean over his TARGET_SEASONS best seasons
             -- how good he became. Never played = NEVER_PLAYED_WAR, below every real value.
 """
@@ -55,7 +55,7 @@ def war_target(drafts: pd.DataFrame, swar: pd.DataFrame, through: int = LAST_SEA
     """
     m = drafts[["bbref_id", "draft_year"]].merge(swar[["bbref_id", "season", "war"]], on="bbref_id", how="left")
     m = m[(m.season > m.draft_year) & (m.season <= through)]
-    if TARGET_KIND == "war3":  # first seasons played, summed
+    if TARGET_KIND == "war5":  # first seasons played, summed
         sel = m.sort_values("season").groupby("bbref_id").head(TARGET_SEASONS)
         score = sel.groupby("bbref_id").war.sum()
     else:  # best seasons, averaged
