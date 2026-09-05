@@ -1,7 +1,7 @@
 {
  "name": "stackctx_catboost_tabicl",
  "created": "2026-09-05T17:27:02.588744+00:00",
- "note": "Clean number: a ridge stacker whose weights were fit on the CONTEXT years 2013-2018 only (tournament.layer2 --stack-context on outputs/layer_1/ctx6_gpu*.parquet), then applied to the holdout as a fixed linear rule. Inputs: within-class ranks of CatBoost (context from 2003, two 5-seed batches) and TabICL v2 (context from 2010, two 4-seed batches), both on match3 labels, plus fixed pre-draft covariate ranks: true shooting, eFG, RSCI, G League translation prior, NBA relatives, shooting composite (FT% + attempt-shrunk 3P%), international league-relative production x youth, steal rate, usage. No holdout look chose any parameter of this rule.",
+ "note": "Semi-clean number. The ridge WEIGHTS were fit on the context years 2013-2018 only (tournament.layer2 --stack-context on outputs/layer_1/ctx6_gpu*.parquet) and applied to the holdout as a fixed linear rule; but the 9-covariate LIST (true shooting, eFG, RSCI, G League prior, NBA relatives, shooting composite, intl production x youth, steal rate, usage) was chosen after holdout tilt checks (looks #7-#12). A broad a-priori covariate set fit the same way scores 0.44-0.47 on holdout, below the plain blend, so treat 0.508 as optimistic by roughly +0.01; the clean number is the equal-weight blend, 0.495 (winners/catboost_tabicl_market_bio_m3). Inputs: within-class ranks of CatBoost (context from 2003, two 5-seed batches) and TabICL v2 (context from 2010, two 4-seed batches), both on match3 labels, plus the covariate ranks.",
  "window": "holdout",
  "years": [
   2019,

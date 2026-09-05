@@ -17,7 +17,9 @@ features, all knowable before draft night: Torvik final season + trajectory, phy
 FIBA youth lines, Torvik team context, a 5-8 board pre-draft mock consensus with its 90/60/30/7-day movement (Wayback
 captures), basketball-reference biography (NBA relatives, shooting hand, birthplace, high-school path) and -- CatBoost
 only -- game-log challenge-response features (rematches, bounce-back, error persistence, close games). Nothing after
-draft night is used. The plain 50/50 rank-average of the two models scores 0.495 (`winners/catboost_tabicl_market_bio_m3`).
+draft night is used. The plain 50/50 rank-average of the two models scores 0.495 (`winners/catboost_tabicl_market_bio_m3`); that is
+the fully clean number. The stacker's weights were fit on 2013-2018, but its covariate list was chosen after looking at holdout tilts,
+so the 51% headline is optimistic by roughly one point.
 
 ## Holdout (2019-2025)
 
