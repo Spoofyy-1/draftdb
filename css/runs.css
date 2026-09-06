@@ -75,3 +75,5 @@
 .rtable td.won{color:var(--text)}
 .rtable tr.shipped td{background:rgba(53,208,127,.07)}
 .rtable td .tag{margin-left:8px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--green);border:1px solid var(--green);border-radius:3px;padding:1px 6px}
+
+.stat__sub{font-size:11px;color:#8b949e;margin-top:4px}

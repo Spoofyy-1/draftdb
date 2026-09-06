@@ -1,0 +1,223 @@
+{
+ "name": "EVO gen11 (training window 2007-2018) - current model",
+ "evaluated_on": "data v3.2 (2026-09-06), sealed vault, ledger-recorded",
+ "genome": {
+  "hw": "disc85",
+  "norm": "none",
+  "clip": "clip40",
+  "label": "gaussrank",
+  "fx": "shoot+prod",
+  "M": 400.0,
+  "thin": "none",
+  "anchor": "none",
+  "cons": 0.0,
+  "intl": 1,
+  "bag": 3,
+  "fm": 0,
+  "mono": "on",
+  "hurdle": 0,
+  "mingp": 0,
+  "el": 0,
+  "wk": 0,
+  "ridge_alpha": 300.0,
+  "icl_topk": 100,
+  "icl_ctx": "all",
+  "resid": 1,
+  "knn": 0,
+  "cat": 0,
+  "ixc": 0,
+  "pss": 0,
+  "icl_norm": "none",
+  "icl_outlier": 2.0,
+  "icl_shuffle": "latin",
+  "labelmix": "single",
+  "hz": 0,
+  "covw": 1,
+  "risk": "q25",
+  "ridge": 1,
+  "icl_n": 32,
+  "topw": 0,
+  "star": 0.0,
+  "noscout": 0,
+  "recency": 0,
+  "undraft_w": 1.0,
+  "beatpick": 0,
+  "consres": 0,
+  "xgb_obj": "reg",
+  "pathsplit": 0,
+  "cons_unc": 0.0,
+  "icl_era": 0,
+  "mono_prod": 0,
+  "subspace": 0,
+  "star_q": 0.85,
+  "mkt_beta": 1.0,
+  "win": 2007,
+  "et": 0,
+  "lgbm": 0,
+  "tabpfn": 0,
+  "wp": 0,
+  "txt": 0,
+  "traj": 0,
+  "tv": 0,
+  "mock": 0,
+  "prog": 0,
+  "misc": 0,
+  "meta": "rankavg"
+ },
+ "members": [
+  "xgb",
+  "tabicl",
+  "ridge"
+ ],
+ "stack_weights": {
+  "rich_rows": {
+   "xgb": 0.0,
+   "tabicl": 0.25,
+   "ridge": 0.75
+  },
+  "thin_rows": {
+   "xgb": 1.0,
+   "tabicl": 0.0,
+   "ridge": 0.0
+  },
+  "thin_rule": "rows whose input coverage is below the class median use the thin weights"
+ },
+ "metrics": {
+  "strict": {
+   "train_classes": "2007-2018 only",
+   "mean_order_accuracy": 45.2,
+   "nba_draft_order_accuracy": 26.3,
+   "edge": 0.189,
+   "drafts_won": "5 of 7",
+   "seasons_edge_ge_0.2": 5,
+   "per_class": [
+    {
+     "season": 2019,
+     "k": 5,
+     "xgb": 0.364,
+     "tabicl": 0.391,
+     "stack": 0.338,
+     "draft": 0.402,
+     "edge": -0.064
+    },
+    {
+     "season": 2020,
+     "k": 5,
+     "xgb": 0.321,
+     "tabicl": 0.29,
+     "stack": 0.296,
+     "draft": 0.35,
+     "edge": -0.054
+    },
+    {
+     "season": 2021,
+     "k": 5,
+     "xgb": 0.587,
+     "tabicl": 0.619,
+     "stack": 0.624,
+     "draft": 0.408,
+     "edge": 0.215
+    },
+    {
+     "season": 2022,
+     "k": 4,
+     "xgb": 0.632,
+     "tabicl": 0.598,
+     "stack": 0.628,
+     "draft": 0.262,
+     "edge": 0.365
+    },
+    {
+     "season": 2023,
+     "k": 3,
+     "xgb": 0.413,
+     "tabicl": 0.41,
+     "stack": 0.397,
+     "draft": 0.111,
+     "edge": 0.287
+    },
+    {
+     "season": 2024,
+     "k": 2,
+     "xgb": 0.496,
+     "tabicl": 0.443,
+     "stack": 0.484,
+     "draft": 0.134,
+     "edge": 0.35
+    },
+    {
+     "season": 2025,
+     "k": 1,
+     "xgb": 0.331,
+     "tabicl": 0.367,
+     "stack": 0.398,
+     "draft": 0.176,
+     "edge": 0.222
+    }
+   ]
+  },
+  "expanding": {
+   "rule": "earlier test classes join training with only the NBA seasons completed before the scored draft",
+   "mean_order_accuracy": 50.6,
+   "nba_draft_order_accuracy": 24.0,
+   "edge": 0.266,
+   "drafts_won": "5 of 6",
+   "per_class": [
+    {
+     "season": 2020,
+     "k": 5,
+     "train_rows": 1098,
+     "stack": 0.33,
+     "draft": 0.35,
+     "edge": -0.02
+    },
+    {
+     "season": 2021,
+     "k": 5,
+     "train_rows": 1210,
+     "stack": 0.623,
+     "draft": 0.408,
+     "edge": 0.214
+    },
+    {
+     "season": 2022,
+     "k": 4,
+     "train_rows": 1443,
+     "stack": 0.601,
+     "draft": 0.262,
+     "edge": 0.338
+    },
+    {
+     "season": 2023,
+     "k": 3,
+     "train_rows": 1540,
+     "stack": 0.528,
+     "draft": 0.111,
+     "edge": 0.417
+    },
+    {
+     "season": 2024,
+     "k": 2,
+     "train_rows": 1641,
+     "stack": 0.565,
+     "draft": 0.134,
+     "edge": 0.431
+    },
+    {
+     "season": 2025,
+     "k": 1,
+     "train_rows": 1755,
+     "stack": 0.389,
+     "draft": 0.176,
+     "edge": 0.213
+    }
+   ]
+  }
+ },
+ "previous_model": {
+  "name": "BEST v2 gen17",
+  "strict_mean_order_accuracy_on_same_data": 45.4,
+  "strict_mean_order_accuracy_as_shipped_2026-09-05": 44.0,
+  "expanding_mean_order_accuracy": 49.5
+ }
+}

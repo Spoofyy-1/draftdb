@@ -102,3 +102,22 @@ ABLATION nocol     WF +0.3730  folds 2014:+0.417 2015:+0.353 2016:+0.234 2017:+0
 - Members tried: XGBoost (kept, 3 seeds, age monotone), TabICL (kept, 50/50 rank average), TabFM (dropped: weaker and slow), ridge, kNN comparables, CatBoost, XGBRanker, residual stacking, per-season targets, horizon models, interaction constraints, quantile (q25) risk objective.
 - Data blocks tried: EuroLeague/EuroCup official API block, Wikipedia career block (both rejected by the gate as extra columns; the corrected rows were instead written into the base international block in data v3).
 - Synthetic data: tried early, then banned by rule.
+## 2026-09-06 — data v3.2 to v3.5, seven-fold gate, and why the search was drifting
+
+**Current model: EVO gen11** (training window 2007, otherwise the v2 genome with ridge 0.75 / TabICL 0.25 on rich rows, XGBoost on thin rows). Strict 45.2% (edge +0.189, 5 of 7), expanding 50.6% (edge +0.266, 5 of 6). It was the only accepted change that also improved blind results.
+
+**Diagnosis.** Every island's walk-forward fitness rose with each accepted mutation while blind accuracy stayed flat or fell (island C: 43.7% → 42.8% → 42.6% → 40.7% over four keeps). Re-validating each champion against its seed under a stricter gate (seven folds, seed-shifted evaluation) showed the drifted lineage genuinely beats its seed on the 2012–2018 folds (7 of 7). So this is not fold noise but era shift: the old folds reward young-international upside bets that stopped paying after 2018. A named board diff confirmed it: the drifted lineage moved young internationals up (Scoot Henderson 15 → 36, Rayan Rupert 32 → 18) while the winner (window 2007) moved older college producers up and young internationals down.
+
+**Gate changes (all leak-free):** early exit once two folds are clearly lost; seven folds 2012–2018 with season-consistent labels (a fold at draft y only uses NBA seasons complete by that draft night, exactly like the expanding evaluation); recency-weighted fold mean; a keep must win 6 of 7 folds including 2 of the 3 latest; every keep is re-evaluated with different model seeds. The champion's fitness on the season-consistent folds is +0.418.
+
+**Fold-level "why" for the winner (window 2007 vs parent, 2012–2018 folds, 253 big moves):** the moves split evenly right/wrong; the gain is diffuse. Error fell for drafted players (−0.25 rank slots), consensus 11–30 (−0.79) and the youngest prospects (−0.55 / −0.42); it rose for undrafted (+0.83), unranked (+0.75) and international players (+0.54), who are never scored.
+
+**Data blocks tested on the main champion (7 folds; gain, folds won; all fail):** Google Trends −0.001 (5/7); RSCI recruiting spread −0.005 (2/7); Trends + RSCI +0.001 (4/7); window 2000 −0.027; window 2003 −0.024; window 2000 + Trends −0.025. Earlier on v3.3: Torvik, text, trajectory, attention, mock momentum, program pipeline, team-season, misc — 0 of 22 passed alone or combined. Window 2000/2003 fail because the 2000–2004 classes carry no mock-draft consensus.
+
+**Model families tested (all fail):** pairwise within-class Borda member −0.004 (alone it beat the XGBoost member on 5 of 7 folds, +0.437 vs +0.410, but adds nothing to the stack); pairwise + learned weights −0.004; + ridge meta −0.013; + NNLS meta −0.012; + consensus blend −0.004; class-relative standardization (eraz) −0.016; position-relative (posz) −0.013; both −0.027; combinations of earlier near-misses (subspace, cons_unc, mono_prod, pathsplit, market): −0.006 to +0.005, none pass; icl_n 64 +0.002 (4/7); bag 9 seeds ±0.000; CatBoost member carried weight 0.00 and was dropped as a no-op.
+
+**Feature-search candidates (frozen-genome base, 7 folds):** rsci_disagree +0.0059 (4/7), gt_surge +0.0045, hs_growth +0.0030, hype_gap +0.0003, pedigree_gap +0.0001, traj_x_pedigree +0.0009, rsci_decay −0.0024 — none accepted.
+
+**Ensembles of saved boards (blind, report only):** rank-averaging the island champions with the frozen genome gains at most 0.6 points (best 46.0% strict) — variance is not the bottleneck.
+
+**Added but not yet evaluated when the run was stopped:** G League post-draft production as a training-label tiebreaker (1,445 players), second-tier training weights (consensus 11–40), XGBoost depth, recent-class up-weighting in the TabICL context, a consensus top-15 specialist, class-context features, drop-undrafted training, a spline member, the NBA combine athletic/drill block (1,294 players).

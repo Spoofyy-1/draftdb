@@ -8,24 +8,27 @@
   'use strict';
 
   var DATA = {
-    headline: { ai: 44, scouts: 26, won: '5 of 7' },
-    years: { train: [2010, 2018], test: [2019, 2025], pending: [2026] },
+    /* headline = expanding window (how the model is used); strict = trained on 2007-2018 only */
+    headline: { ai: 51, scouts: 24, won: '5 of 6', strictAi: 45, strictScouts: 26, strictWon: '5 of 7' },
+    years: { train: [2007, 2018], test: [2019, 2025], pending: [2026] },
     runs: [
-      { when: '2026-09-05 13:11', model: 'BEST v2 gen17 · data v3 (rebuilt international block + measurements)', tag: 'shipped', ai: 44, scouts: 26, won: '5 of 7' },
-      { when: '2026-09-05 13:08', model: 'BEST v2 gen17 · data v3.0 (rebuilt international block only)', ai: 45, scouts: 26, won: '5 of 7' },
-      { when: '2026-09-05 04:12', model: 'evolution champion gen86 · data v1 (walk-forward pick, not shipped)', ai: 43, scouts: 26, won: '6 of 7' },
-      { when: '2026-09-05 02:05', model: 'overnight queue final (hz+covw) · data v1', ai: 44, scouts: 26, won: '5 of 7' },
-      { when: '2026-09-05 00:51', model: 'BEST v2 gen17 · data v1', ai: 46, scouts: 26, won: '5 of 7' }
+      { when: '2026-09-06', model: 'EVO gen11 · training window 2007 · data v3.2', tag: 'current', ai: 45, scouts: 26, xai: 51, won: '5 of 7 · expanding 5 of 6' },
+      { when: '2026-09-06', model: 'v2 gen17 genome re-scored on the rebuilt data v3.2', ai: 45, scouts: 26, xai: 50, won: '3 of 7' },
+      { when: '2026-09-05 13:11', model: 'BEST v2 gen17 · data v3 (rebuilt international block + measurements) · previously shipped', ai: 44, scouts: 26, xai: null, won: '5 of 7' },
+      { when: '2026-09-05 13:08', model: 'BEST v2 gen17 · data v3.0 (rebuilt international block only)', ai: 45, scouts: 26, xai: null, won: '5 of 7' },
+      { when: '2026-09-05 04:12', model: 'evolution champion gen86 · data v1 (walk-forward pick, not shipped)', ai: 43, scouts: 26, xai: null, won: '6 of 7' },
+      { when: '2026-09-05 02:05', model: 'overnight queue final (hz+covw) · data v1', ai: 44, scouts: 26, xai: null, won: '5 of 7' },
+      { when: '2026-09-05 00:51', model: 'BEST v2 gen17 · data v1 (stale international seasons, since corrected)', ai: 46, scouts: 26, xai: null, won: '5 of 7' }
     ],
-    /* [class, k seasons scored, drafted players, AI %, scouts %, value % NBA teams, value % AI] */
+    /* [class, k seasons scored, drafted players, AI strict %, scouts %, AI expanding % (null = none), training rows expanding] */
     classes: [
-      [2019, 5, 58, 39, 40, 74.6, 73.7],
-      [2020, 5, 58, 31, 35, 72.7, 70.4],
-      [2021, 5, 56, 63, 41, 79.3, 84.0],
-      [2022, 4, 52, 52, 26, 74.7, 81.1],
-      [2023, 3, 56, 35, 11, 75.0, 71.6],
-      [2024, 2, 55, 60, 13, 55.9, 80.7],
-      [2025, 1, 55, 30, 18, 67.0, 75.2]
+      [2019, 5, 58, 34, 40, null, null],
+      [2020, 5, 58, 30, 35, 33, 1098],
+      [2021, 5, 56, 62, 41, 62, 1210],
+      [2022, 4, 52, 63, 26, 60, 1443],
+      [2023, 3, 56, 40, 11, 53, 1540],
+      [2024, 2, 55, 48, 13, 57, 1641],
+      [2025, 1, 57, 40, 18, 39, 1755]
     ]
   };
 
@@ -33,8 +36,10 @@
 
   function statGrid() {
     var g = doc.getElementById('stat-grid'); if (!g) return;
-    [['AI model accuracy', DATA.headline.ai + '%', 'hl'], ['NBA scouts accuracy', DATA.headline.scouts + '%', ''], ['Drafts the AI won', DATA.headline.won, '']].forEach(function (s) {
-      var c = el('div', 'stat'); c.appendChild(el('div', 'stat__k', s[0])); c.appendChild(el('div', 'stat__v' + (s[2] ? ' ' + s[2] : ''), s[1])); g.appendChild(c);
+    [['AI model accuracy', DATA.headline.ai + '%', 'hl', 'expanding window · strict ' + DATA.headline.strictAi + '%'],
+     ['NBA scouts accuracy', DATA.headline.scouts + '%', '', 'the real draft order · strict ' + DATA.headline.strictScouts + '%'],
+     ['Drafts the AI won', DATA.headline.won, '', 'strict ' + DATA.headline.strictWon]].forEach(function (s) {
+      var c = el('div', 'stat'); c.appendChild(el('div', 'stat__k', s[0])); c.appendChild(el('div', 'stat__v' + (s[2] ? ' ' + s[2] : ''), s[1])); c.appendChild(el('div', 'stat__sub', s[3])); g.appendChild(c);
     });
   }
 
@@ -51,7 +56,7 @@
   function runsTable() {
     var root = doc.getElementById('runs-root'); if (!root) return;
     var wrap = el('div', 'rtable-wrap'), t = el('table', 'rtable rtable--runs'), th = el('thead'), tr = el('tr');
-    ['When', 'Model', 'AI', 'NBA scouts', 'Drafts the AI won'].forEach(function (h) { tr.appendChild(el('th', null, h)); });
+    ['When', 'Model', 'AI strict', 'NBA scouts', 'AI expanding', 'Drafts the AI won'].forEach(function (h) { tr.appendChild(el('th', null, h)); });
     th.appendChild(tr); t.appendChild(th);
     var tb = el('tbody');
     DATA.runs.forEach(function (r) {
@@ -60,6 +65,7 @@
       var m = el('td', 'model'); m.textContent = r.model; if (r.tag) { var b = el('span', 'tag', r.tag); m.appendChild(b); } row.appendChild(m);
       row.appendChild(el('td', 'stack', r.ai + '%'));
       row.appendChild(el('td', null, r.scouts + '%'));
+      row.appendChild(el('td', 'stack', r.xai == null ? '–' : r.xai + '%'));
       row.appendChild(el('td', 'won', r.won));
       tb.appendChild(row);
     });
@@ -69,24 +75,25 @@
   function classTable() {
     var root = doc.getElementById('class-root'); if (!root) return;
     var wrap = el('div', 'rtable-wrap'), t = el('table', 'rtable'), th = el('thead'), tr = el('tr');
-    ['Class', 'Seasons scored', 'Drafted', 'AI accuracy', 'NBA scouts', 'Won', 'Value of order · NBA teams', 'Value of order · AI'].forEach(function (h) { tr.appendChild(el('th', null, h)); });
+    ['Class', 'Seasons scored', 'Drafted', 'AI strict', 'NBA scouts', 'AI expanding', 'Training rows (expanding)', 'Won'].forEach(function (h) { tr.appendChild(el('th', null, h)); });
     th.appendChild(tr); t.appendChild(th);
-    var tb = el('tbody'), sa = 0, ss = 0, sv1 = 0, sv2 = 0, won = 0;
+    var tb = el('tbody'), sa = 0, ss = 0, sx = 0, nx = 0, won = 0, wonx = 0;
     DATA.classes.forEach(function (c) {
-      var w = c[3] > c[4]; won += w ? 1 : 0; sa += c[3]; ss += c[4]; sv1 += c[5]; sv2 += c[6];
+      var w = c[3] > c[4]; won += w ? 1 : 0; sa += c[3]; ss += c[4];
+      var wx = c[5] != null && c[5] > c[4]; if (c[5] != null) { sx += c[5]; nx += 1; wonx += wx ? 1 : 0; }
       var row = el('tr', w ? 'goal' : null);
       row.appendChild(el('td', 'season', String(c[0])));
       row.appendChild(el('td', null, String(c[1])));
       row.appendChild(el('td', null, String(c[2])));
       row.appendChild(el('td', 'stack', c[3] + '%'));
       row.appendChild(el('td', null, c[4] + '%'));
+      row.appendChild(el('td', 'stack', c[5] == null ? '–' : c[5] + '%'));
+      row.appendChild(el('td', null, c[6] == null ? '–' : String(c[6])));
       row.appendChild(el('td', 'edge ' + (w ? 'pos' : 'neg'), w ? 'AI' : 'scouts'));
-      row.appendChild(el('td', null, c[5].toFixed(1) + '%'));
-      row.appendChild(el('td', 'stack', c[6].toFixed(1) + '%'));
       tb.appendChild(row);
     });
     var n = DATA.classes.length, sum = el('tr', 'sum');
-    [['mean', 'season'], ['', null], ['', null], [Math.round(sa / n) + '%', 'stack'], [Math.round(ss / n) + '%', null], [won + ' of ' + n, 'edge pos'], [(sv1 / n).toFixed(1) + '%', null], [(sv2 / n).toFixed(1) + '%', 'stack']].forEach(function (x) { sum.appendChild(el('td', x[1], x[0])); });
+    [['mean', 'season'], ['', null], ['', null], [Math.round(sa / n) + '%', 'stack'], [Math.round(ss / n) + '%', null], [Math.round(sx / nx) + '%', 'stack'], ['', null], [won + ' of ' + n + ' · expanding ' + wonx + ' of ' + nx, 'edge pos']].forEach(function (x) { sum.appendChild(el('td', x[1], x[0])); });
     tb.appendChild(sum); t.appendChild(tb); wrap.appendChild(t); root.appendChild(wrap);
   }
 
