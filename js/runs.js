@@ -9,10 +9,12 @@
 
   var DATA = {
     /* headline = expanding window (how the model is used); strict = trained on 2007-2018 only */
-    headline: { ai: 51, scouts: 24, won: '5 of 6', strictAi: 45, strictScouts: 26, strictWon: '5 of 7' },
+    headline: { ai: 45, scouts: 24, won: '5 of 6', strictAi: 43, strictScouts: 26, strictWon: '5 of 7' },
     years: { train: [2007, 2018], test: [2019, 2025], pending: [2026] },
     runs: [
-      { when: '2026-09-06', model: 'EVO gen11 · training window 2007 · data v3.2', tag: 'current', ai: 45, scouts: 26, xai: 51, won: '5 of 7 · expanding 5 of 6' },
+      { when: '2026-09-08', model: 'EVO gen11 · verified data v4.4 (audited inputs)', tag: 'current', ai: 43, scouts: 26, xai: 45, won: '5 of 7 · expanding 5 of 6' },
+      { when: '2026-09-08', model: 'colin branch clean blend · scored on this vault (baseline, kept separate)', ai: 51, scouts: 26, xai: null, won: '7 of 7' },
+      { when: '2026-09-06', model: 'EVO gen11 · training window 2007 · data v3.2 (uncertified inputs, superseded)', ai: 45, scouts: 26, xai: 51, won: '5 of 7 · expanding 5 of 6' },
       { when: '2026-09-06', model: 'v2 gen17 genome re-scored on the rebuilt data v3.2', ai: 45, scouts: 26, xai: 50, won: '3 of 7' },
       { when: '2026-09-05 13:11', model: 'BEST v2 gen17 · data v3 (rebuilt international block + measurements) · previously shipped', ai: 44, scouts: 26, xai: null, won: '5 of 7' },
       { when: '2026-09-05 13:08', model: 'BEST v2 gen17 · data v3.0 (rebuilt international block only)', ai: 45, scouts: 26, xai: null, won: '5 of 7' },
@@ -22,13 +24,13 @@
     ],
     /* [class, k seasons scored, drafted players, AI strict %, scouts %, AI expanding % (null = none), training rows expanding] */
     classes: [
-      [2019, 5, 58, 34, 40, null, null],
-      [2020, 5, 58, 30, 35, 33, 1098],
-      [2021, 5, 56, 62, 41, 62, 1210],
-      [2022, 4, 52, 63, 26, 60, 1443],
-      [2023, 3, 56, 40, 11, 53, 1540],
-      [2024, 2, 55, 48, 13, 57, 1641],
-      [2025, 1, 57, 40, 18, 39, 1755]
+      [2019, 5, 58, 52, 40, null, null],
+      [2020, 5, 58, 32, 35, 35, 1098],
+      [2021, 5, 56, 62, 41, 60, 1210],
+      [2022, 4, 52, 50, 26, 57, 1443],
+      [2023, 3, 56, 38, 11, 43, 1540],
+      [2024, 2, 55, 33, 13, 38, 1641],
+      [2025, 1, 57, 37, 18, 38, 1755]
     ]
   };
 

@@ -4,13 +4,17 @@ We re-ran every NBA draft from 2019 to 2025 with a tabular model that sees only 
 
 | AI model accuracy | NBA scouts accuracy | Drafts the AI won |
 |:---:|:---:|:---:|
-| **51%** | **24%** | **5 of 6** |
+| **45%** | **24%** | **5 of 6** |
 
-*Current model: EVO gen11 (`model/CURRENT_MODEL.json`), scored on the expanding window, 2020–2025. Strict scoring (the model trained on 2007–2018 only, scored on 2019–2025): **45%** vs **26%**, **5 of 7** drafts won. The previously shipped model scored 44% strict.*
+*Current model: EVO gen11 on verified data v4.4 (`model/CURRENT_MODEL.json`, `model/VERIFIED_v44_results.json`), expanding window, 2020–2025, three seed sets through the sealed vault. Strict scoring (trained on 2007–2018 only, scored on 2019–2025): **43%** vs **26%**, **5 of 7**.*
+
+*Correction (2026-09-08): the 51% / 45% published on 2026-09-06 were measured on inputs a provenance audit could not certify as pre-draft (legacy biography, medical, consensus and scouting columns, plus 24 college-derived ones; some contained post-draft or current-NBA information). On verified replacements the same model scores as above. Details: [`docs/DATA_V4_VERIFIED.md`](docs/DATA_V4_VERIFIED.md), [`docs/REPORT_2026-09-08.md`](docs/REPORT_2026-09-08.md).*
+
+*Baseline: the separate `colin` branch scores **0.510** strict on this repository's sealed answers (its own report: 0.504 clean). It is kept apart as the reference to beat: [`docs/COLIN_BASELINE.md`](docs/COLIN_BASELINE.md).*
 
 *Order accuracy = Spearman rank correlation between a draft order and the drafted players' actual WAR ranking, as a percentage. 100% is a perfect order, 0% is no relationship. Players are ranked by WAR over the NBA seasons they have completed so far (2019–2021: five seasons; 2022: four; 2023: three; 2024: two; 2025: one).*
 
-*Expanding window = how the model would actually be used: to score the 2023 draft it is trained on every class up to 2022, using only the NBA seasons those players had completed by draft night 2023. Strict = the model never sees anything after the 2018 class. The 2019 class has no expanding row because nothing precedes it in the test period.*
+*Expanding window = how the model would actually be used: to score the 2023 draft it is trained on every class up to 2022, using only the NBA seasons those players had completed by draft night 2023, calendar-correct. Strict = the model never sees anything after the 2018 class. The 2019 class has no expanding row because nothing precedes it in the test period.*
 
 ## Where the edge is, and where it is not
 
@@ -26,20 +30,20 @@ At the top of the board the model and the teams are a dead heat. The 18-point ga
 
 ## Per class
 
-Current model (EVO gen11). Strict = trained on 2007–2018 only. Expanding = earlier test classes join training with the seasons they had completed by that draft night.
+Current model (EVO gen11) on verified data v4.4.
 
-| class | seasons scored (k) | drafted players | AI strict | NBA scouts | AI expanding | training rows (expanding) | won |
-|---|---|---|---|---|---|---|---|
-| 2019 | 5 | 58 | 34% | 40% | – | – | scouts |
-| 2020 | 5 | 58 | 30% | 35% | 33% | 1,098 | scouts |
-| 2021 | 5 | 56 | 62% | 41% | 62% | 1,210 | AI |
-| 2022 | 4 | 52 | 63% | 26% | 60% | 1,443 | AI |
-| 2023 | 3 | 56 | 40% | 11% | 53% | 1,540 | AI |
-| 2024 | 2 | 55 | 48% | 13% | 57% | 1,641 | AI |
-| 2025 | 1 | 57 | 40% | 18% | 39% | 1,755 | AI |
-| **mean** | | | **45%** | **26%** | **51%** (scouts 24%) | | **5 of 7 strict, 5 of 6 expanding** |
+| class | seasons scored (k) | drafted players | AI strict | NBA scouts | AI expanding | won |
+|---|---|---|---|---|---|---|
+| 2019 | 5 | 58 | 52% | 40% | – | AI |
+| 2020 | 5 | 58 | 32% | 35% | 35% | scouts (strict), tie (expanding) |
+| 2021 | 5 | 56 | 62% | 41% | 60% | AI |
+| 2022 | 4 | 52 | 50% | 26% | 57% | AI |
+| 2023 | 3 | 56 | 38% | 11% | 43% | AI |
+| 2024 | 2 | 55 | 33% | 13% | 38% | AI |
+| 2025 | 1 | 57 | 37% | 18% | 38% | AI |
+| **mean** | | | **43%** | **26%** | **45%** (scouts 24%) | **5 of 7 strict, 5 of 6 expanding** |
 
-*The 2019 and 2020 classes are the two the NBA teams ordered better. 2019 had a consensus top (Zion, Morant, Barrett) that was right; 2020 was the pandemic class with no combine and no tournament. Every class from 2021 on, the model's order beat the real draft by 0.21 to 0.43 in rank correlation. Boards for all seven classes, with names and actual picks: `model/board_current_2019_2025.csv`.*
+*Boards for all seven classes with names and actual picks: `model/board_current_2019_2025.csv` (legacy data; a verified-data board will replace it).*
 
 ### Example: the 2022 class, scored on four seasons
 
@@ -113,7 +117,9 @@ Reading it: both orders had Holmgren and Banchero in the top four and both took 
 
 | when (UTC+8) | model | AI strict | NBA scouts | AI expanding | drafts the AI won |
 |---|---|---|---|---|---|
-| 2026-09-06 | **EVO gen11 · training window 2007 · data v3.2** — current | 45% | 26% | 51% (scouts 24%) | 5 of 7 strict · 5 of 6 expanding |
+| 2026-09-08 | **EVO gen11 · verified data v4.4** — current | 43% | 26% | 45% (scouts 24%) | 5 of 7 strict · 5 of 6 expanding |
+| 2026-09-08 | `colin` branch clean blend, scored on this repository's vault (baseline) | 51% | 26% | – | 7 of 7 |
+| 2026-09-06 | EVO gen11 · training window 2007 · data v3.2 — uncertified inputs, superseded | 45% | 26% | 51% (scouts 24%) | 5 of 7 strict · 5 of 6 expanding |
 | 2026-09-06 | v2 gen17 genome re-scored on the rebuilt data v3.2 | 45% | 26% | 50% | 3 of 7 |
 | 2026-09-05 13:11 | BEST v2 gen17 · data v3 (rebuilt international block + measurements) — previously shipped | 44% | 26% | – | 5 of 7 |
 | 2026-09-05 13:08 | BEST v2 gen17 · data v3.0 (rebuilt international block only) | 45% | 26% | – | 5 of 7 |
@@ -146,7 +152,8 @@ The previously shipped model is kept as `model/BEST_MODEL.json` (XGBoost + TabIC
 - **Model families tested and rejected:** a pairwise within-class "who beats whom" learner (better than XGBoost alone, no gain inside the stack), class- and position-relative standardization (hurt: absolute stat levels carry information), fitted stacking (ridge, NNLS), CatBoost, ExtraTrees, LightGBM, ranking objectives, star classifiers, path and tier specialists.
 - **Selection became stricter.** The earlier search was fitting its five folds: island champions rose on the folds while falling blind (one lineage went from 43.7% to 40.7%). The gate now uses seven season-consistent folds, recency weights, a 6-of-7 rule and seed-shifted confirmation, and blind accuracy of accepted champions is tracked separately.
 - **Where the gains came from:** the fold-level analysis shows the window change improved the ordering of drafted players ranked 11–30 by consensus and of the youngest prospects, and worsened undrafted and fringe international players who are never scored. The middle of the first round is where the remaining error lives.
-- **Target status:** the 55% expanding target was not reached. Best expanding accuracy 50.6%; the noise floor of a six-class mean is about ±5 points.
+- **Target status:** the 55% expanding target was not reached. Verified expanding accuracy 45.2%; the noise floor of a six-class mean is about ±5 points.
+- **2026-09-08, data v4:** quarantined families replaced by dated and official sidecars; outcome seasons made calendar-correct; a permutation lottery in TabICL feature ordering found with an empty-column control and fixed by bagging; the search gate now demands 6 of 7 folds, 2 of the latest 3, and a shifted-seed confirmation. Why good prospects get drafted low, and why this model missed some of them: [`docs/DRAFT_MISSES_EVALUATION.md`](docs/DRAFT_MISSES_EVALUATION.md).
 
 ## Repository layout
 

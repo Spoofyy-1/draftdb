@@ -1,6 +1,6 @@
 {
  "name": "EVO gen11 (training window 2007-2018) - current model",
- "evaluated_on": "data v3.2 (2026-09-06), sealed vault, ledger-recorded",
+ "evaluated_on": "data v4.4 verified (2026-09-08); legacy numbers kept under legacy_uncertified_metrics",
  "genome": {
   "hw": "disc85",
   "norm": "none",
@@ -82,7 +82,13 @@
   },
   "thin_rule": "rows whose input coverage is below the class median use the thin weights"
  },
- "metrics": {
+ "previous_model": {
+  "name": "BEST v2 gen17",
+  "strict_mean_order_accuracy_on_same_data": 45.4,
+  "strict_mean_order_accuracy_as_shipped_2026-09-05": 44.0,
+  "expanding_mean_order_accuracy": 49.5
+ },
+ "legacy_uncertified_metrics": {
   "strict": {
    "train_classes": "2007-2018 only",
    "mean_order_accuracy": 45.2,
@@ -214,10 +220,98 @@
    ]
   }
  },
- "previous_model": {
-  "name": "BEST v2 gen17",
-  "strict_mean_order_accuracy_on_same_data": 45.4,
-  "strict_mean_order_accuracy_as_shipped_2026-09-05": 44.0,
-  "expanding_mean_order_accuracy": 49.5
+ "metrics": {
+  "data": "verified v4.4 (see docs/DATA_V4_VERIFIED.md)",
+  "strict": {
+   "mean_order_accuracy": 43.4,
+   "nba_draft_order_accuracy": 26.3,
+   "per_class": [
+    {
+     "season": 2019,
+     "k": 5,
+     "stack": 0.519,
+     "draft": 0.402
+    },
+    {
+     "season": 2020,
+     "k": 5,
+     "stack": 0.317,
+     "draft": 0.35
+    },
+    {
+     "season": 2021,
+     "k": 5,
+     "stack": 0.621,
+     "draft": 0.408
+    },
+    {
+     "season": 2022,
+     "k": 4,
+     "stack": 0.5,
+     "draft": 0.262
+    },
+    {
+     "season": 2023,
+     "k": 3,
+     "stack": 0.377,
+     "draft": 0.111
+    },
+    {
+     "season": 2024,
+     "k": 2,
+     "stack": 0.335,
+     "draft": 0.134
+    },
+    {
+     "season": 2025,
+     "k": 1,
+     "stack": 0.369,
+     "draft": 0.176
+    }
+   ]
+  },
+  "expanding": {
+   "mean_order_accuracy": 45.2,
+   "nba_draft_order_accuracy": 24.0,
+   "per_class": [
+    {
+     "season": 2020,
+     "k": 5,
+     "stack": 0.347,
+     "draft": 0.35
+    },
+    {
+     "season": 2021,
+     "k": 5,
+     "stack": 0.597,
+     "draft": 0.408
+    },
+    {
+     "season": 2022,
+     "k": 4,
+     "stack": 0.57,
+     "draft": 0.262
+    },
+    {
+     "season": 2023,
+     "k": 3,
+     "stack": 0.431,
+     "draft": 0.111
+    },
+    {
+     "season": 2024,
+     "k": 2,
+     "stack": 0.384,
+     "draft": 0.134
+    },
+    {
+     "season": 2025,
+     "k": 1,
+     "stack": 0.38,
+     "draft": 0.176
+    }
+   ]
+  },
+  "verification": "three seed sets through the sealed vault, ranges 45.0-45.3 expanding, 43.3-43.5 strict"
  }
 }
