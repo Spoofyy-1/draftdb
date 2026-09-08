@@ -43,7 +43,7 @@ Current model (EVO gen11 + international-line mask) on verified data v4.19; thre
 | 2025 | 1 | 57 | 25% | 18% | 38% | AI |
 | **mean** | | | **42%** | **26%** | **48%** (scouts 24%) | **7 of 7 strict, 6 of 6 expanding** |
 
-*Boards for all seven classes with names and actual picks: `model/board_current_2019_2025.csv` (legacy data; a verified-data board will replace it).*
+*Boards for all seven classes with names and actual picks: `model/board_current_2019_2025.csv` (the current model's strict board on verified data v4.19: trained on 2007–2018 only, so every class is scored the same way).*
 
 ### Example: the 2022 class, scored on four seasons
 
