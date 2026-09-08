@@ -1,0 +1,41 @@
+/* ==========================================================================
+   DraftDB — team.css  (per-team placeholder pages + teams index)
+   Each team page overrides --accent (+ button ink) inline in its <head>.
+   Depends on css/base.css.
+   ========================================================================== */
+
+/* ---- team hero ---- */
+.team-hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+.team-hero__eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px}
+.team-hero__eyebrow .team-swatch{width:12px;height:12px;background:var(--accent);flex:none}
+.team-hero__title{font-family:var(--font-pixel);font-weight:400;font-size:clamp(44px,8vw,88px);line-height:1.0;letter-spacing:-.01em;margin-top:20px;text-wrap:balance}
+.team-hero__sub{margin-top:20px;max-width:58ch;color:var(--text-2);font-size:18px;line-height:1.5}
+.team-hero__cta{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
+.team-hero__meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:26px;font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;color:var(--text-4)}
+.team-hero__meta b{color:var(--text-2);font-weight:500}
+
+/* placeholder banner */
+.team-note{display:flex;align-items:center;gap:12px;margin-top:30px;padding:14px 16px;border:1px dashed var(--accent-line);background:var(--accent-soft);
+  font-family:var(--font-mono);font-size:13px;color:var(--text-2);line-height:1.5}
+.team-note .sq{width:10px;height:10px;background:var(--accent);flex:none}
+
+/* arrow band */
+.team-arrow{position:relative;height:300px;border-bottom:1px solid var(--line);overflow:hidden;background:#050505}
+.team-arrow canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---- teams index grid ---- */
+.teams-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:32px}
+.team-card{position:relative;display:block;background:var(--panel);border:1px solid var(--line);padding:22px 20px 20px;overflow:hidden;
+  transition:border-color .2s var(--ease-io),transform .2s var(--ease-io),background-color .2s var(--ease-io)}
+.team-card:hover{border-color:var(--tc);transform:translateY(-2px);background:var(--panel-2)}
+.team-card__bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc)}
+.team-card__city{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4)}
+.team-card__name{font-family:var(--font-pixel);font-size:23px;line-height:1.05;margin-top:8px;color:#fff}
+.team-card__go{margin-top:18px;font-family:var(--font-mono);font-size:12px;color:var(--tc);display:inline-flex;align-items:center;gap:6px}
+.team-card__go .arr{transition:transform .2s var(--ease-io)}
+.team-card:hover .team-card__go .arr{transform:translateX(3px)}
+
+@media (max-width:720px){
+  .team-hero{padding:44px 0 30px}
+  .team-arrow{height:220px}
+}

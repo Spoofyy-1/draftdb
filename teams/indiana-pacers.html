@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indiana Pacers — DraftDB</title>
+<meta name="description" content="Draft smarter with AI — the DraftDB draft room for the Indiana Pacers. Placeholder page.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Pixel&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Fragment+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/base.css">
+<link rel="stylesheet" href="../css/team.css">
+<style>
+  :root{--accent:#FDBB30;--accent-soft:#FDBB301f;--accent-line:#FDBB308c}
+  .btn--accent{background:var(--accent);border-color:var(--accent);color:#000}
+  .btn--accent:hover{filter:brightness(1.12)}
+  .chip{color:#000}
+  ::selection{background:var(--accent);color:#000}
+</style>
+</head>
+<body>
+
+<div class="announce" role="region" aria-label="Announcement">
+  <span class="chip">Announcement</span>
+  <span class="announce__text">DraftDB 2026 class projections are live.</span>
+  <a class="announce__link" href="../index.html#model">View methodology &#8599;</a>
+</div>
+<header class="nav" id="top">
+  <div class="nav__inner">
+    <a class="nav__logo" href="../index.html" aria-label="DraftDB home"><svg viewBox="0 0 40 40" width="30" height="30" aria-hidden="true" focusable="false"><rect x="2" y="2" width="16" height="16" fill="#fff"/><path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/><path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/><rect x="22" y="22" width="16" height="16" fill="#fff"/><rect x="18" y="18" width="4" height="4" fill="#FDBB30"/></svg><span class="wordmark">DraftDB</span></a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="../index.html#model">Model</a>
+      <a href="../index.html#backtests">Backtests</a>
+      <a href="../runs.html">Runs</a>
+      <a href="../compare.html">Compare</a>
+      <a href="../index.html#use-cases">Use Cases</a>
+      <a href="index.html" class="nav__link is-active">Teams</a>
+      <a href="../index.html#docs">Documentation</a>
+    </nav>
+    <button class="nav__menu-btn" type="button" aria-controls="primary-links" aria-expanded="false"><span class="m">Menu</span><span class="x">Close</span></button>
+    <div class="nav__actions btn-group">
+      <a class="btn btn--dark btn--sm" href="#">Log In</a>
+      <a class="btn btn--primary btn--sm" href="#">Sign Up</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="team-hero frame">
+    <div class="container">
+      <div class="team-hero__eyebrow"><span class="team-swatch"></span>Indiana Pacers &middot; DraftDB</div>
+      <h1 class="team-hero__title">Draft smarter with AI.</h1>
+      <p class="team-hero__sub">An AI draft room built for the Indiana Pacers &mdash; boards, player comparisons, and four-season projections tuned to how your front office picks. This is an early placeholder; the Pacers workspace lands here soon.</p>
+      <div class="team-hero__cta">
+        <a class="btn btn--accent btn--lg" href="#">Request early access</a>
+        <a class="btn btn--ghost btn--lg" href="../runs.html">See the model &#8599;</a>
+      </div>
+      <div class="team-hero__meta"><span><b>Team</b> Indiana Pacers</span><span><b>Status</b> Placeholder</span><span><b>Model</b> DraftDB EVO</span></div>
+      <div class="team-note"><span class="sq"></span> Placeholder page &mdash; team-specific data, boards and tooling will be added here later.</div>
+    </div>
+  </section>
+  <section class="team-arrow">
+    <canvas class="dendrite" data-dendrite data-accent="#FDBB30" data-growth="2600" width="900" height="300" aria-hidden="true"></canvas>
+  </section>
+</main>
+
+<footer class="footer" id="contact">
+  <div class="frame">
+    <div class="container" style="padding:44px 0 40px">
+      <a class="nav__logo" href="../index.html" aria-label="DraftDB home"><svg viewBox="0 0 40 40" width="32" height="32" aria-hidden="true" focusable="false"><rect x="2" y="2" width="16" height="16" fill="#fff"/><path d="M22 2h10v4h4v4h2v8H22z" fill="#fff"/><path d="M2 22h16v16h-8v-2H6v-4H4v-4H2z" fill="#fff"/><rect x="22" y="22" width="16" height="16" fill="#fff"/><rect x="18" y="18" width="4" height="4" fill="#FDBB30"/></svg><span class="wordmark">DraftDB</span></a>
+      <p class="footer__tag" style="margin-top:18px">Draft smarter with AI.</p>
+      <div class="divider-list" style="justify-content:flex-start;margin-top:22px">
+        <a class="link" href="../index.html#model">Model</a>
+        <a class="link" href="../index.html#backtests">Backtests</a>
+        <a class="link" href="../runs.html">Runs</a>
+        <a class="link" href="../compare.html">Compare</a>
+        <a class="link" href="index.html">Teams</a>
+      </div>
+      <div style="margin-top:26px;font-size:14px;color:var(--text-2)">&copy; 2026 DraftDB Labs, Inc</div>
+    </div>
+  </div>
+  <div class="footer__end"></div>
+</footer>
+
+<script src="../js/base.js"></script>
+</body>
+</html>

@@ -519,14 +519,21 @@
      way (a prospect trending up every step). Square cells, growth over on-screen time,
      then a gentle flicker. Replaces the earlier dendrite tree; same [data-dendrite]
      canvases, same visibility-gated growth clock.
-     data-* : data-growth (ms), data-cell.   Returns {canvas, restart, destroy}.
+     data-* : data-growth (ms), data-cell, data-accent (hex -> tinted team ramp).
      --------------------------------------------------------------------- */
+  function _mix(hex, to, t) {
+    function parse(h){ h = String(h).replace('#',''); if (h.length===3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2]; return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)]; }
+    var a = parse(hex), b = parse(to);
+    return '#' + [0,1,2].map(function(i){ return ('0'+Math.round(a[i] + (b[i]-a[i])*t).toString(16)).slice(-2); }).join('');
+  }
+  function rampFromHex(hex) { return [hex, _mix(hex,'#ffffff',0.28), _mix(hex,'#ffffff',0.52), _mix(hex,'#ffffff',0.72), _mix(hex,'#ffffff',0.9)]; }
   DraftDB.sprout = function (canvas, opts) {
     canvas = toEl(canvas); if (!canvas) return null;
     opts = Object.assign({ cell: 5, gap: 1, growth: 2600, palette: PALETTE, old: OLD, flicker: true }, opts || {});
     var ds = canvas.dataset || {};
     if (ds.growth) opts.growth = +ds.growth;
     if (ds.cell) opts.cell = +ds.cell;
+    if (ds.accent) { opts.palette = rampFromHex(ds.accent); opts.old = _mix(ds.accent, '#000000', 0.62); }
     var ctx = canvas.getContext('2d'); if (!ctx) return null;
     var pitch = opts.cell + opts.gap;
     var W = 0, H = 0, cols = 0, rows = 0, dpr = 1;
