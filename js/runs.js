@@ -9,10 +9,11 @@
 
   var DATA = {
     /* headline = expanding window (how the model is used); strict = trained on 2007-2018 only */
-    headline: { ai: 45, scouts: 24, won: '5 of 6', strictAi: 43, strictScouts: 26, strictWon: '5 of 7' },
+    headline: { ai: 48, scouts: 24, won: '6 of 6', strictAi: 42, strictScouts: 26, strictWon: '7 of 7' },
     years: { train: [2007, 2018], test: [2019, 2025], pending: [2026] },
     runs: [
-      { when: '2026-09-08', model: 'EVO gen11 · verified data v4.4 (audited inputs)', tag: 'current', ai: 43, scouts: 26, xai: 45, won: '5 of 7 · expanding 5 of 6' },
+      { when: '2026-09-08 15:30', model: 'EVO gen11 + international-line mask · verified data v4.19 (three seed sets)', tag: 'current', ai: 42, scouts: 26, xai: 48, won: '7 of 7 · expanding 6 of 6' },
+      { when: '2026-09-08', model: 'EVO gen11 · verified data v4.4 (audited inputs)', ai: 43, scouts: 26, xai: 45, won: '5 of 7 · expanding 5 of 6' },
       { when: '2026-09-08', model: 'colin branch clean blend · scored on this vault (baseline, kept separate)', ai: 51, scouts: 26, xai: null, won: '7 of 7' },
       { when: '2026-09-06', model: 'EVO gen11 · training window 2007 · data v3.2 (uncertified inputs, superseded)', ai: 45, scouts: 26, xai: 51, won: '5 of 7 · expanding 5 of 6' },
       { when: '2026-09-06', model: 'v2 gen17 genome re-scored on the rebuilt data v3.2', ai: 45, scouts: 26, xai: 50, won: '3 of 7' },
