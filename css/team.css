@@ -6,8 +6,10 @@
 
 /* ---- team hero ---- */
 .team-hero{padding:64px 0 40px;border-bottom:1px solid var(--line)}
-.team-hero__eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:10px}
-.team-hero__eyebrow .team-swatch{width:12px;height:12px;background:var(--accent);flex:none}
+/* small coloured text is lightened so dark-navy team tones stay legible on black;
+   buttons, the arrow and card bars keep the exact team colour */
+.team-hero__eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);color:color-mix(in srgb,var(--accent),#fff 42%);display:flex;align-items:center;gap:10px}
+.team-hero__eyebrow .team-swatch{width:12px;height:12px;background:var(--accent);background:color-mix(in srgb,var(--accent),#fff 42%);flex:none}
 .team-hero__title{font-family:var(--font-pixel);font-weight:400;font-size:clamp(44px,8vw,88px);line-height:1.0;letter-spacing:-.01em;margin-top:20px;text-wrap:balance}
 .team-hero__sub{margin-top:20px;max-width:58ch;color:var(--text-2);font-size:18px;line-height:1.5}
 .team-hero__cta{display:flex;gap:12px;margin-top:28px;flex-wrap:wrap}
@@ -15,9 +17,9 @@
 .team-hero__meta b{color:var(--text-2);font-weight:500}
 
 /* placeholder banner */
-.team-note{display:flex;align-items:center;gap:12px;margin-top:30px;padding:14px 16px;border:1px dashed var(--accent-line);background:var(--accent-soft);
+.team-note{display:flex;align-items:center;gap:12px;margin-top:30px;padding:14px 16px;border:1px dashed var(--accent-line);border-color:color-mix(in srgb,var(--accent),#fff 24%);background:var(--accent-soft);
   font-family:var(--font-mono);font-size:13px;color:var(--text-2);line-height:1.5}
-.team-note .sq{width:10px;height:10px;background:var(--accent);flex:none}
+.team-note .sq{width:10px;height:10px;background:var(--accent);background:color-mix(in srgb,var(--accent),#fff 42%);flex:none}
 
 /* arrow band */
 .team-arrow{position:relative;height:300px;border-bottom:1px solid var(--line);overflow:hidden;background:#050505}
@@ -31,7 +33,7 @@
 .team-card__bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc)}
 .team-card__city{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-4)}
 .team-card__name{font-family:var(--font-pixel);font-size:23px;line-height:1.05;margin-top:8px;color:#fff}
-.team-card__go{margin-top:18px;font-family:var(--font-mono);font-size:12px;color:var(--tc);display:inline-flex;align-items:center;gap:6px}
+.team-card__go{margin-top:18px;font-family:var(--font-mono);font-size:12px;color:var(--tc);color:color-mix(in srgb,var(--tc),#fff 40%);display:inline-flex;align-items:center;gap:6px}
 .team-card__go .arr{transition:transform .2s var(--ease-io)}
 .team-card:hover .team-card__go .arr{transform:translateX(3px)}
 
