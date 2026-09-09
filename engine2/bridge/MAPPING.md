@@ -9,7 +9,9 @@ hoopR game logs, AyushBatra, JasonG) are off-limits here and are replaced by our
 /Users/kennakao/nba/datarebuild/v4_build/staging_v419/tests/test_YYYY_inputs.csv   2019-2025, sealed labels
 /Users/kennakao/nba/datarebuild/v4_build/staging_v419/input_columns.json    the 1,215 legal model inputs
 /Users/kennakao/Downloads/nba_redraft_handoff/identity_KEEP_SEPARATE/tabular_names.csv   pid -> actual_pick ONLY
-        ->  engine2/data/processed/draft_table.parquet     1,373 rows x 671 columns  (1,328 with --extras)
+/Users/kennakao/nba/datarebuild/v4_build/screen_blocks.csv   the pre-fold label screen, for --response-max
+        ->  engine2/data/processed/draft_table.parquet     1,373 rows x 672 columns
+                                                          (760 with --families, 1,256 with --extras)
         ->  engine2/data/processed/season_war.parquet      3,885 player-seasons, 975 players
 ```
 
@@ -85,35 +87,126 @@ rank-averaged by `layer2.rule_blend`:
 
 ## 2. Torvik line and the named groups
 
-Coalescing order is written `a → b → c` (first non-null wins). `tv_` is the player's own Torvik final-season row
-(our block starts with the 2010 class); `col_` is our wider final-college-season line and is the fallback wherever
-the two share a scale.
+Coalescing order is written `a → b → c` (first non-null wins), and **every step is converted onto Torvik's scale
+before it enters the chain**, so a column carries one scale and one unit across all 1,373 rows. The sources, in the
+order they are tried:
+
+| block | what it is | classes covered (drafted rows) |
+|:--|:--|:--|
+| `tv_` | the player's own Torvik final-season row | 2010+ only, ~0.80 inside those classes |
+| `col_` | our own final-college-season line — box line from 2002, ratings (`ortg/drtg/adj_*/impact*/value`) from 2008 | 0.74 / 0.24 in 2003-09, ~0.85 after |
+| `ctx_base_` | the same college season restated from the game log (Torvik-scaled already) | 2008+ |
+| `cgd_` | the same season as a per-game attempt/counting line | 2008+ |
+| `tc_`, `traj_`, `hs_`, `rsci_`, `bio_`, `vmb_`, `vcmb_`, `dx_` | context, trajectory, recruiting, biography, measurements | see the chains |
+
+### Scale conversions applied (each verified as a median ratio on the tv_ / col_ overlap, n = 653-935)
+
+| conversion | applied to | check |
+|:--|:--|:--|
+| 0-1 → 0-100 (`× 100`) | `col_ft_pct`, `col_fg2_pct`, `col_fg3_pct`, `col_ftar` | `col_ftar × 100` / `tv_ftr` = 1.00 |
+| minutes share → Torvik min% (`× 500`) | `col_minutes_share` (a share of all 5×40 team minutes) | ratio 1.007; `ctx_base_minutes_share` is already 0-100 (1.000) and is tried first |
+| per-36 → per game (`× mpg/36`) | `col_pts36 / reb36 / ast36 / stl36 / blk36`, `traj_last_pts36` | ratio 1.000 against `col_*_pg` |
+| per-40 → per game (`× mpg/40`) | `col_fg3a_per40`, `col_dunks_per40` | `col_dunks_per40 / tv_dunks_pg` = 1.266 = 40/mpg |
+| season total → per game (`÷ GP`) | `ctx_base_fg3a`, `ctx_base_fg2a` (medians 109 and 251 — totals, not rates) | ratio 33.99 ≈ GP |
+| per-game → per 40 (`× 40/mpg`) | `cgd_pf_pg` → `pfr` | ratio 1.001 against `tv_pfr` |
+| recruiting **score** → recruiting **rank**: `(100 − score) × 5`, clipped to 1..101 | `tv_rec_rank`, `col_recruit_score` | decile-checked: score 99.8→rank 2, 98.4→8, 95.0→25, 90.8→46, 86.8→66 |
+| class index clipped to 1..4 | `col_class_index` (runs to 6 for a super-senior) | Torvik's `yr` is Fr/So/Jr/Sr |
+| `bio_pos_code` → Torvik `role` id | `{1:2, 2:4, 3:5, 4:7, 5:8, 6:7}` | the modal Torvik role per position code on the 667-row overlap |
+
+⚠ **The old `rec_rank ← 101 − tv_rec_rank` was a scale bug.** `tv_rec_rank` is a 0-100 *score*, not a rank:
+`101 − score` had median 5 against `rsci_rank`'s 22 on the same rows, so the column carried two incompatible
+scales. It is now `(100 − score) × 5`. 165 rows changed; every other named feature is value-identical to v1 where
+both are non-null (`rho` 1.000, max abs diff 0) except the ones re-sourced on purpose (`Min_per`, `oreb`, `dreb`,
+`TPA_pg`, `FTA_pg`, `class_year`, `role`).
 
 ### `all_torvik` — 48 numeric + 2 categorical
 
-| his | ours | note |
-|:--|:--|:--|
-| `GP` | `tv_gp` → `col_gp` | |
-| `Min_per` | `tv_min_per` → `col_minutes_share × 500` | share of all 5×40 team minutes → Torvik's 0-100 min% (medians 80 vs 76.5 on the overlap) |
-| `ORtg` `drtg` `adrtg` | `tv_ortg`→`col_ortg`, `tv_drtg`→`col_drtg`, `tv_adrtg`→`col_adj_drtg` | |
-| `usg` `eFG` `TS_per` `ORB_per` `DRB_per` `AST_per` `TO_per` | `tv_usg/efg/ts/orb/drb/ast_pct/to_pct` → the matching `col_*_pct` | both already 0-100 |
-| `FT_per` `twoP_per` `TP_per` | `col_ft_pct`, `col_fg2_pct`, `col_fg3_pct`, **×100** | ours are 0-1, Torvik's are 0-100 |
-| `blk_per` `stl_per` | `col_blk_pct`, `col_stl_pct` | |
-| `ftr` | `tv_ftr` → `col_ftar × 100` | |
-| `porpag` `adjoe` `pfr` `ast_tov` `dporpag` `stops` `gbpm` `ogbpm` `dgbpm` | `tv_*` | Torvik-only; no `col_` equivalent, so 2003-2009 is empty |
-| `bpm` `obpm` `dbpm` | `tv_bpm/obpm/dbpm` → `col_impact/impact_off/impact_def` | our `col_impact` is on the same BPM scale |
-| `rec_rank` | `rsci_rank` → `101 − tv_rec_rank` | **his convention is lower = better** (`layer2` ranks on `-rec_rank`); `rsci_rank` already is, `tv_rec_rank` is a 0-100 score and is flipped |
-| `rim_pct` `mid_pct` | `tv_rim_pct`→`col_rim_fg_pct`, `tv_mid_pct`→`col_mid_fg_pct` | |
-| `dunk_made` | `tv_dunks_pg × GP` | **derived** — his is a season count, ours per game |
-| `mpg` | `col_mpg` → `tv_mp` | |
-| `treb` `ast` `stl` `blk` `pts` | `col_reb_pg / ast_pg / stl_pg / blk_pg`, `tv_pts`→`col_pts_pg` | |
-| `oreb` `dreb` | **derived**: `col_reb_pg` split by `col_orb_pct / (col_orb_pct + col_drb_pct)` | we carry no per-game offensive/defensive rebound split |
-| `TPA_pg` `FTA_pg` | **derived**: `FGA/40 = col_fg3a_per40 / col_fg3ar`; `TPA_pg = col_fg3a_per40 × mpg/40`; `FTA_pg = col_ftar × FGA/40 × mpg/40` | |
-| `height_in` | `bio_height_in` → `vmb_listed_height_in` → `bio_combine_height_in` → `vcmb_height_with_shoes_in` | dated / official listed height |
-| `class_year` | `tv_yr` → `col_class_index` → `vmb_college_class_year` | |
-| `n_college_seasons` | `col_n_seasons` → `tv_seasons` → `tc_n_seasons` | |
-| `age_at_draft` | `bio_age_at_draft` → `tv_age_exact` → `col_age` → `vmb_age_reported_years` | |
-| `conf` `role` (categorical) | `tv_conf_tier`; `tv_role` → `bio_pos_code` | numeric ids. The winner drops them (`-cat`); they exist only so `contract.validate` passes |
+| his | chain (first non-null wins, all on Torvik's scale) |
+|:--|:--|
+| `GP` | `tv_gp` → `col_gp` → `ctx_base_gp` → `cgd_observed_gp` → `traj_last_gp` |
+| `Min_per` | `tv_min_per` → `ctx_base_minutes_share` → `col_minutes_share × 500` |
+| `mpg` | `col_mpg` → `tv_mp` → `ctx_base_mpg` → `traj_last_mpg` |
+| `ORtg` | `tv_ortg` → `col_ortg` |
+| `adjoe` | `tv_adjoe` → **`col_adj_ortg`** |
+| `drtg` `adrtg` | `tv_drtg` → `col_drtg`; `tv_adrtg` → `col_adj_drtg` |
+| `usg` `eFG` `TS_per` `ORB_per` `DRB_per` `AST_per` `TO_per` | `tv_*` → the matching `col_*_pct` → the matching `ctx_base_*` (all three already 0-100) |
+| `blk_per` `stl_per` | `col_blk_pct` → `ctx_base_blk_pct`; `col_stl_pct` → `ctx_base_stl_pct` (no `tv_` equivalent) |
+| `FT_per` `twoP_per` | `col_ft_pct ×100` → `ctx_base_ft_pct ×100`; same for `fg2` |
+| `TP_per` | `col_fg3_pct ×100` → `ctx_base_fg3_pct ×100` → **`ctx_base_fg3m / ctx_base_fg3a ×100`** |
+| `ftr` | `tv_ftr` → `ctx_base_ftr` → `col_ftar × 100` |
+| `porpag` | `tv_porpag` → **`col_value`** (our points-over-replacement-per-game; ratio 1.000, ρ 0.97) |
+| `pfr` | `tv_pfr` → **`ctx_base_fouls40`** → **`cgd_pf_pg × 40/mpg`** |
+| `ast_tov` | `tv_ast_tov` → **`ctx_base_ast_tov`** → **`cgd_ast_pg / cgd_tov_pg`** |
+| `bpm` | `tv_bpm` → `col_impact` → **`tc_first_bpm + tc_bpm_first_to_last`** |
+| `obpm` `dbpm` | `tv_obpm` → `col_impact_off`; `tv_dbpm` → `col_impact_def` |
+| `rec_rank` | `rsci_rank` → **`hs_rsci_rank`** → **`hs_recruit_rank_final`** → **`(100 − col_recruit_score) × 5`** → **`(100 − tv_rec_rank) × 5`** → **101 for an unranked college player** (see below). Lower = better; `layer2` ranks on `-rec_rank` |
+| `rim_pct` `mid_pct` | `tv_rim_pct` → `col_rim_fg_pct` → **`ctx_base_rim_made / ctx_base_rim_attempts`**; `tv_mid_pct` → `col_mid_fg_pct` → **`(ctx_base_fg2m − rim_made) / (ctx_base_fg2a − rim_attempts)`** (all 0-1, as Torvik's are) |
+| `dunk_made` | `tv_dunks_pg × GP` → **`ctx_base_dunk_made`** (already a season count) → **`col_dunks_per40 × mpg/40 × GP`** |
+| `oreb` `dreb` | **`ctx_base_oreb_pg`** → **`cgd_orb_pg`** → `col_reb_pg × ORB%/(ORB%+DRB%)` (the v1 approximation is now the *last* resort, not the only one — 779 rows changed, by up to 0.55 rpg) |
+| `treb` | `col_reb_pg` → `oreb + dreb` → `col_reb36 × mpg/36` |
+| `ast` `stl` `blk` | `col_*_pg` → `ctx_base_*_pg` → `cgd_*_pg` → `col_*36 × mpg/36` |
+| `pts` | `tv_pts` → `col_pts_pg` → `ctx_base_pts_pg` → `cgd_points_pg` → `col_pts36 × mpg/36` → `traj_last_pts36 × mpg/36` |
+| `TPA_pg` | **`cgd_three_a_pg`** → `col_fg3a_per40 × mpg/40` → `ctx_base_fg3a / GP` |
+| `FTA_pg` | **`cgd_ft_a_pg`** → `col_ftar × FGA/40 × mpg/40` (`FGA/40 = col_fg3a_per40 / col_fg3ar`) → `ctx_base_ftr/100 × (fg2a+fg3a) / GP` |
+| `height_in` | `bio_height_in` → `vmb_listed_height_in` → `bio_combine_height_in` → `vcmb_height_with_shoes_in` → **`dx_last_height_in`** → **`rsci_hs_height_in`** |
+| `class_year` | `tv_yr` → `col_class_index` **clipped to 1..4** → `vmb_college_class_year` |
+| `n_college_seasons` | `col_n_seasons` → `tv_seasons` → `tc_n_seasons` → **`traj_n_seasons`** |
+| `age_at_draft` | `bio_age_at_draft` → `tv_age_exact` → `vmb_age_reported_years` → `col_age` (his age *during the final college season*, ≈0.27 yr below draft age — last in the chain and in practice never reached, `bio_age_at_draft` covers every row) |
+| `dporpag` `stops` `gbpm` `ogbpm` `dgbpm` | `tv_*` only. **No scale-compatible source exists**: `tc_porpag_share` is a team share (ratio 0.05), `col_impact_def` is a BPM component (ratio 0.013 against `stops`), `tc_slope_bpm` a per-season slope. Empty before 2010 |
+| `conf` (categorical) | `tv_conf_tier` only. `tc_conf_strength_prior` is a continuous rating on a different scale (ρ 0.63, ratio 6.1) and is deliberately *not* coalesced into a tier id |
+| `role` (categorical) | `tv_role` → `bio_pos_code` **mapped through `POS_TO_ROLE`**. v1 mixed the two code sets (1-8 and 1-6) in one column; 706 rows changed |
+
+### Three invariants the chains enforce
+
+1. **College-line columns only exist on rows with a college career.** `traj_*` is a *pre-draft* trajectory across
+   any competition — 101 international rows carry `traj_last_gp` / `traj_last_mpg` with median 23.7 games and
+   21.3 mpg, a pro season. Without a gate those would land in `GP` / `mpg` / `pts`. The gate is the staging `path`
+   meta column (`path.startswith("college")`, 1,157 rows), which is exactly the row set the old engine's IMASK gene
+   keys on, unioned with `col_gp | tv_gp`. Applies to the 46 columns in `build_table.COLLEGE_LINE`; `rec_rank`,
+   `height_in`, `age_at_draft` and `role` are not college-season quantities and are filled for everyone.
+2. **A corrupt staging cell must not survive a unit conversion.** `col_stl36` carries one value of 67.7 steals per
+   36 minutes (a 2016 row); `× mpg/36` turned it into 69.0 steals per game. `build_table.COUNT_CEILING` sets hard
+   plausibility ceilings well above the NCAA single-season records (pts 45, treb 25, ast 15, stl 6, blk 10 per game,
+   GP 45, mpg 40, dunk_made 250) and anything above becomes NaN.
+3. **`rec_rank = 101` means unranked, not missing.** A college player in a class the RSCI source covers who appears
+   on no top-100 list is not "unknown", he is behind the last ranked recruit — the same convention
+   `mock_rank_consensus ← 61` already uses for an un-mocked player. Restricted to college rows; an international
+   player never in a US high-school ranking stays NaN. This is the single biggest coverage change (`rec_rank`
+   0.534 → 0.812 in 2003-09, 0.759 → 0.869 in 2010-18, 0.709 → 0.883 on the holdout).
+
+### `src_torvik` — the provenance indicator
+
+One column, `1` when the row's college line is the player's own Torvik final season and `0` when a fallback filled
+it. 668 of 1,373 rows are 1 (zero before the 2010 class, 33-47 per class after). It is its own contract group,
+`srcflag` (prefix `src_`, added to `tournament/contract.py` PREFIX with a `# BRIDGE:` marker), so a config asks for
+it by name: `"features": [..., "srcflag"]`. **It is not in the winner's feature list** — `bridge/run_winner.py`'s
+`FEATURES_CATBOOST` / `FEATURES_TABICL` are unchanged, so the ported winner still resolves 575 / 428 columns.
+Add `"srcflag"` there (or pass your own `--configs`) if you want the model to be able to separate the two
+populations; that is a deliberate decision to make on the walk-forward window, not a default.
+
+### Named-feature coverage, before and after
+
+`python -m bridge.build_table` prints this table every run: `v1_` is the frozen pre-fallback mapping
+(`bridge/coverage_before.csv`), `pri_` is the first step of each chain alone, `now_` is the full chain.
+
+| band | v1 (before) | primary source only | **now (after)** |
+|:--|--:|--:|--:|
+| 2003-09 | 0.430 | 0.209 | **0.459** |
+| 2010-18 | 0.841 | 0.810 | **0.853** |
+| 2019-25 | 0.809 | 0.760 | **0.827** |
+
+Biggest movers in 2003-09: `rec_rank` 0.534→0.812, `mpg` 0.582→0.634, `GP`/`pts`/`n_college_seasons` 0.741→0.750,
+`porpag`/`adjoe`/`drtg`/`adrtg`/`bpm`/`obpm`/`dbpm` 0.000→0.236 (they were `tv_`-only and `tv_` starts in 2010),
+`pfr`/`ast_tov` 0.000→0.222, `oreb`/`dreb` 0.222→0.585, `TP_per` 0.406→0.474, `role` 0.000→1.000.
+In 2010-18: `TP_per` 0.674→0.844, `rec_rank` 0.759→0.869, `dunk_made` 0.797→0.846, `FTA_pg` 0.774→0.844,
+`porpag`/`adjoe` 0.797→0.849.
+
+**The 2003-09 ceiling is a data limit, not a mapping limit.** Our ratings line (`col_ortg/adj_*/impact*/value`)
+does not exist before the 2008 class and the box line does not exist before 2002, so 14 of the 50 named features
+are still 0.00-0.24 there however they are coalesced. `--ctx-start-catboost 2008` remains the first experiment.
+Exactly one column loses against v1, by design: `class_year` (0.857 → 0.855 in 2010-18, → 0.849 on the holdout),
+because v1 filled `vmb_college_class_year` for a handful of players with no college career at all. Every other
+named feature is >= v1 in every band.
 
 ### `traj` — 16 columns, 10 filled
 
@@ -121,8 +214,16 @@ the two share a scale.
 `career_bpm_mean` / `career_bpm_max` are the mean / max of {final, previous, first} season BPM
 (`tc_first_bpm → tv_first_bpm`) — an approximation of his full Torvik career aggregate.
 **Not fillable:** `prev_obpm`, `prev_dbpm`, `prev_porpag`, `d_obpm`, `d_dbpm`, `d_porpag` — we carry no
-previous-season delta for those three stats. (`tv_d_min_per` is a minutes-*share* delta and is deliberately **not**
-used as a fallback for `d_mpg`, which is minutes per game — mixing them produced a −37…+68 range.)
+previous-season delta for those three stats.
+
+**Deliberately not coalesced.** His deltas are *previous season → final season*. Four columns of ours look like
+candidates and are all something else, so none is used: `tv_d_min_per` is a minutes-*share* delta, not minutes per
+game (mixing them produced a −37…+68 range); `col_usg_delta` (coverage 0.56 against `tv_d_usg`'s 0.32) and
+`traj_mpg_growth` (0.64 against `traj_d_mpg`'s 0.44) are *first* season → final season, ρ 0.54 / 0.44 with a
+systematic +1.2 / +3.4 offset; `tc_slope_bpm` is a per-season regression slope (ratio 0.645 against `tv_d_bpm`).
+Filling a one-season delta from a whole-career change would be exactly the kind of two-populations-in-one-column
+mistake the rest of this file is about. `--families growth` and `--extras` make all four reachable as their own
+columns instead, which is the honest way to use them.
 
 ### `phys` — 4/4
 
@@ -168,7 +269,7 @@ through `--extras` (`intl_fiba` is a fixed list, not a prefix group, so extra `i
 
 | his group | prefix | ← ours | his cols | ours | note |
 |:--|:--|:--|--:|--:|:--|
-| `combine` | `c_` | `vcmb_` (37) | 30 | 30 | 15 map straight across; the ratios, lean/fat mass, touches, approach gain, `c_anthro_n` / `c_drills_n` and `c_shoot_pct` (made ÷ attempted over all six spot / off-dribble / on-move drills) are derived exactly as his builder did |
+| `combine` | `c_` | `vcmb_` (37) + `bio_combine_` (13) | 30 | 30 | 15 map straight across; the ratios, lean/fat mass, touches, approach gain, `c_anthro_n` / `c_drills_n` and `c_shoot_pct` (made ÷ attempted over all six spot / off-dribble / on-move drills) are derived exactly as his builder did. Every measurement now falls back `vcmb_X → bio_combine_X` (the same tape from the biography feed) |
 | `tctx` | `t_` | `tc_` (107) | 72 | 107 | one-for-one rename `tc_X → t_X`. Same idea (all-D1 cohort percentiles, team shares, teammate quality, availability, tournament), different column names — harmless, the group is prefix-matched. **Our `tctx_` block is *not* this**: `tctx_` is team four-factors and goes to `--extras` |
 | `intl_z` | `iz_` | `intl_`, `eurs_` (17) | 18 | 39 | `iz_pts_36 ← intl_lg_adj_pts36`, `iz_eff_36 ← intl_impact`, plus `mpg/age/ts/usg/n_league/trb/ast/stl/blk/tov/fg3a/fta` from `intl_`. `iz_pct_eff` = within-class percentile of `intl_impact`; `iz_young_x_{eff,mpg,usg}` = `max(0, 22 − intl_age) ×` the stat, his definition. The prior-chosen Euroleague/EuroCup/ANGT slim spine lands as `iz_eur_*` |
 | `mock` | `mock_` | `vcons_`, `cons_`, `dis_` | 16 | 7 | `mock_rank_consensus ← vcons_mock_mean_rank → cons_mock_consensus_rank`, **unranked players filled with 61** (behind the last pick, as `infra/models.py::CONSENSUS_FEATURE` does). Also `mock_rank_consensus_alt`, `mock_rank_best`, `mock_rank_range`, `mock_n_sources`, `mock_rank_std ← dis_mock_rank_std`, `mock_first_round = consensus ≤ 30`. We have no per-source board ranks, so his 13 `mock_rank_<site>` columns have no equivalent |
@@ -180,14 +281,15 @@ through `--extras` (`intl_fiba` is a fixed list, not a prefix group, so extra `i
 
 ### Resulting feature counts
 
-| member | his | ours (resolved) | after `select_features` |
-|:--|--:|--:|--:|
-| CatBoost (`all_torvik -cat traj phys intl_pro intl_fiba combine tctx intl_z mock momentum response person scouting comp`) | 324 | **575** | 537 (score 2013) / 544 (2019+) |
-| TabICL (same minus `response`) | 313 | **428** | 390 (2013) / 397 (2019+) |
+| member | his | ours (resolved) | with `--response-max 24` | with `--response-max 11` |
+|:--|--:|--:|--:|--:|
+| CatBoost (`all_torvik -cat traj phys intl_pro intl_fiba combine tctx intl_z mock momentum response person scouting comp`) | 324 | **575** | 452 | 439 |
+| TabICL (same minus `response`) | 313 | **428** | 428 | 428 |
 
 Ours is wider mostly through `response` (+136), `tctx` (+35), `person` (+35), `intl_z` (+21), `momentum` (+19),
-`comp` (+17). That is a real difference from his winner and a thing to check first if the holdout number moves:
-`bridge/run_winner.py --ctx-start-catboost / --ctx-start-tabicl` and a narrower `FEATURES_*` list are the knobs.
+`comp` (+17). That is a real difference from his winner and a thing to check first if the holdout number moves.
+The knobs, in the order worth trying: `--response-max N` on the build (his `response` group is 11 columns wide),
+`bridge/run_winner.py --ctx-start-catboost / --ctx-start-tabicl`, and a narrower `FEATURES_*` list.
 
 ---
 
@@ -201,38 +303,116 @@ Ours is wider mostly through `response` (+136), `tctx` (+35), `person` (+35), `i
 
 Coverage of what *is* filled (mean non-null rate over the group's live columns):
 
-| family | cols | filled | 2003-18 | 2019-25 |
-|:--|--:|--:|--:|--:|
-| all_torvik | 50 | 50 | 0.58 | 0.81 |
-| traj | 16 | 10 | 0.34 | 0.51 |
-| phys | 4 | 4 | 0.84 | 0.88 |
-| intl_pro | 28 | 26 | 0.26 | 0.32 |
-| intl_fiba | 27 | 17 | 0.21 | 0.31 |
-| combine `c_` | 30 | 30 | 0.59 | 0.63 |
-| tctx `t_` | 107 | 107 | 0.47 | 0.79 |
-| intl_z `iz_` | 39 | 39 | 0.15 | 0.18 |
-| mock `mock_` | 7 | 7 | 0.56 | 0.94 |
-| momentum `mo_` | 36 | 36 | 0.26 | 0.50 |
-| response `rs_` | 147 | 147 | 0.56 | 0.74 |
-| person `bio_` | 41 | 41 | 0.76 | 0.84 |
-| scouting `sc_` | 25 | 25 | 0.59 | 0.62 |
-| comp `sct_` | 20 | 20 | 0.69 | 0.67 |
+| family | cols | filled | 2003-18 | 2019-25 | (v1 2003-18) |
+|:--|--:|--:|--:|--:|--:|
+| all_torvik | 50 | 50 | **0.602** | **0.827** | 0.583 |
+| traj | 16 | 10 | 0.343 | 0.513 | 0.340 |
+| phys | 4 | 4 | 0.850 | 0.886 | 0.843 |
+| intl_pro | 28 | 26 | 0.259 | 0.320 | 0.259 |
+| intl_fiba | 27 | 17 | 0.211 | 0.309 | 0.211 |
+| combine `c_` | 30 | 30 | 0.591 | 0.632 | 0.591 |
+| tctx `t_` | 107 | 107 | 0.472 | 0.792 | 0.472 |
+| intl_z `iz_` | 39 | 39 | 0.152 | 0.180 | 0.152 |
+| mock `mock_` | 7 | 7 | 0.564 | 0.935 | 0.564 |
+| momentum `mo_` | 36 | 36 | 0.262 | 0.500 | 0.262 |
+| response `rs_` | 147 | 147 | 0.558 | 0.736 | 0.558 |
+| person `bio_` | 41 | 41 | 0.769 | 0.838 | 0.764 |
+| scouting `sc_` | 25 | 25 | 0.589 | 0.623 | 0.589 |
+| comp `sct_` | 20 | 20 | 0.689 | 0.673 | 0.689 |
+| srcflag `src_` | 1 | 1 | 1.000 | 1.000 | — |
 
-**Coverage is materially thinner in the old context classes than in the holdout** (all_torvik 0.58 vs 0.81, tctx
+**Coverage is materially thinner in the old context classes than in the holdout** (all_torvik 0.60 vs 0.83, tctx
 0.47 vs 0.79). Our Torvik block starts with the 2010 class, `col_ortg/drtg` with 2008, `tc_` with 2008, `bb_` with
 2009, `gl2_` with 2005. His `ctx_start: 2003` therefore buys eight classes that are mostly empty rows here, where
 for him they carried hoopR / AyushBatra lines. **Try `--ctx-start-catboost 2008` on the box** — it is the most
 likely single difference between his 0.504 and whatever this scores.
 
-## 5. `--extras`
+## 5. Build options
 
-`bridge/build_table.py --extras` writes the 657 legal input columns the mapping does not consume as `xt_<name>`,
-and `tournament/contract.py` gains a `# BRIDGE:`-marked prefix group `extra: "xt_"` so a config can ask for them
-with `"features": [..., "extra"]`. Off by default so the ported winner keeps its own feature count.
-What lands there: `eur_` (full Euroleague spine, 148 unconsumed), `f50_`, `ctx_`, `cgd_`, `tctx_`, `txt_`, `dx_`,
-`dv_` / `dvs_`, `nb_`, `gt_`, `wp_`, `dp_`, `ts_`, `prog_`, `hs_`, `pre_`, `slot_`, `rsci_` (17 of 18), the slim
-variants (`tcs_`, `gls_`, `scs_`, `wts_`, `fys_`, `dxs_`, `eurs_` leftovers) and the unmapped `tv_` / `col_` /
-`intl_` / `traj_` / `bio_` / `vmb_` / `vcmb_` columns.
+All four are off / unlimited by default, so a plain `python -m bridge.build_table` writes the table the ported
+winner expects (1,373 × 672, 575 / 428 resolved features).
+
+### `--families` — our extra dated blocks as first-class contract groups
+
+Writes four of our blocks under their own prefixes instead of burying them in the `xt_` catch-all, and
+`tournament/contract.py` PREFIX gains the matching groups (all `# BRIDGE:`-marked), so a config names them
+directly: `"features": [..., "fiba_youth", "growth"]`. Table goes 672 → 760 columns.
+
+| group | prefix | cols | 2003-09 | 2010-18 | 2019-25 | note |
+|:--|:--|--:|--:|--:|--:|:--|
+| `fiba_youth` | `fy_` | 18 | 0.29 | 0.42 | 0.42 | the whole block, including the five columns `intl_fiba`'s fixed list has no slot for (`fy_has_youth`, `fy_underage_flag`, `fy_age_rel_min`, `fy_usage_proxy_z_last`, `fy_hoop_summit_world`) |
+| `growth` | `dx_` | 30 | 0.45 | 0.66 | **0.13** | ⚠ see below |
+| `euroleague` | `eur_` | 155 | 0.065 | 0.062 | 0.052 | the full spine. `eur_el2_ls_*` and `eur_angt_*` are also consumed by `intl_pro` / `intl_fiba`, and `eurs_` by `iz_eur_*`; the raw copies are emitted anyway so the group is complete |
+| `draftpage` | `dp_` | 8 | 0.24 | 0.65 | 0.56 | green room, wave and days before, early / international early entrant, auto-eligible, wiki-projected |
+
+Three of our blocks are **already** first-class and are not repeated here: `wt_` → `person` (`bio_`),
+`bb_` → `momentum` (`mo_`), `cp_` → `comp` (`sct_`).
+
+> ⚠ **`growth` is a train/serve trap.** `dx_` coverage runs 0.67-0.72 through the 2012-2017 classes and then
+> collapses: 2018 0.49, 2019 0.30, 2020 0.34, 2021 0.18, 2022 0.04, 2023 0.03, 2024 0.00, 2025 0.02. `select_features`
+> only drops a column that is all-NaN *inside the training fold*, so every `dx_` column survives training and is
+> empty at holdout time. Use it on the walk-forward window if at all, and never assume a holdout gain from it.
+
+### `--intl-mask` — the old engine's IMASK gene
+
+On a row with a college career the `intl_` block is not a pre-draft pro season: it is a 6-8 game FIBA youth
+tournament line (117 of the 125 such rows sit at `intl_level == 1`), and a model reads it with pro-season
+coefficients. `genes/patch_opt_v34.py` blanks it:
+
+```python
+ic = [c for c in B.columns if c.startswith(("intl_", "adj_intl_")) and c != "intl_youth_n"]
+B.loc[meta.path.astype(str).str.startswith("college"), ic] = np.nan
+```
+
+`--intl-mask` reproduces that on **1,157 rows** (`path.startswith("college")`, unioned with `col_gp | tv_gp`) for
+the **47 bridge columns fed from an `intl_*` staging column**:
+
+```
+intl_pro (25):  i_has_pro i_league_level i_top_level i_n_comps i_age_season i_gp i_mpg i_pts_36 i_trb_36
+                i_orb_36 i_ast_36 i_stl_36 i_blk_36 i_pir_36 i_fga_36 i_fg3a_36 i_fta_36 i_fg_pct i_fg3_pct
+                i_ft_pct i_fg3a_rate i_fta_rate i_ts i_efg i_top_mpg
+intl_z   (22):  iz_pts_36 iz_eff_36 iz_mpg iz_age iz_ts iz_usg_36 iz_n_league iz_trb_36 iz_ast_36 iz_stl_36
+                iz_blk_36 iz_tov_36 iz_fg3a_36 iz_fta_36 iz_lg_strength iz_season_gap iz_prev_pts_36
+                iz_two_pts_36 iz_pct_eff iz_young_x_eff iz_young_x_mpg iz_young_x_usg
+```
+
+**Not blanked**, deliberately: `i_top_pir_36` and all 17 `iz_eur_*` come from `eur_` / `eurs_` only, never from an
+`intl_` column, so the engine's rule does not reach them (`i_top_mpg` *is* blanked because it falls back to
+`intl_mpg`). `intl_youth_n` is kept, exactly as the gene keeps it — the "did he play youth ball at all" counter is
+the one piece of the block that means the same thing on a college row. With `--extras` the six raw `xt_intl_*`
+copies are blanked too (53 columns in total); `intl_fiba` is untouched because it is fed from `fy_` and
+`eur_angt_`, which are youth data by construction and already on the right scale.
+
+### `--response-max N` — trim the widest group to the strongest N columns
+
+His `response` group is 11 columns; ours is 147 (`gl2_` renamed to `rs_`). `--response-max N` keeps the N with the
+highest `abs_res` in `datarebuild/v4_build/screen_blocks.csv` — the 2000-2011 **pre-fold** label screen
+(n-weighted mean within-class Spearman against the residual of `y_early_war_log` on `log(actual_pick)`: information
+beyond the draft slot). Classes 2012-2018 are the walk-forward folds and are never touched by it.
+
+That CSV currently holds only the `eur_` run, so the bridge recomputes the gl2_ screen with `screen_blocks.py`'s
+exact definition and caches it in `bridge/response_screen.csv` (preference order: gl2_ rows already in
+`screen_blocks.csv` → the cache → recompute). The recompute is validated against the frozen `gls_` slim block:
+its ten members come out ranked 1, 2, 4, 6, 7, 8, 9, 10, 12, 13, the gaps being the near-duplicates
+`screen_blocks.py` drops. Top of the list: `gl2_stl40` 0.257, `gl2_t100_spg` 0.226, `gl2_t50_spg` 0.217,
+`gl2_ast40` 0.212, `gl2_t50_apg` 0.193, `gl2_close_d_gmsc40` 0.182. With `--no-picks` there is no pick residual and
+the screen falls back to the raw label correlation (it says so when it does).
+
+### `--no-fallback` — the A/B floor
+
+Every named feature keeps only the **first** step of its chain. Mean named-feature coverage drops to 0.209 /
+0.810 / 0.760 across the three bands. Useful for measuring what the fallbacks are worth on the walk-forward
+window without hand-editing the mapping.
+
+### `--extras` — everything else
+
+Writes the legal input columns the mapping does not consume as `xt_<name>` (**584** on its own, **396** with
+`--families`, which takes `fy_` / `dx_` / `eur_` / `dp_` out of the catch-all); `tournament/contract.py` has a
+`# BRIDGE:`-marked prefix group `extra: "xt_"` so a config can ask for them with `"features": [..., "extra"]`.
+What lands there without `--families`: `eur_` (148), `col_` (53 unconsumed), `f50_` (50), `txt_` (42), `tv_` (32),
+`dx_` (27), `nb_` (25), `tctx_` (20), `rsci_` (16), `traj_` (14), `dv_` (13), the slim variants
+(`fys_` `gls_` `tcs_` `dvs_` `dxs_` `scs_` `wts_`), `wp_` `gt_` `dp_` `ts_` `hs_` `pre_` `slot_` `prog_`, and the
+unconsumed `intl_` / `ctx_` / `cgd_` / `vmb_` / `vcmb_` / `bio_` leftovers.
 
 ## 6. Pool and identity
 

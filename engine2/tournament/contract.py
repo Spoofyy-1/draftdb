@@ -69,6 +69,15 @@ PREFIX = {
     "impact": "he_",        # Hoop Explorer lineup impact (2019+ classes): RAPM, on/off, play-type profile, vs-top-100 versions
     "person": "bio_",       # basketball-reference biography: NBA relatives, shooting hand, birthplace, high-school path
     "coach": "co_",         # head coach tenure / record / tournament history, team record, causal coach + program NBA track record
+    # BRIDGE: our own dated blocks, promoted to first-class groups by `bridge/build_table.py --families`. Each is
+    # BRIDGE: absent (and the group therefore absent) unless that flag is used; see bridge/MAPPING.md section 5.
+    "fiba_youth": "fy_",    # BRIDGE: FIBA U16-U20 record, age-relative and z-scored inside the event cohort
+    "growth": "dx_",        # BRIDGE: measurement history across youth events: height/wingspan/weight growth per year
+    "euroleague": "eur_",   # BRIDGE: full EuroLeague / EuroCup / ANGT spine (the iz_eur_ slim variant is intl_z)
+    "draftpage": "dp_",     # BRIDGE: draft-page facts: green room, early entrant, auto-eligible, projected
+    # BRIDGE: `src_torvik`, 1 when the row's college line is the player's own Torvik final season and 0 when a
+    # BRIDGE: fallback (col_ / ctx_base_ / cgd_) filled it. Always written; name a config's features "srcflag".
+    "srcflag": "src_",
     # BRIDGE: every verified pre-draft column of ours that his groups have no home for, written by
     # BRIDGE: `bridge/build_table.py --extras`. Absent (and the group therefore absent) unless that flag is used.
     "extra": "xt_",
