@@ -78,6 +78,7 @@ PREFIX = {
     # BRIDGE: `src_torvik`, 1 when the row's college line is the player's own Torvik final season and 0 when a
     # BRIDGE: fallback (col_ / ctx_base_ / cgd_) filled it. Always written; name a config's features "srcflag".
     "srcflag": "src_",
+    "conf_split": "tcf_",  # BRIDGE: Torvik conference-only line and deltas versus the full season
     # BRIDGE: every verified pre-draft column of ours that his groups have no home for, written by
     # BRIDGE: `bridge/build_table.py --extras`. Absent (and the group therefore absent) unless that flag is used.
     "extra": "xt_",
