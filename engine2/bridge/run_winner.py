@@ -58,22 +58,24 @@ WINDOWS_ALL = {"holdout": list(C.HOLDOUT_YEARS), "context8": list(range(2011, 20
 
 
 def build_configs(members: list[str], seeds: int | None, batches: int, n_estimators: int, tabicl_estimators: int,
-                  cutoff: str, ctx_start_catboost: int, ctx_start_tabicl: int) -> list[dict]:
+                  cutoff: str, ctx_start_catboost: int, ctx_start_tabicl: int, seed_offset: int = 0, extra_groups: list[str] | None = None) -> list[dict]:  # BRIDGE: seed offset + extra feature groups
     """The winner's four layer-1 configs. At the defaults the names are byte-identical to winner.json's
     `layer2_rule`, so the blend below is the archived rule."""
     cfgs = []
     for m in members:
         k = seeds or DEFAULT_SEEDS[m]
         for b in range(batches):
-            start = b * k
+            start = b * k + seed_offset  # BRIDGE: shifted seed sets for confirmation
             if m == "catboost":
                 name = f"C03 m3 +mo+rs+person+sc+comp2 x{k}" + (f" s{start}" if start else "")
-                cfg = {"model": "catboost", "ctx_start": ctx_start_catboost, "features": FEATURES_CATBOOST,
+                cfg = {"model": "catboost", "ctx_start": ctx_start_catboost, "features": FEATURES_CATBOOST + list(extra_groups or []),
                        "n_estimators": n_estimators}
             else:
                 name = f"T10 o2 m3 +mo+person+sc+comp2 x{k}" + (f" s{start}" if start else "")
-                cfg = {"model": "tabicl", "ctx_start": ctx_start_tabicl, "features": FEATURES_TABICL,
+                cfg = {"model": "tabicl", "ctx_start": ctx_start_tabicl, "features": FEATURES_TABICL + list(extra_groups or []),
                        "n_estimators": tabicl_estimators, "model_options": {"outlier_threshold": 2.0}}
+            if extra_groups: name += " +" + "+".join(extra_groups)
+            if seed_offset: name += f" o{seed_offset}"
             cfg.update({"label": "disc85_gaussrank", "label_cutoff": cutoff, "label_horizon": "match3",
                         "seeds": k, "seed_start": start, "name": name})
             cfgs.append(cfg)
@@ -135,6 +137,8 @@ def main() -> None:
     ap.add_argument("--ctx-start-catboost", type=int, default=2003)
     ap.add_argument("--ctx-start-tabicl", type=int, default=2010)
     ap.add_argument("--tag", default="bridge")
+    ap.add_argument("--seed-offset", type=int, default=0, help="BRIDGE: shift every member's seed_start (confirmation runs)")
+    ap.add_argument("--extra-groups", default="", help="BRIDGE: comma list of extra contract groups appended to both members' feature lists")
     ap.add_argument("--stub", action="store_true",
                     help="put bridge/smoke_stubs first on PYTHONPATH: numpy stand-ins for catboost / tabicl so the "
                          "whole layer-1 + layer-2 path can be exercised on a machine without them. NEVER on the box.")
@@ -164,7 +168,7 @@ def main() -> None:
         frames = []
         for cutoff in cutoffs:
             cfgs = build_configs(members, a.seeds, a.batches, a.n_estimators, a.tabicl_estimators, cutoff,
-                                 a.ctx_start_catboost, a.ctx_start_tabicl)
+                                 a.ctx_start_catboost, a.ctx_start_tabicl, seed_offset=a.seed_offset, extra_groups=[g for g in a.extra_groups.split(',') if g])
             tag = f"{a.tag}_{window}_{cutoff}"
             parquet, years_key = run_layer1(cfgs, years_tag, years, tag, a.device, a.stub, a.dry_run)
             manifest["runs"].append({"window": window, "cutoff": cutoff, "tag": tag, "years": years,
