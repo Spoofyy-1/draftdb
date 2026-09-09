@@ -1,6 +1,6 @@
 {
- "name": "EVO gen11 + international-line mask (training window 2007-2018) - current model",
- "evaluated_on": "data v4.19 verified (2026-09-08); gate: 7 season-consistent folds 2012-2018, recency-weighted gain >= 0.008, 6 of 7 folds, seed-shifted confirmation; passed twice (+0.017/+0.024). Blind: three seed sets through the sealed vault.",
+ "name": "EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context - current model",
+ "evaluated_on": "data v4.19 verified; gate: 7 season-consistent folds 2012-2018 with seed-shifted confirmation; blind: three seed sets through the sealed vault (2026-09-09 08:02)",
  "genome": {
   "hw": "disc85",
   "norm": "none",
@@ -63,7 +63,51 @@
   "prog": 0,
   "misc": 0,
   "meta": "rankavg",
-  "intl_mask": 1
+  "pair": 0,
+  "pair_k": 30,
+  "pair_depth": 3,
+  "gltb": 0.0,
+  "midw": 0.0,
+  "xgb_depth": 3,
+  "icl_rec": 0,
+  "tiersplit": 0,
+  "cmb": 0,
+  "spline": 0,
+  "intl_mask": 1,
+  "ridge_top": 0,
+  "ctrlnan": 0,
+  "f50": 0,
+  "ctx": 0,
+  "tctx": 0,
+  "cgd": 0,
+  "slot": 0,
+  "vmb": 0,
+  "vcmb": 0,
+  "vcons": 0,
+  "ts": 0,
+  "gt": 0,
+  "rsci": 0,
+  "dv": 0,
+  "dis": 0,
+  "tc": 1,
+  "gl2": 0,
+  "dp": 0,
+  "wt": 0,
+  "sc": 1,
+  "bb": 0,
+  "fy": 0,
+  "tcs": 0,
+  "gls": 0,
+  "scs": 0,
+  "wts": 0,
+  "dvs": 0,
+  "nb": 0,
+  "cp": 0,
+  "fys": 0,
+  "dx": 0,
+  "dxs": 0,
+  "eur": 0,
+  "eurs": 0
  },
  "members": [
   "xgb",
@@ -71,112 +115,123 @@
   "ridge"
  ],
  "stack_weights": {
-  "rich": {
-   "xgb": 0.0,
-   "tabicl": 0.75,
-   "ridge": 0.25
-  },
-  "thin": {
-   "xgb": 0.0,
-   "tabicl": 1.0,
-   "ridge": 0.0
-  }
+  "rich": [
+   0.0,
+   0.75,
+   0.25
+  ],
+  "thin": [
+   0.5,
+   0.5,
+   0.0
+  ]
  },
  "previous_model": {
-  "name": "EVO gen11 (training window 2007-2018) - current model",
+  "name": "EVO gen11 + international-line mask (training window 2007-2018) - current model",
   "metrics": {
-   "data": "verified v4.4 (see docs/DATA_V4_VERIFIED.md)",
+   "data": "verified v4.19 (see docs/DATA_V4_VERIFIED.md and docs/EXPERIMENTS.md)",
    "strict": {
-    "mean_order_accuracy": 43.4,
+    "mean_order_accuracy": 42.2,
     "nba_draft_order_accuracy": 26.3,
     "per_class": [
      {
       "season": 2019,
       "k": 5,
-      "stack": 0.519,
+      "stack": 0.405,
       "draft": 0.402
      },
      {
       "season": 2020,
       "k": 5,
-      "stack": 0.317,
+      "stack": 0.384,
       "draft": 0.35
      },
      {
       "season": 2021,
       "k": 5,
-      "stack": 0.621,
+      "stack": 0.592,
       "draft": 0.408
      },
      {
       "season": 2022,
       "k": 4,
-      "stack": 0.5,
+      "stack": 0.529,
       "draft": 0.262
      },
      {
       "season": 2023,
       "k": 3,
-      "stack": 0.377,
+      "stack": 0.42,
       "draft": 0.111
      },
      {
       "season": 2024,
       "k": 2,
-      "stack": 0.335,
+      "stack": 0.374,
       "draft": 0.134
      },
      {
       "season": 2025,
       "k": 1,
-      "stack": 0.369,
+      "stack": 0.252,
       "draft": 0.176
      }
     ]
    },
    "expanding": {
-    "mean_order_accuracy": 45.2,
+    "mean_order_accuracy": 48.4,
     "nba_draft_order_accuracy": 24.0,
     "per_class": [
      {
       "season": 2020,
       "k": 5,
-      "stack": 0.347,
+      "stack": 0.395,
       "draft": 0.35
      },
      {
       "season": 2021,
       "k": 5,
-      "stack": 0.597,
+      "stack": 0.607,
       "draft": 0.408
      },
      {
       "season": 2022,
       "k": 4,
-      "stack": 0.57,
+      "stack": 0.541,
       "draft": 0.262
      },
      {
       "season": 2023,
       "k": 3,
-      "stack": 0.431,
+      "stack": 0.522,
       "draft": 0.111
      },
      {
       "season": 2024,
       "k": 2,
-      "stack": 0.384,
+      "stack": 0.46,
       "draft": 0.134
      },
      {
       "season": 2025,
       "k": 1,
-      "stack": 0.38,
+      "stack": 0.379,
       "draft": 0.176
      }
     ]
    },
-   "verification": "three seed sets through the sealed vault, ranges 45.0-45.3 expanding, 43.3-43.5 strict"
+   "seed_sets": {
+    "strict": [
+     42.2,
+     42.3,
+     42.2
+    ],
+    "expanding": [
+     48.5,
+     48.5,
+     48.2
+    ]
+   }
   }
  },
  "legacy_uncertified_metrics": {
@@ -312,107 +367,95 @@
   }
  },
  "metrics": {
-  "data": "verified v4.19 (see docs/DATA_V4_VERIFIED.md and docs/EXPERIMENTS.md)",
+  "data": "verified v4.19 (docs/DATA_V4_VERIFIED.md, docs/EXPERIMENTS.md)",
   "strict": {
-   "mean_order_accuracy": 42.2,
+   "mean_order_accuracy": 42.1,
    "nba_draft_order_accuracy": 26.3,
    "per_class": [
     {
      "season": 2019,
      "k": 5,
-     "stack": 0.405,
+     "stack": 0.467,
      "draft": 0.402
     },
     {
      "season": 2020,
      "k": 5,
-     "stack": 0.384,
+     "stack": 0.315,
      "draft": 0.35
     },
     {
      "season": 2021,
      "k": 5,
-     "stack": 0.592,
+     "stack": 0.683,
      "draft": 0.408
     },
     {
      "season": 2022,
      "k": 4,
-     "stack": 0.529,
+     "stack": 0.518,
      "draft": 0.262
     },
     {
      "season": 2023,
      "k": 3,
-     "stack": 0.42,
+     "stack": 0.425,
      "draft": 0.111
     },
     {
      "season": 2024,
      "k": 2,
-     "stack": 0.374,
+     "stack": 0.284,
      "draft": 0.134
     },
     {
      "season": 2025,
      "k": 1,
-     "stack": 0.252,
+     "stack": 0.256,
      "draft": 0.176
     }
    ]
   },
   "expanding": {
-   "mean_order_accuracy": 48.4,
+   "mean_order_accuracy": 49.3,
    "nba_draft_order_accuracy": 24.0,
    "per_class": [
     {
      "season": 2020,
      "k": 5,
-     "stack": 0.395,
+     "stack": 0.334,
      "draft": 0.35
     },
     {
      "season": 2021,
      "k": 5,
-     "stack": 0.607,
+     "stack": 0.673,
      "draft": 0.408
     },
     {
      "season": 2022,
      "k": 4,
-     "stack": 0.541,
+     "stack": 0.534,
      "draft": 0.262
     },
     {
      "season": 2023,
      "k": 3,
-     "stack": 0.522,
+     "stack": 0.583,
      "draft": 0.111
     },
     {
      "season": 2024,
      "k": 2,
-     "stack": 0.46,
+     "stack": 0.469,
      "draft": 0.134
     },
     {
      "season": 2025,
      "k": 1,
-     "stack": 0.379,
+     "stack": 0.368,
      "draft": 0.176
     }
-   ]
-  },
-  "seed_sets": {
-   "strict": [
-    42.2,
-    42.3,
-    42.2
-   ],
-   "expanding": [
-    48.5,
-    48.5,
-    48.2
    ]
   }
  }

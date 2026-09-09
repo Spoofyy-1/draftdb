@@ -1,0 +1,381 @@
+{
+ "style": "VERIFIED-PANEL PANEL5mv412 sc + tc v419",
+ "verified": "three seed sets (0, +10, +20) through the sealed vault; rows are seed-averaged per class",
+ "genome": {
+  "hw": "disc85",
+  "norm": "none",
+  "clip": "clip40",
+  "label": "gaussrank",
+  "fx": "shoot+prod",
+  "M": 400.0,
+  "thin": "none",
+  "anchor": "none",
+  "cons": 0.0,
+  "intl": 1,
+  "bag": 3,
+  "fm": 0,
+  "mono": "on",
+  "hurdle": 0,
+  "mingp": 0,
+  "el": 0,
+  "wk": 0,
+  "ridge_alpha": 300.0,
+  "icl_topk": 100,
+  "icl_ctx": "all",
+  "resid": 1,
+  "knn": 0,
+  "cat": 0,
+  "ixc": 0,
+  "pss": 0,
+  "icl_norm": "none",
+  "icl_outlier": 2.0,
+  "icl_shuffle": "latin",
+  "labelmix": "single",
+  "hz": 0,
+  "covw": 1,
+  "risk": "q25",
+  "ridge": 1,
+  "icl_n": 32,
+  "topw": 0,
+  "star": 0.0,
+  "noscout": 0,
+  "recency": 0,
+  "undraft_w": 1.0,
+  "beatpick": 0,
+  "consres": 0,
+  "xgb_obj": "reg",
+  "pathsplit": 0,
+  "cons_unc": 0.0,
+  "icl_era": 0,
+  "mono_prod": 0,
+  "subspace": 0,
+  "star_q": 0.85,
+  "mkt_beta": 1.0,
+  "win": 2007,
+  "et": 0,
+  "lgbm": 0,
+  "tabpfn": 0,
+  "wp": 0,
+  "txt": 0,
+  "traj": 0,
+  "tv": 0,
+  "mock": 0,
+  "prog": 0,
+  "misc": 0,
+  "meta": "rankavg",
+  "pair": 0,
+  "pair_k": 30,
+  "pair_depth": 3,
+  "gltb": 0.0,
+  "midw": 0.0,
+  "xgb_depth": 3,
+  "icl_rec": 0,
+  "tiersplit": 0,
+  "cmb": 0,
+  "spline": 0,
+  "intl_mask": 1,
+  "ridge_top": 0,
+  "ctrlnan": 0,
+  "f50": 0,
+  "ctx": 0,
+  "tctx": 0,
+  "cgd": 0,
+  "slot": 0,
+  "vmb": 0,
+  "vcmb": 0,
+  "vcons": 0,
+  "ts": 0,
+  "gt": 0,
+  "rsci": 0,
+  "dv": 0,
+  "dis": 0,
+  "tc": 1,
+  "gl2": 0,
+  "dp": 0,
+  "wt": 0,
+  "sc": 1,
+  "bb": 0,
+  "fy": 0,
+  "tcs": 0,
+  "gls": 0,
+  "scs": 0,
+  "wts": 0,
+  "dvs": 0,
+  "nb": 0,
+  "cp": 0,
+  "fys": 0,
+  "dx": 0,
+  "dxs": 0,
+  "eur": 0,
+  "eurs": 0
+ },
+ "weights": {
+  "rich": [
+   0.0,
+   0.75,
+   0.25
+  ],
+  "thin": [
+   0.5,
+   0.5,
+   0.0
+  ]
+ },
+ "rows": [
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2019,
+   "k": 5,
+   "stack": 0.46652910082162324,
+   "draft": 0.4021347934418162,
+   "xgb": 0.4898848523998483,
+   "tabicl": 0.48547581695325404,
+   "ridge": 0.4627333969054723
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2020,
+   "k": 5,
+   "stack": 0.3147964093532888,
+   "draft": 0.35021071088006406,
+   "xgb": 0.3681544597906221,
+   "tabicl": 0.32412562674951556,
+   "ridge": 0.21935464025346826
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2021,
+   "k": 5,
+   "stack": 0.6834106501940695,
+   "draft": 0.4084073820915926,
+   "xgb": 0.6586921850079744,
+   "tabicl": 0.6899749373433585,
+   "ridge": 0.47894736842105273
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2022,
+   "k": 4,
+   "stack": 0.517976188240782,
+   "draft": 0.2623580636899172,
+   "xgb": 0.5528614929280856,
+   "tabicl": 0.5172031076581577,
+   "ridge": 0.3962264150943396
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2023,
+   "k": 3,
+   "stack": 0.4248679718849755,
+   "draft": 0.1106307353328877,
+   "xgb": 0.39437903364781235,
+   "tabicl": 0.4273939518843182,
+   "ridge": 0.33336181416032945
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2024,
+   "k": 2,
+   "stack": 0.2835278057969081,
+   "draft": 0.13403326556845988,
+   "xgb": 0.2954744999328391,
+   "tabicl": 0.3014275251868891,
+   "ridge": 0.23880651003974052
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLIND",
+   "season": 2025,
+   "k": 1,
+   "stack": 0.2563163503860498,
+   "draft": 0.17640862779925506,
+   "xgb": 0.25794184563261763,
+   "tabicl": 0.3062762323540254,
+   "ridge": 0.1626018897058355
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2020,
+   "k": 5,
+   "stack": 0.33406140334096923,
+   "draft": 0.35021071088006406,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2021,
+   "k": 5,
+   "stack": 0.6726064873449236,
+   "draft": 0.4084073820915926,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2022,
+   "k": 4,
+   "stack": 0.5336577705444727,
+   "draft": 0.2623580636899172,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2023,
+   "k": 3,
+   "stack": 0.5834434988363628,
+   "draft": 0.1106307353328877,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2024,
+   "k": 2,
+   "stack": 0.46852820059134465,
+   "draft": 0.13403326556845988,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  },
+  {
+   "style": "VERIFIED-PANEL PANEL5mv412 sc + tc",
+   "kind": "BLINDX",
+   "season": 2025,
+   "k": 1,
+   "stack": 0.3680235872501571,
+   "draft": 0.17640862779925506,
+   "xgb": NaN,
+   "tabicl": NaN,
+   "ridge": NaN
+  }
+ ],
+ "summary": {
+  "strict": 42.1,
+  "expanding": 49.3
+ },
+ "previous_published": {
+  "name": "EVO gen11 + international-line mask (training window 2007-2018) - current model",
+  "metrics": {
+   "data": "verified v4.19 (see docs/DATA_V4_VERIFIED.md and docs/EXPERIMENTS.md)",
+   "strict": {
+    "mean_order_accuracy": 42.2,
+    "nba_draft_order_accuracy": 26.3,
+    "per_class": [
+     {
+      "season": 2019,
+      "k": 5,
+      "stack": 0.405,
+      "draft": 0.402
+     },
+     {
+      "season": 2020,
+      "k": 5,
+      "stack": 0.384,
+      "draft": 0.35
+     },
+     {
+      "season": 2021,
+      "k": 5,
+      "stack": 0.592,
+      "draft": 0.408
+     },
+     {
+      "season": 2022,
+      "k": 4,
+      "stack": 0.529,
+      "draft": 0.262
+     },
+     {
+      "season": 2023,
+      "k": 3,
+      "stack": 0.42,
+      "draft": 0.111
+     },
+     {
+      "season": 2024,
+      "k": 2,
+      "stack": 0.374,
+      "draft": 0.134
+     },
+     {
+      "season": 2025,
+      "k": 1,
+      "stack": 0.252,
+      "draft": 0.176
+     }
+    ]
+   },
+   "expanding": {
+    "mean_order_accuracy": 48.4,
+    "nba_draft_order_accuracy": 24.0,
+    "per_class": [
+     {
+      "season": 2020,
+      "k": 5,
+      "stack": 0.395,
+      "draft": 0.35
+     },
+     {
+      "season": 2021,
+      "k": 5,
+      "stack": 0.607,
+      "draft": 0.408
+     },
+     {
+      "season": 2022,
+      "k": 4,
+      "stack": 0.541,
+      "draft": 0.262
+     },
+     {
+      "season": 2023,
+      "k": 3,
+      "stack": 0.522,
+      "draft": 0.111
+     },
+     {
+      "season": 2024,
+      "k": 2,
+      "stack": 0.46,
+      "draft": 0.134
+     },
+     {
+      "season": 2025,
+      "k": 1,
+      "stack": 0.379,
+      "draft": 0.176
+     }
+    ]
+   },
+   "seed_sets": {
+    "strict": [
+     42.2,
+     42.3,
+     42.2
+    ],
+    "expanding": [
+     48.5,
+     48.5,
+     48.2
+    ]
+   }
+  }
+ }
+}

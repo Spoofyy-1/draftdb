@@ -4,9 +4,9 @@ We re-ran every NBA draft from 2019 to 2025 with a tabular model that sees only 
 
 | AI model accuracy | NBA scouts accuracy | Drafts the AI won |
 |:---:|:---:|:---:|
-| **48%** | **24%** | **6 of 6** |
+| **49%** | **24%** | **5 of 6** |
 
-*Current model: EVO gen11 with the international-line mask, on verified data v4.19 (`model/CURRENT_MODEL.json`, `model/VERIFIED_v419_results.json`), expanding window, 2020–2025, three seed sets through the sealed vault. Strict scoring (trained on 2007–2018 only, scored on 2019–2025): **42%** vs the teams' **26%**, 7 of 7 classes. The mask is a modelling change, not new data: for college players it removes the youth-tournament international lines that had been merged into their pro-season columns. It passed the seven-fold walk-forward gate twice (gain +0.017 and +0.024 under shifted seeds, 6 of 7 folds both times) before its blind years were scored. Previous published model: EVO gen11 on data v4.4, 45% expanding / 43% strict.*
+*Current model: EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context (`model/CURRENT_MODEL.json`, `model/VERIFIED_PANEL5mv412_sc_tc_results.json`), expanding window, 2020–2025, three seed sets through the sealed vault. Strict scoring (trained on 2007–2018 only, scored on 2019–2025): **42%** vs the teams' **26%**, 6 of 7 classes. The two data blocks were collected on 2026-09-08 with strict pre-draft dating (grades from Wayback captures before each draft; league context from Torvik's full Division I exports). The combination passed the seven-fold gate (+0.033, 6 of 7; confirmed +0.013 under shifted seeds) before its blind years were scored. Previous published model: gen11 + mask, 48% expanding / 42% strict.*
 
 *Correction (2026-09-08): the 51% / 45% published on 2026-09-06 were measured on inputs a provenance audit could not certify as pre-draft (legacy biography, medical, consensus and scouting columns, plus 24 college-derived ones; some contained post-draft or current-NBA information). On verified replacements the same model scores as above. Details: [`docs/DATA_V4_VERIFIED.md`](docs/DATA_V4_VERIFIED.md), [`docs/REPORT_2026-09-08.md`](docs/REPORT_2026-09-08.md).*
 
@@ -30,18 +30,18 @@ At the top of the board the model and the teams are a dead heat. The 18-point ga
 
 ## Per class
 
-Current model (EVO gen11 + international-line mask) on verified data v4.19; three seed sets.
+Current model (EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context) on verified data v4.19; three seed sets.
 
 | class | seasons scored (k) | drafted players | AI strict | NBA scouts | AI expanding | won |
 |---|---|---|---|---|---|---|
-| 2019 | 5 | 58 | 40% | 40% | – | AI (by 0.3 points) |
-| 2020 | 5 | 58 | 38% | 35% | 40% | AI |
-| 2021 | 5 | 56 | 59% | 41% | 61% | AI |
-| 2022 | 4 | 52 | 53% | 26% | 54% | AI |
-| 2023 | 3 | 56 | 42% | 11% | 52% | AI |
-| 2024 | 2 | 55 | 37% | 13% | 46% | AI |
-| 2025 | 1 | 57 | 25% | 18% | 38% | AI |
-| **mean** | | | **42%** | **26%** | **48%** (scouts 24%) | **7 of 7 strict, 6 of 6 expanding** |
+| 2019 | 5 | 58 | 47% | 40% | – | AI |
+| 2020 | 5 | 58 | 31% | 35% | 33% | scouts |
+| 2021 | 5 | 56 | 68% | 41% | 67% | AI |
+| 2022 | 4 | 52 | 52% | 26% | 53% | AI |
+| 2023 | 3 | 56 | 42% | 11% | 58% | AI |
+| 2024 | 2 | 55 | 28% | 13% | 47% | AI |
+| 2025 | 1 | 57 | 26% | 18% | 37% | AI |
+| **mean** | | | **42%** | **26%** | **49%** (scouts 24%) | **6 of 7 strict, 5 of 6 expanding** |
 
 *Boards for all seven classes with names and actual picks: `model/board_current_2019_2025.csv` (the current model's strict board on verified data v4.19: trained on 2007–2018 only, so every class is scored the same way).*
 
@@ -100,12 +100,12 @@ Reading it: both orders had Holmgren and Banchero in the top four and both took 
 
 ### Findings, one line each
 
-- On the expanding window the model orders a draft better than the teams did in 6 of 6 classes, by 24 points on average (48% vs 24%); strict, 7 of 7 by 16 points (42% vs 26%).
+- On the expanding window the model orders a draft better than the teams did in 5 of 6 classes, by 25 points on average (49% vs 24%); strict, 6 of 7 by 16 points (42% vs 26%).
 - Its weakest classes are 2019 and 2020: the consensus top of 2019 (Zion, Morant, Barrett) was right, and 2020 was the pandemic class with no combine and no tournament; the model under-rated the shooters (Edwards, Garland, Herro, Maxey).
 - The edge comes from the middle and bottom of the draft: ordering picks 11–40, bust avoidance, second-round value; at the top of the board the model and the teams are a dead heat.
 - The model wins 2023 on order (42% strict, 52% expanding vs 11%) because it ordered the rest of the class well, not because it got the top pick right.
 - Recent classes are scored on few seasons, so their numbers will move: 2024 rests on two seasons, 2025 on one.
-- A single class's correlation has a standard error near 0.13, so one-class wins and losses mean little; a six- or seven-class mean (about ±0.05) is what to read. The 55% target is more than one such step above the current 48%.
+- A single class's correlation has a standard error near 0.13, so one-class wins and losses mean little; a six- or seven-class mean (about ±0.05) is what to read. The 55% target is more than one such step above the current 49%.
 - Two changes have improved verified blind results: widening the training window to 2007, and the international-line mask (2026-09-08). Nine new dated data blocks collected on 2026-09-08 (Torvik context, game logs, NBADraft.net grades, boards, FIBA youth, Wikipedia rules, DraftExpress, Euroleague, comparisons) all failed the gate on their own; see `docs/EXPERIMENTS.md`.
 - The pool is drafted players only, so this measures how to order a draft, not whom to take from outside it.
 
