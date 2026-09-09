@@ -174,13 +174,14 @@ in the identity file returns **zero data-value hits**; the only matches are Engl
 
 ## 5. Every change made to Colin's code
 
-Five edits, all marked `# BRIDGE:` (`grep -rn "BRIDGE:" infra tournament pipeline`). Nothing else in his tree was
-touched, and the `colin` branch itself was never checked out, modified or merged.
+Six edits, all marked `# BRIDGE:` (`grep -rn "BRIDGE:" infra tournament pipeline`). Nothing else in his tree was
+touched, and the `colin` branch itself was never checked out, modified or merged. No `git` command was run.
 
 | file | change | why |
 |:--|:--|:--|
 | `infra/war.py` (`war_target`, +3 lines) | `if not path.exists(): continue` around the frozen `data/raw/reference_war/answers_YYYY.csv` override | `label_horizon: match3` resolves to 5 seasons for classes ≤ 2021, which sends layer 1 through `war_target(..., through=LAST_SEASON)`; his answer sheets are his benchmark and our 2019-2025 labels are sealed, so the file is absent and the unguarded `pd.read_csv` raised `FileNotFoundError` |
 | `tournament/contract.py` (`PREFIX`, +6 entries) | `"extra": "xt_"`, `"srcflag": "src_"`, and the four `--families` groups `"fiba_youth": "fy_"`, `"growth": "dx_"`, `"euroleague": "eur_"`, `"draftpage": "dp_"` | makes the bridge's own columns addressable as feature groups. `srcflag` always exists (one column, `src_torvik`); the other five are inert unless the matching flag is used — with no columns of that prefix `contract.groups()` never creates the group. ⚠ `tournament/sweep.py` calls `contract.assert_covered`, which requires every group to appear in the grid, so a full sweep against a table built with `--extras` or `--families` would need those names added to its grid |
+| `infra/builders/college_sources.py` (`load_combine`, +3 comment lines, 1 expression) | `out["c_shoot_pct"] = (made / att.replace(0, np.nan)) if hasattr(att, "replace") else np.nan` | the public MichLitt mirror of `draftcombinestats` has anthropometrics and drills but **no shooting-drill columns** (`SPOT_*`, `OFF_DRIB_*`, `ON_MOVE_*`), so his accumulator loop never runs and `att` is still the scalar `0.0` — the unguarded `att.replace` raised `AttributeError`. With his original stats.nba.com JSON archive present the guard is not taken. Consequence: `c_shoot_pct` is empty in the rebuild |
 | `infra/models.py`, `tournament/layer1.py`, `tournament/layer2.py` (+1 import each) | `from __future__ import annotations` | `X \| None` in a signature is evaluated at def time and needs Python 3.10+. The only interpreter on the porting Mac is 3.9, so without it the modules do not import. A no-op on the box's 3.12 |
 
 Everything else lives in `bridge/`. In particular `layer1.py`'s protocol, label logic, walk-forward split, caching,
@@ -246,3 +247,146 @@ was never touched.
 11. **`--families growth` (`dx_`) is a train/serve trap.** Coverage 0.67-0.72 through 2012-2017, then 2019 0.30,
     2021 0.18, 2023 0.03, 2024 0.00. `select_features` only drops a column that is all-NaN inside the *training*
     fold, so every `dx_` column survives training and is empty at holdout time. Walk-forward only, if at all.
+
+---
+
+## 7. Rebuilding Colin's data from the permitted public sources
+
+`bridge/rebuild_colin_data.py` recreates the inputs his builders expect, runs the builders whose sources are
+allowed here, and writes **`data/processed/draft_table_colin.parquet`** — the bridge table plus his rebuilt
+families, pid-keyed, names dropped. `data/processed/season_war.parquet` is unchanged by it (3,885 rows, 975
+players, identical to the bridge's). Licences and exactly what was taken: `bridge/SOURCES.md`.
+
+### Exact commands
+
+```bash
+cd /Users/kennakao/nba/site/engine2
+
+# everything, in order (sources -> torvik -> drafts -> hoopr -> features -> merge -> coverage)
+python3 -m bridge.rebuild_colin_data all
+
+# or stage by stage; every stage is idempotent and safe to re-run
+python3 -m bridge.rebuild_colin_data sources        # ayush (2 files) + jasong + combine mirror + RAPTOR
+python3 -m bridge.rebuild_colin_data torvik         # local Torvik cache -> data/raw/torvik/*.csv -> torvik.parquet
+python3 -m bridge.rebuild_colin_data drafts         # identity -> drafts.parquet, target.parquet, season_war.parquet
+nohup python3 -m bridge.rebuild_colin_data hoopr --keep-mb 300 > bridge/logs/hoopr.log 2>&1 &
+python3 -m bridge.rebuild_colin_data features       # his builders -> data/external/feat_*.parquet
+python3 -m bridge.rebuild_colin_data merge coverage # -> draft_table_colin.parquet + coverage_colin_rebuild.csv
+
+# subsets and housekeeping
+python3 -m bridge.rebuild_colin_data features --only combine,hoopr,shrunk,transfers,ianstack,torvik_context
+python3 -m bridge.rebuild_colin_data features --only game,response      # the two hoopR-heavy builders
+python3 -m bridge.rebuild_colin_data restore        # put OUR bridge table back at data/processed/draft_table.parquet
+python3 -m bridge.rebuild_colin_data clean          # delete data/external/hoopr + player_game.parquet (~212 MB)
+```
+
+**Resuming.** `hoopr` skips any file already on disk and stops cleanly when free disk falls below `--keep-mb`,
+printing how many files remain; just run it again. `features` re-runs each loader from scratch (seconds to two
+minutes each) but reuses `data/processed/player_game.parquet` if it exists. After `clean`, a full rebuild is
+`hoopr` then `features --only game,response` then `merge`.
+
+⚠ **`features` parks HIS name-keyed table at `data/processed/draft_table.parquet`** because `transfers.py` and
+`game_features.py` read that path. `merge` restores ours from `data/processed/draft_table_bridge.parquet` at the
+end. If a `features` run is interrupted, run `python3 -m bridge.rebuild_colin_data restore` before anything else
+touches the bridge table.
+
+### Run times and disk (measured on this Mac, 2026-09-09)
+
+| stage | wall time | bytes downloaded | disk left behind |
+|:--|--:|--:|--:|
+| `sources` | 2 s | 4.8 MB | 1.8 MB (`data/external/*.csv`) |
+| `torvik` | 2 s | 0 (local cache) | 35 MB CSV + 17 MB `torvik.parquet` |
+| `drafts` | 2 s | 0 | 0.1 MB |
+| `hoopr` | **1 m 38 s** | **113 MB** (88 parquets) | 113 MB |
+| `features` (first run) | **2 m** | 0.3 MB (ianstack) | 99 MB `player_game.parquet` + 5 MB `feat_*` / crosswalks |
+| `features` (player_game cached) | 1 m 35 s | 0 | — |
+| `merge` + `coverage` | 2 s | 0 | 4.3 MB `draft_table_colin.parquet` |
+| **total, cold** | **≈ 4 min** | **≈ 118 MB** | **≈ 275 MB peak**, 63 MB after `clean` |
+
+Free disk on this Mac was 927 MB at the start and 669 MB at the end; the floor reached was 667 MB, so the
+`--keep-mb 300` guard never fired. `clean` returns ~212 MB.
+
+### What lands where
+
+| path | rows × cols | ships to the box? |
+|:--|:--|:--|
+| `data/processed/draft_table_colin.parquet` | **1,373 × 991** (bridge 672 + 319 new) | **yes** — pid-keyed, no names |
+| `data/processed/season_war.parquet` | 3,885 × 3 | yes (unchanged) |
+| `bridge/coverage_colin_rebuild.csv` | per family, per band, before/after | yes (report) |
+| `bridge/collision_audit.csv` | 205 name collisions with n / Spearman / ratio / action | yes (report) |
+| `data/processed/draft_table_his.parquet` | his own name-keyed table, 1,373 × 596 | **NO — carries player names** |
+| `data/processed/drafts.parquet`, `_pid_names.parquet` | name-keyed | **NO** |
+| `data/raw/`, `data/external/` | raw sources | no |
+
+`data/` is already in `.gitignore`, and `merge` asserts `bbref_id == key == player == pid`, that no rebuilt column
+is an object column, and that no column name contains "name".
+
+### Feeding it to layer 1
+
+`draft_table_colin.parquet` passes `tournament.contract.validate()` unchanged. To score against it, point the
+winner at it (or copy it over `draft_table.parquet` on the box):
+
+```bash
+cp data/processed/draft_table_colin.parquet data/processed/draft_table.parquet   # on the BOX only
+python3 -m bridge.run_winner --window holdout
+```
+
+The new families are addressable as contract groups without any further change: `a_box`, `j_bio`, `j_team`,
+`j_box`, `j_shot`, `j_aau`, `j_event` are explicit lists in `tournament/contract.py`; `hoopr` (`h_`),
+`game` (`g_`), `shrunk` (`sh_`), `transfers` (`tr_`), `ianstack` (`is_`) are prefix groups that now have columns
+and therefore now exist. **None of them is in the winner's feature list**, so the ported winner is unchanged until
+you add them — which is a walk-forward decision, not a default.
+
+## 8. What could not be rebuilt, and why
+
+### (a) Families deliberately not attempted — our own blocks already fill them
+
+| his family | prefix | why not rebuilt |
+|:--|:--|:--|
+| `person` | `bio_` | `infra/builders/bio.py` scrapes basketball-reference player pages. Not permitted. Our `wt_` / `misc_` Wikipedia-rule block fills all 41 columns (0.74 / 0.83 / 0.84 by band). |
+| `intl_pro`, `intl_fiba`, `intl_z` | `i_`, `iz_` | `infra/builders/intl.py`'s two largest stages are basketball-reference international league pages and `stats.gleague.nba.com`. Not permitted. Our `intl_` / `fy_` / `eur_` blocks fill 26/28, 17/27 and 39 columns. The rebuild writes an empty, correctly-typed `data/external/intl_prospects.parquet` so his `dataset.build_table()` runs unmodified. **Still all-NaN:** `i_tov_36`, `i_ast_tov` (we carry international turnovers only as a percentage of possessions) and the ten `i_fiba_*` per-event columns (`u16`, `u17wc`, `u18`, `u19wc`, `u20`, `gp`, `trb_36`, `blk_36`, `fg3a_rate`, `ft_pct`) — our `fy_` block is age-relative and z-scored inside the event cohort rather than raw per-36. |
+| `mock`, `momentum`, `scouting`, `comp` | `mock_`, `mo_`, `sc_`, `sct_` | Wayback re-scrapes of mock boards and NBADraft.net, 20–40 min each, for columns our `vcons_` / `bb_` / `sc_` / `cp_` blocks already fill. |
+| labels (`war5`, `season_war`) | — | his `infra/war.py` needs bbref advanced tables + RAPTOR. Our staging per-season outcomes replace them; `season_war.parquet` is unchanged by the rebuild. |
+
+### (b) Sources that exist but were skipped
+
+| loader | why |
+|:--|:--|
+| `load_kaggle_college` (`k_`) | `huggingface_hub.snapshot_download`. His own docstring: it is a 2021 Torvik snapshot and "returns only the keys of the player-seasons it holds" — **no new column**. |
+| `load_score` (`s_`) | his own docstring: "there is no pre-draft column to expose: returns keys only". |
+| `load_marchmadness` (`mm_`) | HF snapshot; would add 11 `mm_*` columns (starts, WS, team SOS/SRS, seed, tournament wins) for NCAA-tournament players 2011+. Needs `huggingface_hub`, which is not installed on this Mac, and the group is not in the winner's feature list. **This is the one genuinely missing permitted source** — add it with `pip install huggingface_hub` then `features --only marchmadness` after registering it in `PERMITTED`. |
+| `odds.py`, `coaches.py`, `development.py`, `gleague.py`, `population.py`, `hoopexplorer.py` | live sportsbook archives, bbref coach pages, stats.nba.com, hoop-explorer. None permitted, none in the winner's feature list; his ideas log records `dev`, `population`, `coach` and `impact` as non-improvements. |
+
+### (c) Columns that are empty because the permitted source does not carry them
+
+| column(s) | reason |
+|:--|:--|
+| `c_shoot_pct` | the MichLitt combine mirror has no `SPOT_*` / `OFF_DRIB_*` / `ON_MOVE_*` shooting-drill columns. (The output table still has values here — they come from our own `vcmb_` block, not from the rebuild.) |
+| `ev_min`, `ev_placement` | present in the JasonG sheet but as `MM:SS` (`20:00`) and as medal/finish strings (`Gold`, `6th`, `-`). His `external.jasong` coerces every mapped column with `pd.to_numeric(errors="coerce")`, so **these two were empty in his pipeline too**. Recovering them would need a parser he did not write. |
+
+### (d) Class-band limits of each rebuilt family (this is where the coverage table's zeros come from)
+
+| family | first usable class | last usable class | why |
+|:--|:--|:--|:--|
+| `a_*` (AyushBatra) | **2004** | **2024** | the repo ships `draft_players.csv` (2004–2023) and `draft_players24.csv` (2024); there is no 2025 file, and no file covers 2000–2003. |
+| `rsci`, `sos`, `j_*`, `j_shot` | **2011** | 2025 (thin) | the JasonG sheet's `2008-09` and `2009-10` rows carry recruiting and bio columns only — every box-score column is null there — so `j_PER` and friends start with the 2011 class. `2024-25` has just 9 rows, so the 2025 class is 14% covered. |
+| `aau_*` | **2020** | **2024** | the AAU block exists only for the `2019-20` … `2023-24` seasons (75 rows in total). |
+| `ev_*` | 2011 | 2024 | 518 rows overall, concentrated in the same window. |
+| `h_*` (hoopR) | **2005** | 2026 | ESPN's men's college feed holds 1 game in the 2003 season and 11 in 2004; full coverage starts 2005. His own `college_sources.py` says the same. |
+| `g_*`, `t_*`, `sh_*`, `tr_*`, `rs_*` (his 11) | **2008** | 2026 | all five are keyed to a matched **Torvik** final season, and the Torvik export starts with the 2007-08 season. |
+| `is_college_ws` | 2000 | 2022 | the ianstack sheet stops at the 2022 combine. |
+| `c_*` (combine) | 2000 | 2026 | full range; the 2020 class is 47% because that combine was cancelled. |
+
+### (e) Consequence for the 2003–2009 band
+
+`all_torvik` in 2003-09 is still 0.459 — the rebuild does not move it, because his named Torvik features are fed
+from the Torvik export, which starts in 2008. What the rebuild *does* add there is a genuine college box-score
+line from a different source: **`hoopr` (35 columns) is 0.566 in 2003-09** and `a_box` (17 columns) is 0.520.
+That is exactly how Colin covered the pre-Torvik classes — his `dataset.build_table` marks a 2003-2007 draftee
+`modelled` on `h_gp >= 5`, and the `h_*` season line is what his models saw for them. So the first experiment
+worth running on the box is now a genuine choice rather than a workaround:
+
+* `--ctx-start-catboost 2008` (drop the thin classes), **versus**
+* keep `ctx_start: 2003` and add `"hoopr"` and `"a_box"` to the feature list so those classes carry real data.
+
+Decide it on the walk-forward window, never on the holdout.
