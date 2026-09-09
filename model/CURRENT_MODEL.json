@@ -1,6 +1,6 @@
 {
- "name": "EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context - current model",
- "evaluated_on": "data v4.19 verified; gate: 7 season-consistent folds 2012-2018 with seed-shifted confirmation; blind: three seed sets through the sealed vault (2026-09-09 08:02)",
+ "name": "EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context + ridge on top columns - current model",
+ "evaluated_on": "data v4.19 verified; gate: 7 season-consistent folds 2012-2018 with seed-shifted confirmation; blind: three seed sets through the sealed vault (2026-09-09 19:17)",
  "genome": {
   "hw": "disc85",
   "norm": "none",
@@ -74,7 +74,7 @@
   "cmb": 0,
   "spline": 0,
   "intl_mask": 1,
-  "ridge_top": 0,
+  "ridge_top": 1,
   "ctrlnan": 0,
   "f50": 0,
   "ctx": 0,
@@ -107,7 +107,23 @@
   "dx": 0,
   "dxs": 0,
   "eur": 0,
-  "eurs": 0
+  "eurs": 0,
+  "bm_sc": 0,
+  "bm_cp": 0,
+  "bm_fy": 0,
+  "bm_tc": 0,
+  "bm_gl2": 0,
+  "bm_bb": 0,
+  "bm_wt": 0,
+  "bm_dx": 0,
+  "bm_eur": 0,
+  "bm_dp": 0,
+  "bm_ctrl": 0,
+  "bm_kind": "xgb",
+  "tcf": 0,
+  "tcfs": 0,
+  "li": 0,
+  "lis": 0
  },
  "members": [
   "xgb",
@@ -117,119 +133,107 @@
  "stack_weights": {
   "rich": [
    0.0,
-   0.75,
-   0.25
+   1.0,
+   0.0
   ],
   "thin": [
-   0.5,
-   0.5,
+   0.0,
+   1.0,
    0.0
   ]
  },
  "previous_model": {
-  "name": "EVO gen11 + international-line mask (training window 2007-2018) - current model",
+  "name": "EVO gen11 + international-line mask + NBADraft.net grades + Torvik league context - current model",
   "metrics": {
-   "data": "verified v4.19 (see docs/DATA_V4_VERIFIED.md and docs/EXPERIMENTS.md)",
+   "data": "verified v4.19 (docs/DATA_V4_VERIFIED.md, docs/EXPERIMENTS.md)",
    "strict": {
-    "mean_order_accuracy": 42.2,
+    "mean_order_accuracy": 42.1,
     "nba_draft_order_accuracy": 26.3,
     "per_class": [
      {
       "season": 2019,
       "k": 5,
-      "stack": 0.405,
+      "stack": 0.467,
       "draft": 0.402
      },
      {
       "season": 2020,
       "k": 5,
-      "stack": 0.384,
+      "stack": 0.315,
       "draft": 0.35
      },
      {
       "season": 2021,
       "k": 5,
-      "stack": 0.592,
+      "stack": 0.683,
       "draft": 0.408
      },
      {
       "season": 2022,
       "k": 4,
-      "stack": 0.529,
+      "stack": 0.518,
       "draft": 0.262
      },
      {
       "season": 2023,
       "k": 3,
-      "stack": 0.42,
+      "stack": 0.425,
       "draft": 0.111
      },
      {
       "season": 2024,
       "k": 2,
-      "stack": 0.374,
+      "stack": 0.284,
       "draft": 0.134
      },
      {
       "season": 2025,
       "k": 1,
-      "stack": 0.252,
+      "stack": 0.256,
       "draft": 0.176
      }
     ]
    },
    "expanding": {
-    "mean_order_accuracy": 48.4,
+    "mean_order_accuracy": 49.3,
     "nba_draft_order_accuracy": 24.0,
     "per_class": [
      {
       "season": 2020,
       "k": 5,
-      "stack": 0.395,
+      "stack": 0.334,
       "draft": 0.35
      },
      {
       "season": 2021,
       "k": 5,
-      "stack": 0.607,
+      "stack": 0.673,
       "draft": 0.408
      },
      {
       "season": 2022,
       "k": 4,
-      "stack": 0.541,
+      "stack": 0.534,
       "draft": 0.262
      },
      {
       "season": 2023,
       "k": 3,
-      "stack": 0.522,
+      "stack": 0.583,
       "draft": 0.111
      },
      {
       "season": 2024,
       "k": 2,
-      "stack": 0.46,
+      "stack": 0.469,
       "draft": 0.134
      },
      {
       "season": 2025,
       "k": 1,
-      "stack": 0.379,
+      "stack": 0.368,
       "draft": 0.176
      }
-    ]
-   },
-   "seed_sets": {
-    "strict": [
-     42.2,
-     42.3,
-     42.2
-    ],
-    "expanding": [
-     48.5,
-     48.5,
-     48.2
     ]
    }
   }
@@ -369,91 +373,91 @@
  "metrics": {
   "data": "verified v4.19 (docs/DATA_V4_VERIFIED.md, docs/EXPERIMENTS.md)",
   "strict": {
-   "mean_order_accuracy": 42.1,
+   "mean_order_accuracy": 41.8,
    "nba_draft_order_accuracy": 26.3,
    "per_class": [
     {
      "season": 2019,
      "k": 5,
-     "stack": 0.467,
+     "stack": 0.445,
      "draft": 0.402
     },
     {
      "season": 2020,
      "k": 5,
-     "stack": 0.315,
+     "stack": 0.289,
      "draft": 0.35
     },
     {
      "season": 2021,
      "k": 5,
-     "stack": 0.683,
+     "stack": 0.666,
      "draft": 0.408
     },
     {
      "season": 2022,
      "k": 4,
-     "stack": 0.518,
+     "stack": 0.568,
      "draft": 0.262
     },
     {
      "season": 2023,
      "k": 3,
-     "stack": 0.425,
+     "stack": 0.405,
      "draft": 0.111
     },
     {
      "season": 2024,
      "k": 2,
-     "stack": 0.284,
+     "stack": 0.244,
      "draft": 0.134
     },
     {
      "season": 2025,
      "k": 1,
-     "stack": 0.256,
+     "stack": 0.307,
      "draft": 0.176
     }
    ]
   },
   "expanding": {
-   "mean_order_accuracy": 49.3,
+   "mean_order_accuracy": 50.6,
    "nba_draft_order_accuracy": 24.0,
    "per_class": [
     {
      "season": 2020,
      "k": 5,
-     "stack": 0.334,
+     "stack": 0.271,
      "draft": 0.35
     },
     {
      "season": 2021,
      "k": 5,
-     "stack": 0.673,
+     "stack": 0.731,
      "draft": 0.408
     },
     {
      "season": 2022,
      "k": 4,
-     "stack": 0.534,
+     "stack": 0.551,
      "draft": 0.262
     },
     {
      "season": 2023,
      "k": 3,
-     "stack": 0.583,
+     "stack": 0.604,
      "draft": 0.111
     },
     {
      "season": 2024,
      "k": 2,
-     "stack": 0.469,
+     "stack": 0.493,
      "draft": 0.134
     },
     {
      "season": 2025,
      "k": 1,
-     "stack": 0.368,
+     "stack": 0.389,
      "draft": 0.176
     }
    ]
