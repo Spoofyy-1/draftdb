@@ -114,7 +114,10 @@ def load_combine() -> pd.DataFrame:
     for col in [x for x in c.columns if x.startswith(("SPOT_", "OFF_DRIB_", "ON_MOVE_"))]:
         ma = c[col].astype("string").str.extract(r"^(\d+)-(\d+)$").astype(float)
         made, att = made + ma[0].fillna(0), att + ma[1].fillna(0)
-    out["c_shoot_pct"] = made / att.replace(0, np.nan)
+    # BRIDGE: the public MichLitt mirror of `draftcombinestats` carries anthro + drills but no shooting-drill
+    # BRIDGE: columns, so the loop above finds nothing and `att` is still the scalar 0.0. Emit an empty c_shoot_pct
+    # BRIDGE: rather than crashing; with the original stats.nba.com JSON archive present this branch is not taken.
+    out["c_shoot_pct"] = (made / att.replace(0, np.nan)) if hasattr(att, "replace") else np.nan
 
     cand = _draftees()[KEYS].merge(out, on="key")
     cand = cand[(cand.combine_year <= cand.draft_year) & (cand.combine_year >= cand.draft_year - 2)]
