@@ -108,6 +108,10 @@ def war_target(drafts: pd.DataFrame, swar: pd.DataFrame, through: int = LAST_SEA
         totals = {}
         for year in range(2019, 2026):
             path = PROC.parent / "raw" / "reference_war" / f"answers_{year}.csv"
+            # BRIDGE: the frozen 2019-2025 answer sheets are his benchmark files. On our data those labels are sealed
+            # BRIDGE: (scored through the vault), so the override is skipped when the file is absent instead of raising.
+            if not path.exists():
+                continue
             a = pd.read_csv(path).dropna(subset=["actual_pick"])
             totals.update({(year, int(r.actual_pick)): float(r.y_early_war) for r in a.itertuples()})
         exact = [totals.get((int(y), int(p))) for y, p in zip(drafts.draft_year, drafts["pick"])]

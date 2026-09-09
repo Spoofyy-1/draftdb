@@ -18,6 +18,10 @@ ctx_end, ctx_last, ctx_min_seasons, stack ([member configs], rank-averaged, opti
 Usage: python -m tournament.layer1 --device cuda:0 --years context --tag sweep1 --configs '[{"name": ...}, ...]'
 """
 
+# BRIDGE: `X | None` in signatures needs Python 3.10+; this makes the module importable on the 3.9 that is
+# BRIDGE: the only interpreter on the porting Mac. No-op on the box (3.12).
+from __future__ import annotations
+
 import argparse
 import hashlib
 import json

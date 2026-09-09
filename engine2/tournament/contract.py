@@ -69,6 +69,9 @@ PREFIX = {
     "impact": "he_",        # Hoop Explorer lineup impact (2019+ classes): RAPM, on/off, play-type profile, vs-top-100 versions
     "person": "bio_",       # basketball-reference biography: NBA relatives, shooting hand, birthplace, high-school path
     "coach": "co_",         # head coach tenure / record / tournament history, team record, causal coach + program NBA track record
+    # BRIDGE: every verified pre-draft column of ours that his groups have no home for, written by
+    # BRIDGE: `bridge/build_table.py --extras`. Absent (and the group therefore absent) unless that flag is used.
+    "extra": "xt_",
 }
 
 # --------------------------------------------------------------------------- models and labels

@@ -25,6 +25,10 @@ In-context models (TabFM, EXAONE) do no training: `fit` stores the context rows 
   +momentum   gives the stack's regression member archived pre-draft mock histories; explicitly not labelled pure AI
 """
 
+# BRIDGE: `X | None` in signatures needs Python 3.10+; this makes the module importable on the 3.9 that is
+# BRIDGE: the only interpreter on the porting Mac. No-op on the box (3.12).
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 from scipy.stats import rankdata

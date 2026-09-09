@@ -15,6 +15,10 @@ Rules
 Usage: python -m tournament.layer2 --layer1 outputs/layer_1/<tag>.parquet [--holdout]
 """
 
+# BRIDGE: `X | None` in signatures needs Python 3.10+; this makes the module importable on the 3.9 that is
+# BRIDGE: the only interpreter on the porting Mac. No-op on the box (3.12).
+from __future__ import annotations
+
 import argparse
 import json
 from datetime import datetime, timezone
