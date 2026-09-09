@@ -1,0 +1,505 @@
+{
+ "generated": "2026-09-10",
+ "boards_used": "expanding",
+ "war_definition": "MOCK FIXTURE — invented players and invented numbers, used only to develop the page template. WAR to date is the wins above replacement a player has produced over at most his first five NBA seasons.",
+ "model": {
+  "label": "DraftDB EVO gen11 (mock fixture — not a real run)",
+  "expanding_accuracy": 50.6,
+  "strict_accuracy": 41.8,
+  "draft_accuracy_expanding": 24.0,
+  "draft_accuracy_strict": 26.3
+ },
+ "teams": [
+  {
+   "slug": "atlanta-hawks",
+   "name": "Atlanta Hawks",
+   "abbr": "ATL",
+   "team_id": 1610612737,
+   "summary": {
+    "n_picks": 8,
+    "n_cards": 7,
+    "war_actual_total": 26.2,
+    "war_model_total": 39.3,
+    "model_better": 4,
+    "team_better": 1,
+    "ties": 2,
+    "first_round_only": {
+     "war_actual_total": 23.8,
+     "war_model_total": 38.0,
+     "model_better": 3,
+     "team_better": 0
+    }
+   },
+   "drafts": [
+    {
+     "year": 2019,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 10,
+       "round": 1,
+       "actual": {
+        "pid": 9001,
+        "name": "Jaylen O'Connor-Baptiste",
+        "org": "St. John's & Marist",
+        "war": 4.2,
+        "seasons_scored": 5,
+        "model_rank": 22,
+        "games": 291,
+        "minutes": 6120
+       },
+       "model_choice": {
+        "pid": 9002,
+        "name": "Nikola Đurić",
+        "org": "KK Crvena zvezda",
+        "war": 11.8,
+        "seasons_scored": 5,
+        "model_rank": 6,
+        "actual_pick": 21,
+        "drafted_by": "Oklahoma City Thunder"
+       },
+       "best_hindsight": {
+        "pid": 9003,
+        "name": "Marcus Vandersloot",
+        "war": 24.6,
+        "actual_pick": 33,
+        "drafted_by": "Denver Nuggets"
+       },
+       "delta_war": 7.6,
+       "verdict": "model"
+      },
+      {
+       "pick": 41,
+       "round": 2,
+       "actual": {
+        "pid": 9004,
+        "name": "Tyrese Whitaker",
+        "org": "Gonzaga",
+        "war": 2.1,
+        "seasons_scored": 5,
+        "model_rank": 55,
+        "games": 180,
+        "minutes": 2410
+       },
+       "model_choice": {
+        "pid": 9005,
+        "name": "Dominic Achebe",
+        "org": "Baylor",
+        "war": 0.4,
+        "seasons_scored": 5,
+        "model_rank": 44,
+        "actual_pick": 58,
+        "drafted_by": "Utah Jazz"
+       },
+       "best_hindsight": {
+        "pid": 9003,
+        "name": "Marcus Vandersloot",
+        "war": 24.6,
+        "actual_pick": 33,
+        "drafted_by": "Denver Nuggets"
+       },
+       "delta_war": -1.7,
+       "verdict": "team"
+      }
+     ]
+    },
+    {
+     "year": 2020,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 6,
+       "round": 1,
+       "actual": {
+        "pid": 9006,
+        "name": "Amari Toussaint",
+        "org": "Duke",
+        "war": 9.3,
+        "seasons_scored": 4,
+        "model_rank": 4,
+        "games": 244,
+        "minutes": 6890
+       },
+       "model_choice": {
+        "pid": 9007,
+        "name": "Sebastian Kowalczyk",
+        "org": "Real Madrid",
+        "war": 9.4,
+        "seasons_scored": 4,
+        "model_rank": 2,
+        "actual_pick": 19,
+        "drafted_by": "Brooklyn Nets"
+       },
+       "best_hindsight": {
+        "pid": 9008,
+        "name": "Devin Marchetti",
+        "war": 18.2,
+        "actual_pick": 25,
+        "drafted_by": "Sacramento Kings"
+       },
+       "delta_war": 0.1,
+       "verdict": "tie"
+      }
+     ]
+    },
+    {
+     "year": 2021,
+     "no_pick": true,
+     "picks": []
+    },
+    {
+     "year": 2022,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 16,
+       "round": 1,
+       "actual": {
+        "pid": 9009,
+        "name": "Zaid Al-Sharif",
+        "org": "Arizona",
+        "war": 3.0,
+        "seasons_scored": 3,
+        "model_rank": null,
+        "games": 155,
+        "minutes": 3320
+       },
+       "model_choice": {
+        "pid": 9010,
+        "name": "Cole Ferreira-Nance",
+        "org": "Michigan State",
+        "war": 6.8,
+        "seasons_scored": 3,
+        "model_rank": 9,
+        "actual_pick": 24,
+        "drafted_by": "Milwaukee Bucks"
+       },
+       "best_hindsight": {
+        "pid": 9011,
+        "name": "Ibrahima Sow",
+        "war": 9.9,
+        "actual_pick": 40,
+        "drafted_by": "Miami Heat"
+       },
+       "delta_war": 3.8,
+       "verdict": "model"
+      }
+     ]
+    },
+    {
+     "year": 2023,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 15,
+       "round": 1,
+       "actual": {
+        "pid": 9012,
+        "name": "Rafael Quintana",
+        "org": "Overtime Elite",
+        "war": 5.4,
+        "seasons_scored": 2,
+        "model_rank": 3,
+        "games": 132,
+        "minutes": 3040
+       },
+       "model_choice": {
+        "pid": 9012,
+        "name": "Rafael Quintana",
+        "org": "Overtime Elite",
+        "war": 5.4,
+        "seasons_scored": 2,
+        "model_rank": 3,
+        "actual_pick": 15,
+        "drafted_by": "Atlanta Hawks"
+       },
+       "best_hindsight": {
+        "pid": 9013,
+        "name": "Henry Oyelaran",
+        "war": 7.1,
+        "actual_pick": 28,
+        "drafted_by": "Utah Jazz"
+       },
+       "delta_war": 0.0,
+       "verdict": "tie"
+      }
+     ]
+    },
+    {
+     "year": 2024,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 1,
+       "round": 1,
+       "actual": {
+        "pid": 9014,
+        "name": "Bruno \"Bo\" Sant'Anna",
+        "org": "Ratiopharm Ulm",
+        "war": 1.9,
+        "seasons_scored": 2,
+        "model_rank": 12,
+        "games": 96,
+        "minutes": 1980
+       },
+       "model_choice": {
+        "pid": 9015,
+        "name": "Trey Washington III",
+        "org": "Kentucky",
+        "war": 4.6,
+        "seasons_scored": 2,
+        "model_rank": 1,
+        "actual_pick": 5,
+        "drafted_by": "Detroit Pistons"
+       },
+       "best_hindsight": {
+        "pid": 9015,
+        "name": "Trey Washington III",
+        "war": 4.6,
+        "actual_pick": 5,
+        "drafted_by": "Detroit Pistons"
+       },
+       "delta_war": 2.7,
+       "verdict": "model"
+      }
+     ]
+    },
+    {
+     "year": 2025,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 13,
+       "round": 1,
+       "actual": {
+        "pid": 9016,
+        "name": "Kwame Osei-Boateng",
+        "org": "Illinois",
+        "war": 0.6,
+        "seasons_scored": 1,
+        "model_rank": 30,
+        "games": 61,
+        "minutes": 990
+       },
+       "model_choice": null,
+       "best_hindsight": null,
+       "delta_war": null,
+       "verdict": "tie"
+      },
+      {
+       "pick": 52,
+       "round": 2,
+       "actual": {
+        "pid": 9017,
+        "name": "Luka Petrović",
+        "org": "Partizan",
+        "war": -0.3,
+        "seasons_scored": 1,
+        "model_rank": 61,
+        "games": 22,
+        "minutes": 210
+       },
+       "model_choice": {
+        "pid": 9018,
+        "name": "Malik Fontaine",
+        "org": "Houston",
+        "war": 0.9,
+        "seasons_scored": 1,
+        "model_rank": 18,
+        "actual_pick": 39,
+        "drafted_by": "Portland Trail Blazers"
+       },
+       "best_hindsight": {
+        "pid": 9019,
+        "name": "Aaron Lindqvist",
+        "war": 2.4,
+        "actual_pick": 44,
+        "drafted_by": "Boston Celtics"
+       },
+       "delta_war": 1.2,
+       "verdict": "model"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "memphis-grizzlies",
+   "name": "Memphis Grizzlies",
+   "abbr": "MEM",
+   "team_id": 1610612763,
+   "summary": {
+    "n_picks": 4,
+    "n_cards": 4,
+    "war_actual_total": 29.0,
+    "war_model_total": 20.7,
+    "model_better": 1,
+    "team_better": 2,
+    "ties": 1,
+    "first_round_only": {
+     "war_actual_total": 29.0,
+     "war_model_total": 11.9,
+     "model_better": 0,
+     "team_better": 2
+    }
+   },
+   "drafts": [
+    {
+     "year": 2019,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 2,
+       "round": 1,
+       "actual": {
+        "pid": 9101,
+        "name": "Elijah Ferran",
+        "org": "Murray State",
+        "war": 22.4,
+        "seasons_scored": 5,
+        "model_rank": 8,
+        "games": 320,
+        "minutes": 10400
+       },
+       "model_choice": {
+        "pid": 9102,
+        "name": "Andrei Volkov",
+        "org": "CSKA Moscow",
+        "war": 6.1,
+        "seasons_scored": 5,
+        "model_rank": 1,
+        "actual_pick": 12,
+        "drafted_by": "Charlotte Hornets"
+       },
+       "best_hindsight": {
+        "pid": 9101,
+        "name": "Elijah Ferran",
+        "war": 22.4,
+        "actual_pick": 2,
+        "drafted_by": "Memphis Grizzlies"
+       },
+       "delta_war": -16.3,
+       "verdict": "team"
+      }
+     ]
+    },
+    {
+     "year": 2020,
+     "no_pick": true,
+     "picks": []
+    },
+    {
+     "year": 2022,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 22,
+       "round": 1,
+       "actual": {
+        "pid": 9103,
+        "name": "Sam Okonkwo",
+        "org": "Santa Clara",
+        "war": 4.4,
+        "seasons_scored": 3,
+        "model_rank": 26,
+        "games": 190,
+        "minutes": 4100
+       },
+       "model_choice": {
+        "pid": 9104,
+        "name": "Pavel Havlíček",
+        "org": "Zalgiris Kaunas",
+        "war": 4.4,
+        "seasons_scored": 3,
+        "model_rank": 14,
+        "actual_pick": 47,
+        "drafted_by": "Phoenix Suns"
+       },
+       "best_hindsight": {
+        "pid": 9105,
+        "name": "Deon Trotter",
+        "war": 8.8,
+        "actual_pick": 51,
+        "drafted_by": "Orlando Magic"
+       },
+       "delta_war": 0.0,
+       "verdict": "tie"
+      },
+      {
+       "pick": 47,
+       "round": 2,
+       "actual": {
+        "pid": 9106,
+        "name": "Chris Baptiste",
+        "org": "UNC Greensboro",
+        "war": 0.0,
+        "seasons_scored": 3,
+        "model_rank": null,
+        "games": 12,
+        "minutes": 88
+       },
+       "model_choice": {
+        "pid": 9105,
+        "name": "Deon Trotter",
+        "org": "Auburn",
+        "war": 8.8,
+        "seasons_scored": 3,
+        "model_rank": 20,
+        "actual_pick": 51,
+        "drafted_by": "Orlando Magic"
+       },
+       "best_hindsight": {
+        "pid": 9105,
+        "name": "Deon Trotter",
+        "war": 8.8,
+        "actual_pick": 51,
+        "drafted_by": "Orlando Magic"
+       },
+       "delta_war": 8.8,
+       "verdict": "model"
+      }
+     ]
+    },
+    {
+     "year": 2024,
+     "no_pick": false,
+     "picks": [
+      {
+       "pick": 9,
+       "round": 1,
+       "actual": {
+        "pid": 9107,
+        "name": "Noah Kim",
+        "org": "Baylor",
+        "war": 2.2,
+        "seasons_scored": 2,
+        "model_rank": 15,
+        "games": 121,
+        "minutes": 2600
+       },
+       "model_choice": {
+        "pid": 9108,
+        "name": "Ousmane Ndiaye",
+        "org": "ASVEL",
+        "war": 1.4,
+        "seasons_scored": 2,
+        "model_rank": 7,
+        "actual_pick": 30,
+        "drafted_by": "San Antonio Spurs"
+       },
+       "best_hindsight": {
+        "pid": 9109,
+        "name": "Julian Marchand",
+        "war": 5.5,
+        "actual_pick": 18,
+        "drafted_by": "Orlando Magic"
+       },
+       "delta_war": -0.8,
+       "verdict": "team"
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
